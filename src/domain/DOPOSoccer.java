@@ -31,6 +31,8 @@ public class DOPOSoccer {
     private final LinkedHashMap<String, BallSkin> balls;
     /** Ball used in the matches (the last one chosen). */
     private BallSkin ball;
+    /** Stats of each player (0 left, 1 right): they belong to the player and are kept between matches. */
+    private final Stats[] stats;
     /** Game being played, or null. */
     private GameMode mode;
     /** Whether the game is paused. */
@@ -62,6 +64,7 @@ public class DOPOSoccer {
         balls.put("Hielo", new BallSkin("Hielo", 700));
         balls.put("Galaxia", new BallSkin("Galaxia", 1000));
         ball = balls.get(DEFAULT_BALL);
+        stats = new Stats[]{new Stats(), new Stats()}; // everything starts at 1
         lastPoints = new int[2];
     }
 
@@ -104,8 +107,8 @@ public class DOPOSoccer {
             throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
         }
         MatchType type = createType(matchType, amount);
-        GameMode newMode = new ArcadeMode(left, new Stats(), new HumanController(),
-                right, new Stats(), new HumanController(), type, resolution, ball);
+        GameMode newMode = new ArcadeMode(left, stats[0], new HumanController(),
+                right, stats[1], new HumanController(), type, resolution, ball);
         newMode.start();
         mode = newMode;
         paused = false;
@@ -660,15 +663,15 @@ public class DOPOSoccer {
     }
 
     /**
-     * Returns the level of a stat. Under construction (store).
+     * Returns the level of a stat of a player. They start at 1 and go up to 10 (with the store).
      *
      * @param side "LEFT" or "RIGHT"
      * @param stat "SPEED", "JUMP", "KICK" or "SURVIVAL"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the level, from 1 to 10
+     * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getStat(String side, String stat) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return stats[index(side)].get(stat);
     }
 
     /**

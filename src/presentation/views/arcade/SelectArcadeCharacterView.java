@@ -27,26 +27,27 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private static final Color STAT_EMPTY = new Color(9, 45, 4);
 
     private static final Dimension CARD_SIZE = new Dimension(140, 180);
-    private static final int MAX_STAT = 6;
+    private static final int MAX_STAT = 10; // like the domain (Stats.MAX_STAT): every stat goes from 1 to 10
     private static final String[] STATS_NAMES = {"VELOCIDAD", "SALTO", "PATADA", "VIDA"};
 
-    // Characters: name, country code, image, power, stats (velocidad, salto, patada, vida from 0 to 6), price (0 = unlocked) and flag
+    // Characters: name, country code, image, power, price (0 = unlocked) and flag
+    // (the stats aren't here: they belong to the player, the domain gives them with setStats)
     private static final CharacterInfo[] CHARACTERS = {
-        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", new int[]{4, 3, 4, 3}, 0,
+        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", 0,
             new Flag(false, FLAG_YELLOW, FLAG_YELLOW, FLAG_BLUE, FLAG_RED)),
-        new CharacterInfo("ARGENTINA", "AR", "argentina", "TIRO DE FUEGO", new int[]{3, 3, 5, 3}, 0,
+        new CharacterInfo("ARGENTINA", "AR", "argentina", "TIRO DE FUEGO", 0,
             new Flag(false, FLAG_SKY, WHITE, FLAG_SKY).circle(0.3f, FLAG_YELLOW)),
-        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "ZIGZAG", new int[]{5, 3, 3, 3}, 0,
+        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "ZIGZAG", 0,
             new Flag(false, WHITE).circle(0.55f, FLAG_RED, FLAG_BLUE)),
-        new CharacterInfo("CAMERÚN", "CM", "cameroon", "MURALLA", new int[]{3, 4, 3, 5}, 0,
+        new CharacterInfo("CAMERÚN", "CM", "cameroon", "MURALLA", 0,
             new Flag(true, FLAG_GREEN, FLAG_RED, FLAG_YELLOW)),
-        new CharacterInfo("NIGERIA", "NG", "nigeria", "SALTO ALTO", new int[]{4, 5, 3, 3}, 0,
+        new CharacterInfo("NIGERIA", "NG", "nigeria", "SALTO ALTO", 0,
             new Flag(true, FLAG_GREEN, WHITE, FLAG_GREEN)),
-        new CharacterInfo("PERÚ", "PE", "peru", "CHALACA", new int[]{3, 4, 4, 3}, 0,
+        new CharacterInfo("PERÚ", "PE", "peru", "CHALACA", 0,
             new Flag(true, FLAG_RED, WHITE, FLAG_RED)),
-        new CharacterInfo("ESPAÑA", "ES", "spain", "TIKI-TAKA", new int[]{4, 3, 5, 4}, 800,
+        new CharacterInfo("ESPAÑA", "ES", "spain", "TIKI-TAKA", 800,
             new Flag(false, FLAG_RED, FLAG_YELLOW, FLAG_YELLOW, FLAG_RED)),
-        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", new int[]{5, 4, 4, 4}, 1200,
+        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", 1200,
             new Flag(false, WHITE).circle(0.55f, FLAG_RED))
     };
 
@@ -63,6 +64,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private JLabel detailName;
     private JLabel detailPower;
     private JLabel[] detailStats = new JLabel[STATS_NAMES.length];
+    private int[] statValues = {1, 1, 1, 1}; // velocidad, salto, patada, vida (given by the domain)
     private JPanel cardsGrid;
 
     public SelectArcadeCharacterView(Font luckiest, boolean rival) {
@@ -107,6 +109,12 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     public String getSelectedPower() {
         return CHARACTERS[selected].power;
+    }
+
+    // Stats of the player choosing (from the domain): it only paints them
+    public void setStats(int speed, int jump, int kick, int survival) {
+        statValues = new int[]{speed, jump, kick, survival};
+        updateDetails();
     }
 
     // Country code for the scoreboard ("CO", "AR"...)
@@ -198,7 +206,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
         detailName.setText(character.name);
         detailPower.setText("PODER: " + character.power);
         for (int i = 0; i < detailStats.length; i++) {
-            detailStats[i].setIcon(createStatIcon(character.stats[i]));
+            detailStats[i].setIcon(createStatIcon(statValues[i]));
         }
     }
 
@@ -253,7 +261,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     // Stat bar: yellow segments for the value, dark segments for the rest
     private Icon createStatIcon(int value) {
-        int segmentWidth = 18;
+        int segmentWidth = 10; // 10 segments that fit in the details panel
         int segmentHeight = 11;
         int gap = 4;
         return new Icon() {
@@ -396,16 +404,14 @@ public class SelectArcadeCharacterView extends ArcadeView {
         private final String code; // country code for the scoreboard ("CO", "AR"...)
         private final String image;
         private final String power;
-        private final int[] stats;
         private final int price;
         private final Flag flag;
 
-        public CharacterInfo(String name, String code, String image, String power, int[] stats, int price, Flag flag) {
+        public CharacterInfo(String name, String code, String image, String power, int price, Flag flag) {
             this.name = name;
             this.code = code;
             this.image = image;
             this.power = power;
-            this.stats = stats;
             this.price = price;
             this.flag = flag;
         }

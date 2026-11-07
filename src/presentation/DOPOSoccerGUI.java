@@ -160,7 +160,10 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSelectArcadeMatchTypeController() {
         selectArcadeMatchTypeView.backBtn.addActionListener(e -> showView(selectArcadeResolutionView, "Resolución (Arcade)"));
-        selectArcadeMatchTypeView.continueBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
+        selectArcadeMatchTypeView.continueBtn.addActionListener(e -> {
+            showStats(selectArcadeCharacterView, "LEFT"); // stats of player 1, from the domain
+            showView(selectArcadeCharacterView, "Personaje (Arcade)");
+        });
     }
 
     private void prepareSelectArcadeCharacterController() {
@@ -169,8 +172,23 @@ public class DOPOSoccerGUI extends JFrame {
             // The rival view shows the character of player 1 and if the rival is the AI or player 2
             selectArcadeRivalView.setPlayerCharacter(selectArcadeCharacterView.getSelectedCharacter());
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
+            showStats(selectArcadeRivalView, "RIGHT"); // stats of the rival, from the domain
             showView(selectArcadeRivalView, "Rival (Arcade)");
         });
+    }
+
+    // Gives a character view the stats of a player, as the domain has them (the view only paints them)
+    private void showStats(SelectArcadeCharacterView view, String side) {
+        try {
+            view.setStats(
+                game.getStat(side, "SPEED"),
+                game.getStat(side, "JUMP"),
+                game.getStat(side, "KICK"),
+                game.getStat(side, "SURVIVAL")
+            );
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
     }
 
     private void prepareSelectArcadeRivalController() {
