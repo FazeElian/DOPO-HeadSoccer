@@ -12,10 +12,7 @@ public class SelectArcadeMatchTypeView extends ArcadeView {
     public static final int MAX_MINUTES = 10;
     public static final int[] GOAL_TARGETS = {3, 5, 7};
 
-    // Background of the minutes control and the not selected goal circles
-    private static final Color CONTROL_BG = new Color(30, 100, 28);
-
-    private int minutes = 3;
+    private int minutes = 1;
     private int goalTarget = 5;
 
     private Option byTimeOption;
@@ -90,6 +87,12 @@ public class SelectArcadeMatchTypeView extends ArcadeView {
         return goalTarget;
     }
 
+    // Survival is only against the machine: in PvsP it's locked (and if it was chosen, goes back to "POR GOLES")
+    public void setVsMachine(boolean vsMachine) {
+        survivalOption.setLocked(vsMachine ? null : "SOLO DISPONIBLE EN\nJUGADOR VS MÁQUINA");
+        if (!vsMachine && survivalOption.isSelected()) selectOption(byGoalsOption);
+    }
+
     // Changing the minutes means playing by time
     private void changeMinutes(int change) {
         minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, minutes + change));
@@ -131,7 +134,7 @@ public class SelectArcadeMatchTypeView extends ArcadeView {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(CONTROL_BG);
+                g2.setColor(DARK_GREEN);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
                 g2.dispose();
                 super.paintComponent(g);
@@ -217,7 +220,7 @@ public class SelectArcadeMatchTypeView extends ArcadeView {
     private void updateGoalButtons() {
         for (int i = 0; i < GOAL_TARGETS.length; i++) {
             boolean selected = GOAL_TARGETS[i] == goalTarget;
-            goalBtns[i].setBackground(selected ? YELLOW : CONTROL_BG);
+            goalBtns[i].setBackground(selected ? YELLOW : DARK_GREEN);
             goalBtns[i].setForeground(selected ? DARK_GREEN : WHITE);
         }
     }

@@ -18,8 +18,12 @@ public class Stadium implements Serializable {
     public static final int[] MEDIUM = {1280, 720};
     /** Width and height of the large field, in pixels. */
     public static final int[] LARGE = {1600, 900};
-    /** Height of the ground as a share of the field height. */
-    public static final double GROUND_SHARE = 0.88;
+    /** Height of the ground as a share of the field height (the base of the posts in the background). */
+    public static final double GROUND_SHARE = 0.90;
+    /** Depth of each goal, from its side to the front post, as a share of the field width. */
+    public static final double GOAL_WIDTH_SHARE = 0.12;
+    /** Height of the goals, from the ground to the crossbar, as a share of the field height. */
+    public static final double GOAL_HEIGHT_SHARE = 0.235;
 
     /** Resolution of the field. */
     private final String resolution;
@@ -46,8 +50,8 @@ public class Stadium implements Serializable {
         this.width = size[0];
         this.height = size[1];
         this.groundY = height * GROUND_SHARE;
-        double goalWidth = width * 0.07;
-        double goalHeight = height * 0.36;
+        double goalWidth = width * GOAL_WIDTH_SHARE;
+        double goalHeight = height * GOAL_HEIGHT_SHARE;
         this.leftGoal = new Goal("LEFT", 0, groundY - goalHeight, goalWidth, goalHeight);
         this.rightGoal = new Goal("RIGHT", width - goalWidth, groundY - goalHeight, goalWidth, goalHeight);
     }

@@ -22,13 +22,15 @@ public class DOPOSoccer {
     public static final int WIN_POINTS = 100;
     /** Points for the loser of a match. */
     public static final int LOSE_POINTS = 25;
-    /** Name of the ball used in every match of the mock-up. */
+    /** Name of the ball used until another one is chosen. */
     public static final String DEFAULT_BALL = "Clásico";
 
     /** The 8 teams, by country. */
     private final LinkedHashMap<String, GameCharacter> characters;
-    /** Ball used in the matches. */
-    private final BallSkin ball;
+    /** The balls of the catalog, by name. */
+    private final LinkedHashMap<String, BallSkin> balls;
+    /** Ball used in the matches (the last one chosen). */
+    private BallSkin ball;
     /** Game being played, or null. */
     private GameMode mode;
     /** Whether the game is paused. */
@@ -40,7 +42,7 @@ public class DOPOSoccer {
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
-     * España and Japón are locked) and the free ball.
+     * España and Japón are locked) and the 6 balls of the catalog (Dorado, Fuego, Hielo and Galaxia are locked).
      */
     public DOPOSoccer() {
         characters = new LinkedHashMap<>();
@@ -52,7 +54,14 @@ public class DOPOSoccer {
         characters.put("Argentina", new GameCharacter("Argentina", new LightningShot()));
         characters.put("España", new GameCharacter("España", new BlueAuraShot(), 800));
         characters.put("Japón", new GameCharacter("Japón", new TornadoShot(), 1200));
-        ball = new BallSkin(DEFAULT_BALL, 0);
+        balls = new LinkedHashMap<>();
+        balls.put("Clásico", new BallSkin("Clásico", 0));
+        balls.put("Tricolor", new BallSkin("Tricolor", 0));
+        balls.put("Dorado", new BallSkin("Dorado", 500));
+        balls.put("Fuego", new BallSkin("Fuego", 700));
+        balls.put("Hielo", new BallSkin("Hielo", 700));
+        balls.put("Galaxia", new BallSkin("Galaxia", 1000));
+        ball = balls.get(DEFAULT_BALL);
         lastPoints = new int[2];
     }
 
@@ -429,12 +438,21 @@ public class DOPOSoccer {
     }
 
     /**
-     * Returns the size of the players' box.
+     * Returns the width of the players' box.
      *
-     * @return width and height, in pixels
+     * @return width, in pixels
      */
-    public double getPlayerSize() {
-        return Player.SIZE;
+    public double getPlayerWidth() {
+        return Player.WIDTH;
+    }
+
+    /**
+     * Returns the height of the players' box.
+     *
+     * @return height, in pixels
+     */
+    public double getPlayerHeight() {
+        return Player.HEIGHT;
     }
 
     /**
@@ -688,24 +706,23 @@ public class DOPOSoccer {
     }
 
     /**
-     * Returns the names of the balls of the catalog. Under construction (store).
+     * Returns the names of the balls of the catalog.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the 6 names, in order
      */
-    public List<String> getBallNames() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    public List<String> getBallNames() {
+        return new ArrayList<>(balls.keySet());
     }
 
     /**
-     * Returns the price of a ball. Under construction (store).
+     * Returns the price of a ball, to draw the padlock of the locked ones.
      *
      * @param name name of the ball
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return price in points; 0 if it is free
+     * @throws DOPOSoccerException UNKNOWN_BALL
      */
     public int getBallPrice(String name) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return ballSkin(name).getPrice();
     }
 
     /**
@@ -746,25 +763,32 @@ public class DOPOSoccer {
     }
 
     /**
-     * Chooses the ball of a profile. Under construction (store).
+     * Chooses the ball of the next matches. In this version there is one ball for the game,
+     * so the last one chosen is used. Only the free balls: the locked ones are bought in the store.
      *
      * @param side "LEFT" or "RIGHT"
      * @param name name of the ball
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL, or UNDER_CONSTRUCTION for a locked ball
      */
     public void selectBall(String side, String name) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        index(side);
+        BallSkin skin = ballSkin(name);
+        if (skin.getPrice() > 0) {
+            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        }
+        ball = skin;
     }
 
     /**
-     * Returns the ball chosen by a profile. Under construction (store).
+     * Returns the ball chosen for the next matches.
      *
      * @param side "LEFT" or "RIGHT"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return name of the ball
+     * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     public String getSelectedBall(String side) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        index(side);
+        return ball.getName();
     }
 
     /**
@@ -866,6 +890,21 @@ public class DOPOSoccer {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_CHARACTER);
         }
         return c;
+    }
+
+    /**
+     * Finds a ball of the catalog.
+     *
+     * @param name its name
+     * @return the ball
+     * @throws DOPOSoccerException UNKNOWN_BALL
+     */
+    private BallSkin ballSkin(String name) throws DOPOSoccerException {
+        BallSkin skin = balls.get(name);
+        if (skin == null) {
+            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_BALL);
+        }
+        return skin;
     }
 
     /**
