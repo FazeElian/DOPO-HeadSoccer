@@ -12,7 +12,7 @@ public class SelectArcadeMatchTypeView extends ArcadeView {
     public static final int MAX_MINUTES = 10;
     public static final int[] GOAL_TARGETS = {3, 5, 7};
 
-    private int minutes = 3;
+    private int minutes = 1;
     private int goalTarget = 5;
 
     private Option byTimeOption;

@@ -12,7 +12,7 @@ package domain;
 public class Ball extends Entity {
 
     /** Share of speed the ball keeps after a rebound; it is given to the physics library. */
-    public static final double RESTITUTION = 0.8;
+    public static final double RESTITUTION = 0.6;
     /** Below this speed, in pixels per second, a power shot is over and the ball loses its charge. */
     public static final double MIN_SHOT_SPEED = 150;
 

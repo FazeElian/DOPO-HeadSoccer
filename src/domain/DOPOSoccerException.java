@@ -23,6 +23,8 @@ public class DOPOSoccerException extends Exception {
     public static final String UNKNOWN_RESOLUTION = "La resolución no es pequeña, mediana ni grande.";
     /** No character has that country. */
     public static final String UNKNOWN_CHARACTER = "El personaje no existe.";
+    /** No ball of the catalog has that name. */
+    public static final String UNKNOWN_BALL = "El balón no existe.";
     /** The side is not "LEFT" or "RIGHT". */
     public static final String UNKNOWN_SIDE = "El lado no es izquierdo ni derecho.";
     /** The minutes of a time match are 0 or less. */

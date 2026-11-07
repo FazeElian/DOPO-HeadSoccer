@@ -30,23 +30,23 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private static final int MAX_STAT = 6;
     private static final String[] STATS_NAMES = {"VELOCIDAD", "SALTO", "PATADA", "VIDA"};
 
-    // Characters: name, image, power, stats (velocidad, salto, patada, vida from 0 to 6), price (0 = unlocked) and flag
+    // Characters: name, country code, image, power, stats (velocidad, salto, patada, vida from 0 to 6), price (0 = unlocked) and flag
     private static final CharacterInfo[] CHARACTERS = {
-        new CharacterInfo("COLOMBIA", "colombia", "ILUSIÓN", new int[]{4, 3, 4, 3}, 0,
+        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", new int[]{4, 3, 4, 3}, 0,
             new Flag(false, FLAG_YELLOW, FLAG_YELLOW, FLAG_BLUE, FLAG_RED)),
-        new CharacterInfo("ARGENTINA", "argentina", "TIRO DE FUEGO", new int[]{3, 3, 5, 3}, 0,
+        new CharacterInfo("ARGENTINA", "AR", "argentina", "TIRO DE FUEGO", new int[]{3, 3, 5, 3}, 0,
             new Flag(false, FLAG_SKY, WHITE, FLAG_SKY).circle(0.3f, FLAG_YELLOW)),
-        new CharacterInfo("COREA DEL SUR", "corea-sur", "ZIGZAG", new int[]{5, 3, 3, 3}, 0,
+        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "ZIGZAG", new int[]{5, 3, 3, 3}, 0,
             new Flag(false, WHITE).circle(0.55f, FLAG_RED, FLAG_BLUE)),
-        new CharacterInfo("CAMERÚN", "cameroon", "MURALLA", new int[]{3, 4, 3, 5}, 0,
+        new CharacterInfo("CAMERÚN", "CM", "cameroon", "MURALLA", new int[]{3, 4, 3, 5}, 0,
             new Flag(true, FLAG_GREEN, FLAG_RED, FLAG_YELLOW)),
-        new CharacterInfo("NIGERIA", "nigeria", "SALTO ALTO", new int[]{4, 5, 3, 3}, 0,
+        new CharacterInfo("NIGERIA", "NG", "nigeria", "SALTO ALTO", new int[]{4, 5, 3, 3}, 0,
             new Flag(true, FLAG_GREEN, WHITE, FLAG_GREEN)),
-        new CharacterInfo("PERÚ", "peru", "CHALACA", new int[]{3, 4, 4, 3}, 0,
+        new CharacterInfo("PERÚ", "PE", "peru", "CHALACA", new int[]{3, 4, 4, 3}, 0,
             new Flag(true, FLAG_RED, WHITE, FLAG_RED)),
-        new CharacterInfo("ESPAÑA", "spain", "TIKI-TAKA", new int[]{4, 3, 5, 4}, 800,
+        new CharacterInfo("ESPAÑA", "ES", "spain", "TIKI-TAKA", new int[]{4, 3, 5, 4}, 800,
             new Flag(false, FLAG_RED, FLAG_YELLOW, FLAG_YELLOW, FLAG_RED)),
-        new CharacterInfo("JAPÓN", "japan", "TORNADO", new int[]{5, 4, 4, 4}, 1200,
+        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", new int[]{5, 4, 4, 4}, 1200,
             new Flag(false, WHITE).circle(0.55f, FLAG_RED))
     };
 
@@ -103,6 +103,15 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     public String getSelectedCharacter() {
         return CHARACTERS[selected].name;
+    }
+
+    public String getSelectedPower() {
+        return CHARACTERS[selected].power;
+    }
+
+    // Country code for the scoreboard ("CO", "AR"...)
+    public String getSelectedCode() {
+        return CHARACTERS[selected].code;
     }
 
     // Rival view: marks the character chosen by player 1 (J1)
@@ -384,14 +393,16 @@ public class SelectArcadeCharacterView extends ArcadeView {
     // Data of a character card
     private static class CharacterInfo {
         private final String name;
+        private final String code; // country code for the scoreboard ("CO", "AR"...)
         private final String image;
         private final String power;
         private final int[] stats;
         private final int price;
         private final Flag flag;
 
-        public CharacterInfo(String name, String image, String power, int[] stats, int price, Flag flag) {
+        public CharacterInfo(String name, String code, String image, String power, int[] stats, int price, Flag flag) {
             this.name = name;
+            this.code = code;
             this.image = image;
             this.power = power;
             this.stats = stats;

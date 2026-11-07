@@ -15,14 +15,16 @@ import java.util.Set;
  */
 public class Player extends Entity {
 
-    /** Width and height of the player's box, in pixels. */
-    public static final double SIZE = 90;
+    /** Width of the player's box, in pixels. */
+    public static final double WIDTH = 105;
+    /** Height of the player's box, in pixels. */
+    public static final double HEIGHT = 90;
     /** Running speed with Speed at 1, in pixels per second. */
-    public static final double BASE_SPEED = 300;
+    public static final double BASE_SPEED = 250;
     /** Jump speed with Jump at 1, in pixels per second. */
-    public static final double BASE_JUMP = 620;
+    public static final double BASE_JUMP = 450;
     /** Speed of the ball after a normal kick, in pixels per second; Kick does not change it. */
-    public static final double KICK_SPEED = 750;
+    public static final double KICK_SPEED = 650;
     /** Damage of a kick before the kick multiplier. */
     public static final int KICK_DAMAGE = 10;
     /** Reach of the foot beyond the player's box, in pixels. */
@@ -70,7 +72,7 @@ public class Player extends Entity {
      * @param y          top edge, in pixels
      */
     public Player(String side, GameCharacter character, Stats stats, PlayerController controller, double x, double y) {
-        super(x, y, SIZE, SIZE);
+        super(x, y, WIDTH, HEIGHT);
         this.side = side;
         this.character = character;
         this.stats = stats;

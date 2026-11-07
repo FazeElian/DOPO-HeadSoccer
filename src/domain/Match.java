@@ -2,7 +2,6 @@ package domain;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -294,9 +293,9 @@ public class Match implements Serializable {
      */
     private void placeForKickOff() {
         double width = stadium.getWidth();
-        double feet = stadium.getGroundY() - Player.SIZE;
-        leftPlayer.setPosition(width * 0.22 - Player.SIZE / 2, feet);
-        rightPlayer.setPosition(width * 0.78 - Player.SIZE / 2, feet);
+        double feet = stadium.getGroundY() - Player.HEIGHT;
+        leftPlayer.setPosition(width * 0.22 - Player.WIDTH / 2, feet);
+        rightPlayer.setPosition(width * 0.78 - Player.WIDTH / 2, feet);
         leftPlayer.setVelocity(0, 0);
         rightPlayer.setVelocity(0, 0);
         ball.reset(width / 2 - ball.getRadius(), stadium.getHeight() * 0.15);

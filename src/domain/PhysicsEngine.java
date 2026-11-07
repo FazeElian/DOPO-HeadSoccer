@@ -48,6 +48,8 @@ public class PhysicsEngine implements Serializable {
     private static final long BALL = 4;
     /** Collision category of the fake balls. */
     private static final long FAKE = 8;
+    /** Collision category of the goal areas: they stop the players, but the balls go in. */
+    private static final long GOAL_AREA = 16;
     /** Thickness of the walls, the ground and the ceiling, in pixels. */
     private static final double WALL = 200;
 
@@ -105,7 +107,7 @@ public class PhysicsEngine implements Serializable {
         Body body = new Body();
         BodyFixture fixture = body.addFixture(
                 Geometry.createRectangle(p.getWidth() / PIXELS_PER_METER, p.getHeight() / PIXELS_PER_METER), 1.0, 0.4, 0.0);
-        fixture.setFilter(new CategoryFilter(PLAYER, STATIC | PLAYER | BALL));
+        fixture.setFilter(new CategoryFilter(PLAYER, STATIC | PLAYER | BALL | GOAL_AREA));
         body.setMass(MassType.FIXED_ANGULAR_VELOCITY);
         register(p, body);
         players.put(body, p);
@@ -152,6 +154,7 @@ public class PhysicsEngine implements Serializable {
         for (String side : new String[]{"LEFT", "RIGHT"}) {
             Goal goal = stadium.getGoal(side);
             borders.add(addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10));
+            addGoalArea(goal); // the players can't walk into the goal
         }
         world.addContactListener(new ContactListenerAdapter<Body>() {
             @Override
@@ -179,6 +182,24 @@ public class PhysicsEngine implements Serializable {
         body.setMass(MassType.INFINITE);
         world.addBody(body);
         return body;
+    }
+
+    /**
+     * Adds a still box over a goal area that only the players hit, so they can't walk into the goal;
+     * the balls go through it and can score. It is not a border: it doesn't end a power shot.
+     *
+     * @param goal the goal
+     */
+    private void addGoalArea(Goal goal) {
+        Body body = new Body();
+        BodyFixture fixture = body.addFixture(Geometry.createRectangle(
+                goal.getWidth() / PIXELS_PER_METER, goal.getHeight() / PIXELS_PER_METER));
+        fixture.setFriction(0); // the player slides down its front instead of sticking to it
+        fixture.setFilter(new CategoryFilter(GOAL_AREA, PLAYER));
+        body.translate((goal.getX() + goal.getWidth() / 2) / PIXELS_PER_METER,
+                (goal.getY() + goal.getHeight() / 2) / PIXELS_PER_METER);
+        body.setMass(MassType.INFINITE);
+        world.addBody(body);
     }
 
     /**
