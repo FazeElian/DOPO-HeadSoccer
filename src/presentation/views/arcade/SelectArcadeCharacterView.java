@@ -27,12 +27,6 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private static final Color STAT_EMPTY = new Color(9, 45, 4);
 
     private static final Dimension CARD_SIZE = new Dimension(140, 180);
-
-    // Images of the blocked characters
-    private static final String COIN_IMAGE = "assets/img/coin.png";
-    private static final String LOCK_IMAGE = "assets/img/lock.png";
-    private static final int LOCK_SIZE = 44;
-    private final Image lockImage = new ImageIcon(LOCK_IMAGE).getImage();
     private static final int MAX_STAT = 6;
     private static final String[] STATS_NAMES = {"VELOCIDAD", "SALTO", "PATADA", "VIDA"};
 
@@ -139,55 +133,14 @@ public class SelectArcadeCharacterView extends ArcadeView {
         for (int i = 0; i < CHARACTERS.length; i++) {
             cardsGrid.add(new CharacterCard(i));
         }
-
-        JLabel info = new JLabel("LOS BLOQUEADOS NO SE PUEDEN ELEGIR: SE COMPRAN EN LA TIENDA");
-        info.setFont(luckiest.deriveFont(12f));
-        info.setForeground(LIGHT_GREEN);
-        info.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0)); // room for accents
-
-        JPanel column = new JPanel();
-        column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
-        column.setOpaque(false);
-        for (JComponent c : new JComponent[]{cardsGrid, info}) {
-            c.setAlignmentX(Component.CENTER_ALIGNMENT);
-        }
-        JPanel continueRow = createContinueRow(rival ? "¡JUGAR!" : "LISTO");
-        continueRow.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        column.add(cardsGrid);
-        column.add(Box.createVerticalStrut(14));
-        column.add(info);
-        column.add(Box.createVerticalStrut(18));
-        column.add(continueRow);
-        return column;
+        // The rival's button also says "LISTO": after it comes the ball selection
+        return createGridColumn(cardsGrid, "LOS BLOQUEADOS NO SE PUEDEN ELEGIR: SE COMPRAN EN LA TIENDA", "LISTO");
     }
 
     // Panel with the selected character: face, flag, name, power and stats
     private JPanel createDetailsPanel() {
-        badge = createRoundedLabel(rival ? "RIVAL · IA" : "JUGADOR 1", 22);
-        badge.setFont(luckiest.deriveFont(15f));
-        badge.setBackground(pickColor);
-        badge.setForeground(WHITE);
-        badge.setBorder(BorderFactory.createEmptyBorder(8, 20, 3, 20));
-
-        // The border starts in the middle of the badge, so the badge is on top of it
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int top = badge.getHeight() / 2;
-                g2.setColor(pickColor);
-                g2.setStroke(new BasicStroke(3));
-                g2.drawRoundRect(2, top, getWidth() - 5, getHeight() - top - 3, 25, 25);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
-        panel.setPreferredSize(new Dimension(330, 500));
-        panel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        badge = createBadge(rival ? "RIVAL · IA" : "JUGADOR 1", pickColor, WHITE);
+        JPanel panel = createBadgedPanel(badge, pickColor, new Dimension(330, 500));
 
         detailFace = new JLabel();
         detailFlag = new JLabel();
@@ -214,10 +167,9 @@ public class SelectArcadeCharacterView extends ArcadeView {
             stats.add(detailStats[i]);
         }
 
-        for (JComponent c : new JComponent[]{badge, detailFace, detailFlag, detailName, detailPower, stats}) {
+        for (JComponent c : new JComponent[]{detailFace, detailFlag, detailName, detailPower, stats}) {
             c.setAlignmentX(Component.CENTER_ALIGNMENT);
         }
-        panel.add(badge);
         panel.add(Box.createVerticalStrut(15));
         panel.add(detailFace);
         panel.add(Box.createVerticalStrut(10));
@@ -341,10 +293,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             // Blocked characters show the price instead of the flag
             JLabel flagOrPrice;
             if (isLocked()) {
-                flagOrPrice = new JLabel(String.valueOf(character.price), loadIcon(COIN_IMAGE, 16), SwingConstants.CENTER);
-                flagOrPrice.setFont(luckiest.deriveFont(15f));
-                flagOrPrice.setForeground(YELLOW);
-                flagOrPrice.setIconTextGap(4);
+                flagOrPrice = createPriceLabel(character.price);
             } else {
                 flagOrPrice = new JLabel(createFlagIcon(character.flag, 38, 23));
             }
@@ -410,11 +359,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            if (isLocked()) {
-                g2.setColor(new Color(0, 0, 0, 110));
-                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
-                g2.drawImage(lockImage, getWidth() / 2 - LOCK_SIZE / 2, 60 - LOCK_SIZE / 2, LOCK_SIZE, LOCK_SIZE, null); // over the face
-            }
+            if (isLocked()) paintLocked(g2, this, 60, 20); // lock over the face
             if (isPlayerPick()) paintTag(g2, "J1", BLUE, false);
             if (isRivalPick()) paintTag(g2, rivalTag, RED, true);
 

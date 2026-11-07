@@ -13,6 +13,7 @@ import presentation.views.arcade.SelectArcadeModeView;
 import presentation.views.arcade.SelectArcadeResolutionView;
 import presentation.views.arcade.SelectArcadeMatchTypeView;
 import presentation.views.arcade.SelectArcadeCharacterView;
+import presentation.views.arcade.SelectArcadeBallView;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -31,6 +32,7 @@ public class DOPOSoccerGUI extends JFrame {
     SelectArcadeMatchTypeView selectArcadeMatchTypeView;
     SelectArcadeCharacterView selectArcadeCharacterView;
     SelectArcadeCharacterView selectArcadeRivalView;
+    SelectArcadeBallView selectArcadeBallView;
 
     // Fonts
     private Font luckiest;
@@ -70,6 +72,7 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeMatchTypeView = new SelectArcadeMatchTypeView(luckiest);
         selectArcadeCharacterView = new SelectArcadeCharacterView(luckiest, false);
         selectArcadeRivalView = new SelectArcadeCharacterView(luckiest, true);
+        selectArcadeBallView = new SelectArcadeBallView(luckiest);
 		add(mainMenuView, BorderLayout.CENTER);
     }
 
@@ -94,6 +97,7 @@ public class DOPOSoccerGUI extends JFrame {
         prepareSelectArcadeMatchTypeController();
         prepareSelectArcadeCharacterController();
         prepareSelectArcadeRivalController();
+        prepareSelectArcadeBallController();
     }
 
     private void prepareMainMenuController() {
@@ -123,7 +127,11 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSelectArcadeResolutionController() {
         selectArcadeResolutionView.backBtn.addActionListener(e -> showView(selectArcadeModeView, "Modalidad (Arcade)"));
-        selectArcadeResolutionView.continueBtn.addActionListener(e -> showView(selectArcadeMatchTypeView, "Tipo de Partido (Arcade)"));
+        selectArcadeResolutionView.continueBtn.addActionListener(e -> {
+            // Survival is locked when playing player vs player
+            selectArcadeMatchTypeView.setVsMachine(selectArcadeModeView.isVsMachine());
+            showView(selectArcadeMatchTypeView, "Tipo de Partido (Arcade)");
+        });
     }
 
     private void prepareSelectArcadeMatchTypeController() {
@@ -143,6 +151,11 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSelectArcadeRivalController() {
         selectArcadeRivalView.backBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
+        selectArcadeRivalView.continueBtn.addActionListener(e -> showView(selectArcadeBallView, "Balón (Arcade)"));
+    }
+
+    private void prepareSelectArcadeBallController() {
+        selectArcadeBallView.backBtn.addActionListener(e -> showView(selectArcadeRivalView, "Rival (Arcade)"));
     }
 
     private void showView(JPanel view, String title) {
