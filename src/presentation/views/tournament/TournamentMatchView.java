@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import domain.DOPOSoccer;
 
-import presentation.views.match.GameView;
+import presentation.views.match.MatchView;
 
 // Color constants
 import static presentation.DOPOSoccerGUI.*;
@@ -14,7 +14,7 @@ import static presentation.DOPOSoccerGUI.*;
  * At the end of the tournament, one result card: "¡CAMPEÓN!" (won the final) or "ELIMINADO" (lost a match),
  * both with "NUEVO TORNEO" and "MENÚ". Every value is given by the GUI (domain data).
  */
-public class TournamentMatchView extends GameView {
+public class TournamentMatchView extends MatchView {
     private static final String TROPHY_IMAGE = "assets/img/icons/tournament/trophy.png";
     private static final int FACE_SIZE = 110;
 

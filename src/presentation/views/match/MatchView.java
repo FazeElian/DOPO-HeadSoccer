@@ -17,7 +17,7 @@ import static presentation.DOPOSoccerGUI.*;
  * and the result card. Everything it shows comes from the domain (the GUI gives it the values).
  * Layouts: only BorderLayout, GridLayout and FlowLayout (padding with empty borders).
  */
-public abstract class GameView extends View {
+public abstract class MatchView extends View {
     private DOPOSoccer game;
     public static final String STADIUM_BACKGROUND = "assets/img/stadiumBackground.png";
 
@@ -83,7 +83,7 @@ public abstract class GameView extends View {
     // Last positions of the ball while it carries a power shot (only for drawing the trail)
     private final ArrayList<Point> ballTrail = new ArrayList<>();
 
-    public GameView(Font luckiest, DOPOSoccer game) {
+    public MatchView(Font luckiest, DOPOSoccer game) {
         super(luckiest, STADIUM_BACKGROUND); // super must be the first line of a constructor
         this.game = game;
         pauseOverlay = createOverlay(createPauseCard());

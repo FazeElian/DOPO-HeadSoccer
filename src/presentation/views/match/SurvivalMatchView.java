@@ -13,7 +13,7 @@ import static presentation.DOPOSoccerGUI.*;
  * and the pill the number of the match. At the end, the "FIN DE LA SERIE" card.
  * Every value (balls, match, wins, points) comes from the domain.
  */
-public class SurvivalMatchView extends GameView {
+public class SurvivalMatchView extends MatchView {
     private static final int BALL_ICON_SIZE = 30;
     private static final int FACE_SIZE = 120;
 

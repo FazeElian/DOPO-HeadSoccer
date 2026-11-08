@@ -16,7 +16,7 @@ import presentation.views.arcade.SelectArcadeCharacterView;
 import presentation.views.arcade.SelectArcadeBallView;
 
 // Match Views classes
-import presentation.views.match.GameView;
+import presentation.views.match.MatchView;
 import presentation.views.match.ArcadeMatchView;
 import presentation.views.match.SurvivalMatchView;
 
@@ -35,33 +35,33 @@ import domain.*;
 
 public class DOPOSoccerGUI extends JFrame {
     // Game
-    DOPOSoccer game;
+    private DOPOSoccer game;
 
     // Views components
-    MainMenuView mainMenuView;
-    TutorialView tutorialView;
-    SettingsView settingsView;
-    SelectModeView selectModeView;
+    private MainMenuView mainMenuView;
+    private TutorialView tutorialView;
+    private SettingsView settingsView;
+    private SelectModeView selectModeView;
 
     // Arcade Views components
-    SelectArcadeModeView selectArcadeModeView;
-    SelectArcadeResolutionView selectArcadeResolutionView;
-    SelectArcadeMatchTypeView selectArcadeMatchTypeView;
-    SelectArcadeCharacterView selectArcadeCharacterView;
-    SelectArcadeCharacterView selectArcadeRivalView;
-    SelectArcadeBallView selectArcadeBallView;
+    private SelectArcadeModeView selectArcadeModeView;
+    private SelectArcadeResolutionView selectArcadeResolutionView;
+    private SelectArcadeMatchTypeView selectArcadeMatchTypeView;
+    private SelectArcadeCharacterView selectArcadeCharacterView;
+    private SelectArcadeCharacterView selectArcadeRivalView;
+    private SelectArcadeBallView selectArcadeBallView;
 
     // Tournament Views components
-    NewTournamentView newTournamentView;
-    TournamentBallView tournamentBallView;
-    TournamentBracketView tournamentBracketView;
-    TournamentRoundView tournamentRoundView;
-    TournamentMatchView tournamentMatchView;
+    private NewTournamentView newTournamentView;
+    private TournamentBallView tournamentBallView;
+    private TournamentBracketView tournamentBracketView;
+    private TournamentRoundView tournamentRoundView;
+    private TournamentMatchView tournamentMatchView;
 
     // Match Views components
-    ArcadeMatchView arcadeMatchView;
-    SurvivalMatchView survivalMatchView;
-    GameView matchView; // the match view being played (arcade or survival)
+    private ArcadeMatchView arcadeMatchView;
+    private SurvivalMatchView survivalMatchView;
+    private MatchView matchView; // the match view being played (arcade or survival)
 
     // Fonts
     private Font luckiest;
@@ -83,7 +83,7 @@ public class DOPOSoccerGUI extends JFrame {
     private int maxBalls = 0;
 
     // Sound player (music, sound effects, etc)
-    SoundPlayer sounds = new SoundPlayer();
+    private SoundPlayer sounds = new SoundPlayer();
 
     public DOPOSoccerGUI() {
         game = new DOPOSoccer();
@@ -370,7 +370,7 @@ public class DOPOSoccerGUI extends JFrame {
     }
 
     // Pause menu and result card of a match view (arcade or survival)
-    private void prepareMatchController(GameView view) {
+    private void prepareMatchController(MatchView view) {
         // Pause: stops the game loop and the domain, and shows the pause card over the match (window glass pane)
         view.pauseBtn.addActionListener(e -> {
             try {

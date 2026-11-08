@@ -12,7 +12,7 @@ import static presentation.DOPOSoccerGUI.*;
  * The HUD, scoreboard, time and pause come from GameView; this view builds its screen
  * and the result card ("¡VICTORIA!", score, winner, goals and points), filled with the domain data.
  */
-public class ArcadeMatchView extends GameView {
+public class ArcadeMatchView extends MatchView {
     private static final int FACE_SIZE = 130;
 
     // Result card components
