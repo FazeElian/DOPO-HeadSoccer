@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 // Color constants
 import static presentation.DOPOSoccerGUI.*;
@@ -50,6 +52,9 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private JLabel detailPower;
     private JLabel[] detailStats = new JLabel[STATS_NAMES.length];
     private JPanel cardsGrid;
+
+    // Who is told when a locked character is pressed (the GUI, to ask the domain)
+    private ActionListener lockedListener;
 
     // Stats of the player (speed, jump, kick, survival) given by the domain; 1 = Stats.MIN_STAT
     private int[] playerStats = {1, 1, 1, 1};
@@ -98,10 +103,11 @@ public class SelectArcadeCharacterView extends ArcadeView {
         return CHARACTERS[selected].name;
     }
 
-    public String getSelectedPower() {
-        return CHARACTERS[selected].power;
-    }
 
+    // The action command of the event is the name of the locked character ("ESPAÑA")
+    public void setLockedListener(ActionListener listener) {
+        lockedListener = listener;
+    }
 
     // Country code for the scoreboard ("CO", "AR"...)
     public String getSelectedCode() {
@@ -277,15 +283,18 @@ public class SelectArcadeCharacterView extends ArcadeView {
             add(Box.createVerticalStrut(4));
             add(name);
 
-            if (!isLocked()) {
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mousePressed(MouseEvent e) {
+            // Free: it is chosen. Locked: the GUI asks the domain to buy it (the store, under construction)
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (!isLocked()) {
                         selectCharacter(CharacterCard.this.index);
+                    } else if (lockedListener != null) {
+                        lockedListener.actionPerformed(new ActionEvent(CharacterCard.this, ActionEvent.ACTION_PERFORMED, character.name));
                     }
-                });
-            }
+                }
+            });
         }
 
         private boolean isLocked() {
