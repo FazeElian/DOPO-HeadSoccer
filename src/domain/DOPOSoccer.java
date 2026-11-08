@@ -31,8 +31,6 @@ public class DOPOSoccer {
     private final LinkedHashMap<String, BallSkin> balls;
     /** Ball used in the matches (the last one chosen). */
     private BallSkin ball;
-    /** Stats of each player (0 left, 1 right): they belong to the player and are kept between matches. */
-    private final Stats[] stats;
     /** Game being played, or null. */
     private GameMode mode;
     /** Whether the game is paused. */
@@ -41,6 +39,10 @@ public class DOPOSoccer {
     private boolean pointsGiven;
     /** Points earned by each side in the last match. */
     private final int[] lastPoints;
+    /** Profiles of the left and right players: their stats are used in every match. */
+    private final PlayerProfile[] profiles;
+    /** Settings of the game. */
+    private final Settings settings;
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
@@ -64,8 +66,9 @@ public class DOPOSoccer {
         balls.put("Hielo", new BallSkin("Hielo", 700));
         balls.put("Galaxia", new BallSkin("Galaxia", 1000));
         ball = balls.get(DEFAULT_BALL);
-        stats = new Stats[]{new Stats(), new Stats()}; // everything starts at 1
         lastPoints = new int[2];
+        profiles = new PlayerProfile[]{new PlayerProfile("J1", ball), new PlayerProfile("J2", ball)};
+        settings = new Settings();
     }
 
     // game
@@ -107,8 +110,8 @@ public class DOPOSoccer {
             throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
         }
         MatchType type = createType(matchType, amount);
-        GameMode newMode = new ArcadeMode(left, stats[0], new HumanController(),
-                right, stats[1], new HumanController(), type, resolution, ball);
+        GameMode newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
+                right, profiles[1].getStats(), new HumanController(), type, resolution, ball);
         newMode.start();
         mode = newMode;
         paused = false;
@@ -659,31 +662,31 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public int getPoints(String side) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return profiles[index(side)].getPoints();
     }
 
     /**
-     * Returns the level of a stat of a player. They start at 1 and go up to 10 (with the store).
+     * Returns the level of a stat of a player, to draw its bar.
      *
      * @param side "LEFT" or "RIGHT"
      * @param stat "SPEED", "JUMP", "KICK" or "SURVIVAL"
-     * @return the level, from 1 to 10
+     * @return level, from 1 to 10
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getStat(String side, String stat) throws DOPOSoccerException {
-        return stats[index(side)].get(stat);
+        return profiles[index(side)].getStats().get(stat);
     }
 
     /**
-     * Returns the price of the next point of a stat. Under construction (store).
+     * Returns the price of the next point of a stat.
      *
      * @param side "LEFT" or "RIGHT"
      * @param stat "SPEED", "JUMP", "KICK" or "SURVIVAL"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return price in points
+     * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getUpgradeCost(String side, String stat) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return profiles[index(side)].getStats().getUpgradeCost(stat);
     }
 
     /**
@@ -694,7 +697,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void upgrade(String side, String stat) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        profiles[index(side)].upgrade(stat);
     }
 
     /**
@@ -705,7 +708,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void buyCharacter(String side, String country) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        profiles[index(side)].unlockCharacter(character(country));
     }
 
     /**
@@ -751,7 +754,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public boolean isBallUnlocked(String side, String name) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return profiles[index(side)].isBallUnlocked(ballSkin(name).getName());
     }
 
     /**
@@ -762,7 +765,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void buyBall(String side, String name) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        profiles[index(side)].unlockBall(ballSkin(name));
     }
 
     /**
@@ -803,7 +806,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public int getMusicVolume() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return settings.getMusicVolume();
     }
 
     /**
@@ -813,7 +816,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void setMusicVolume(int volume) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        settings.setMusicVolume(volume);
     }
 
     /**
@@ -823,7 +826,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public int getEffectsVolume() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return settings.getEffectsVolume();
     }
 
     /**
@@ -833,7 +836,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void setEffectsVolume(int volume) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        settings.setEffectsVolume(volume);
     }
 
     /**
@@ -842,10 +845,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void resetSettings() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        settings.reset();
     }
-
-    
 
     /**
      * Tells whether there is saved progress. Under construction (persistence).
@@ -928,7 +929,7 @@ public class DOPOSoccer {
             return new GoalsMatch(amount);
         }
         if ("SURVIVAL".equals(matchType)) {
-            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+            return new SurvivalMatch(); // under construction: it throws
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MATCH_TYPE);
     }

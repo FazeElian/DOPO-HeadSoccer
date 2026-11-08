@@ -14,41 +14,26 @@ import static presentation.DOPOSoccerGUI.*;
  * rival = true: "ELIGE TU RIVAL" (player 2 or the AI, red panel on the right)
  */
 public class SelectArcadeCharacterView extends ArcadeView {
-    // Flags colors
-    private static final Color FLAG_YELLOW = new Color(252, 209, 22);
-    private static final Color FLAG_BLUE = new Color(0, 56, 147);
-    private static final Color FLAG_RED = new Color(206, 17, 38);
-    private static final Color FLAG_SKY = new Color(116, 172, 223);
-    private static final Color FLAG_GREEN = new Color(0, 135, 81);
-
     // Other colors
     private static final Color POWER_BG = new Color(167, 139, 250);
     private static final Color POWER_TEXT = new Color(40, 20, 90);
     private static final Color STAT_EMPTY = new Color(9, 45, 4);
 
     private static final Dimension CARD_SIZE = new Dimension(140, 180);
-    private static final int MAX_STAT = 10; // like the domain (Stats.MAX_STAT): every stat goes from 1 to 10
+    private static final int MAX_STAT = 10;
     private static final String[] STATS_NAMES = {"VELOCIDAD", "SALTO", "PATADA", "VIDA"};
 
-    // Characters: name, country code, image, power, price (0 = unlocked) and flag
-    // (the stats aren't here: they belong to the player, the domain gives them with setStats)
+    // Characters: name, country code, image, power, price (0 = unlocked) and flag image (assets/img/flags/<flag>.png).
+    // They have no stats: the bars show the stats of the player, that come from the domain
     private static final CharacterInfo[] CHARACTERS = {
-        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", 0,
-            new Flag(false, FLAG_YELLOW, FLAG_YELLOW, FLAG_BLUE, FLAG_RED)),
-        new CharacterInfo("ARGENTINA", "AR", "argentina", "TIRO DE FUEGO", 0,
-            new Flag(false, FLAG_SKY, WHITE, FLAG_SKY).circle(0.3f, FLAG_YELLOW)),
-        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "ZIGZAG", 0,
-            new Flag(false, WHITE).circle(0.55f, FLAG_RED, FLAG_BLUE)),
-        new CharacterInfo("CAMERÚN", "CM", "cameroon", "MURALLA", 0,
-            new Flag(true, FLAG_GREEN, FLAG_RED, FLAG_YELLOW)),
-        new CharacterInfo("NIGERIA", "NG", "nigeria", "SALTO ALTO", 0,
-            new Flag(true, FLAG_GREEN, WHITE, FLAG_GREEN)),
-        new CharacterInfo("PERÚ", "PE", "peru", "CHALACA", 0,
-            new Flag(true, FLAG_RED, WHITE, FLAG_RED)),
-        new CharacterInfo("ESPAÑA", "ES", "spain", "TIKI-TAKA", 800,
-            new Flag(false, FLAG_RED, FLAG_YELLOW, FLAG_YELLOW, FLAG_RED)),
-        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", 1200,
-            new Flag(false, WHITE).circle(0.55f, FLAG_RED))
+        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", 0, "Colombia"),
+        new CharacterInfo("ARGENTINA", "AR", "argentina", "RAYO", 0, "Argentina"),
+        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "AURA AZUL", 0, "Corea del Sur"),
+        new CharacterInfo("CAMERÚN", "CM", "cameroon", "RAYO", 0, "Camerún"),
+        new CharacterInfo("NIGERIA", "NG", "nigeria", "TORNADO", 0, "Nigeria"),
+        new CharacterInfo("ESTADOS UNIDOS", "US", "usa", "ILUSIÓN", 0, "Estados Unidos"),
+        new CharacterInfo("ESPAÑA", "ES", "spain", "AURA AZUL", 800, "España"),
+        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", 1200, "Japón")
     };
 
     private final boolean rival;
@@ -64,8 +49,10 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private JLabel detailName;
     private JLabel detailPower;
     private JLabel[] detailStats = new JLabel[STATS_NAMES.length];
-    private int[] statValues = {1, 1, 1, 1}; // velocidad, salto, patada, vida (given by the domain)
     private JPanel cardsGrid;
+
+    // Stats of the player (speed, jump, kick, survival) given by the domain; 1 = Stats.MIN_STAT
+    private int[] playerStats = {1, 1, 1, 1};
 
     public SelectArcadeCharacterView(Font luckiest, boolean rival) {
         super(luckiest);
@@ -103,6 +90,10 @@ public class SelectArcadeCharacterView extends ArcadeView {
         updateDetails();
     }
 
+    public void setPlayerStats(int[] stats) {
+        playerStats = stats;
+        updateDetails();
+    }
     public String getSelectedCharacter() {
         return CHARACTERS[selected].name;
     }
@@ -111,11 +102,6 @@ public class SelectArcadeCharacterView extends ArcadeView {
         return CHARACTERS[selected].power;
     }
 
-    // Stats of the player choosing (from the domain): it only paints them
-    public void setStats(int speed, int jump, int kick, int survival) {
-        statValues = new int[]{speed, jump, kick, survival};
-        updateDetails();
-    }
 
     // Country code for the scoreboard ("CO", "AR"...)
     public String getSelectedCode() {
@@ -202,11 +188,11 @@ public class SelectArcadeCharacterView extends ArcadeView {
     private void updateDetails() {
         CharacterInfo character = CHARACTERS[selected];
         detailFace.setIcon(loadFace(character, 140));
-        detailFlag.setIcon(createFlagIcon(character.flag, 80, 48));
+        detailFlag.setIcon(loadFlag(character, 80, 48));
         detailName.setText(character.name);
         detailPower.setText("PODER: " + character.power);
         for (int i = 0; i < detailStats.length; i++) {
-            detailStats[i].setIcon(createStatIcon(statValues[i]));
+            detailStats[i].setIcon(createStatIcon(playerStats[i]));
         }
     }
 
@@ -215,55 +201,17 @@ public class SelectArcadeCharacterView extends ArcadeView {
         return new ImageIcon(img.getScaledInstance(size, size, Image.SCALE_SMOOTH));
     }
 
-    // Flag drawn with stripes (and an optional circle in the middle)
-    private Icon createFlagIcon(Flag flag, int width, int height) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int n = flag.stripes.length;
-                for (int i = 0; i < n; i++) {
-                    g2.setColor(flag.stripes[i]);
-                    if (flag.vertical) {
-                        int x0 = x + i * width / n;
-                        g2.fillRect(x0, y, x + (i + 1) * width / n - x0, height);
-                    } else {
-                        int y0 = y + i * height / n;
-                        g2.fillRect(x, y0, width, y + (i + 1) * height / n - y0);
-                    }
-                }
-                if (flag.circle.length > 0) {
-                    int d = Math.round(height * flag.circleSize);
-                    int cx = x + (width - d) / 2;
-                    int cy = y + (height - d) / 2;
-                    g2.setColor(flag.circle[0]);
-                    g2.fillArc(cx, cy, d, d, 0, 180); // top half
-                    g2.setColor(flag.circle[flag.circle.length - 1]);
-                    g2.fillArc(cx, cy, d, d, 180, 180); // bottom half
-                }
-                g2.setColor(new Color(0, 0, 0, 60));
-                g2.drawRect(x, y, width - 1, height - 1);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() {
-                return width;
-            }
-
-            @Override
-            public int getIconHeight() {
-                return height;
-            }
-        };
+    // Flag image of the character, scaled to the given size
+    private ImageIcon loadFlag(CharacterInfo character, int width, int height) {
+        Image img = new ImageIcon("assets/img/flags/" + character.flag + ".png").getImage();
+        return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
     }
 
     // Stat bar: yellow segments for the value, dark segments for the rest
     private Icon createStatIcon(int value) {
-        int segmentWidth = 10; // 10 segments that fit in the details panel
+        int segmentWidth = 9;
         int segmentHeight = 11;
-        int gap = 4;
+        int gap = 3;
         return new Icon() {
             @Override
             public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -312,7 +260,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             if (isLocked()) {
                 flagOrPrice = createPriceLabel(character.price);
             } else {
-                flagOrPrice = new JLabel(createFlagIcon(character.flag, 38, 23));
+                flagOrPrice = new JLabel(loadFlag(character, 38, 23));
             }
 
             JLabel name = new JLabel(character.name);
@@ -405,34 +353,15 @@ public class SelectArcadeCharacterView extends ArcadeView {
         private final String image;
         private final String power;
         private final int price;
-        private final Flag flag;
+        private final String flag; // name of the flag image ("Colombia", "Corea del Sur"...)
 
-        public CharacterInfo(String name, String code, String image, String power, int price, Flag flag) {
+        public CharacterInfo(String name, String code, String image, String power, int price, String flag) {
             this.name = name;
             this.code = code;
             this.image = image;
             this.power = power;
             this.price = price;
             this.flag = flag;
-        }
-    }
-
-    // Flag: same size stripes (horizontal or vertical) and an optional circle (1 color, or top/bottom colors)
-    private static class Flag {
-        private final boolean vertical;
-        private final Color[] stripes;
-        private float circleSize;
-        private Color[] circle = {};
-
-        public Flag(boolean vertical, Color... stripes) {
-            this.vertical = vertical;
-            this.stripes = stripes;
-        }
-
-        public Flag circle(float size, Color... colors) {
-            this.circleSize = size;
-            this.circle = colors;
-            return this;
         }
     }
 }

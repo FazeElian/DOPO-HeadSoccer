@@ -161,8 +161,10 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareSelectArcadeMatchTypeController() {
         selectArcadeMatchTypeView.backBtn.addActionListener(e -> showView(selectArcadeResolutionView, "Resolución (Arcade)"));
         selectArcadeMatchTypeView.continueBtn.addActionListener(e -> {
-            showStats(selectArcadeCharacterView, "LEFT"); // stats of player 1, from the domain
-            showView(selectArcadeCharacterView, "Personaje (Arcade)");
+            // The bars show the stats of player 1 (domain)
+            if (loadStats(selectArcadeCharacterView, "LEFT")) {
+                showView(selectArcadeCharacterView, "Personaje (Arcade)");
+            }
         });
     }
 
@@ -172,23 +174,27 @@ public class DOPOSoccerGUI extends JFrame {
             // The rival view shows the character of player 1 and if the rival is the AI or player 2
             selectArcadeRivalView.setPlayerCharacter(selectArcadeCharacterView.getSelectedCharacter());
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
-            showStats(selectArcadeRivalView, "RIGHT"); // stats of the rival, from the domain
-            showView(selectArcadeRivalView, "Rival (Arcade)");
+            // The bars show the stats of the rival (domain)
+            if (loadStats(selectArcadeRivalView, "RIGHT")) {
+                showView(selectArcadeRivalView, "Rival (Arcade)");
+            }
         });
     }
 
-    // Gives a character view the stats of a player, as the domain has them (the view only paints them)
-    private void showStats(SelectArcadeCharacterView view, String side) {
+    // Asks the domain the stats of a side and gives them to a character view; false if the domain failed
+    private boolean loadStats(SelectArcadeCharacterView view, String side) {
+        String[] names = {"SPEED", "JUMP", "KICK", "SURVIVAL"}; // same order as the bars
+        int[] values = new int[names.length];
         try {
-            view.setStats(
-                game.getStat(side, "SPEED"),
-                game.getStat(side, "JUMP"),
-                game.getStat(side, "KICK"),
-                game.getStat(side, "SURVIVAL")
-            );
+            for (int i = 0; i < names.length; i++) {
+                values[i] = game.getStat(side, names[i]);
+            }
         } catch (DOPOSoccerException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage());
+            return false;
         }
+        view.setPlayerStats(values);
+        return true;
     }
 
     private void prepareSelectArcadeRivalController() {
