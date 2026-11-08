@@ -5,6 +5,7 @@ import domain.DOPOSoccer;
 import domain.DOPOSoccerException;
 
 import java.awt.*;
+import java.util.ArrayList;
 import presentation.views.View;
 
 // Color constants
@@ -12,11 +13,11 @@ import static presentation.DOPOSoccerGUI.*;
 
 /**
  * Generic view for the matches (arcade, survival...).
- * It has the parts every match uses: players HUD, scoreboard, time (countdown or stopwatch) and pause button.
- * Each match view builds its screen in prepareView with these parts (createTopBar or the single blocks).
+ * It has the parts every match uses: players HUD, scoreboard, time and pause button, the pause card
+ * and the result card. Everything it shows comes from the domain (the GUI gives it the values).
  * Layouts: only BorderLayout, GridLayout and FlowLayout (padding with empty borders).
  */
-public abstract class GameView extends View {
+public abstract class MatchView extends View {
     private DOPOSoccer game;
     public static final String STADIUM_BACKGROUND = "assets/img/stadiumBackground.png";
 
@@ -25,10 +26,13 @@ public abstract class GameView extends View {
     // Pause button image (square) and its size inside the button
     protected static final String PAUSE_IMAGE = "assets/img/icons/match/pause.png";
     protected static final int PAUSE_ICON_SIZE = 30;
+    protected static final String COIN_IMAGE = "assets/img/coin.png";
 
-    // Match time: countdown, 1 minute by default (javax.swing.Timer: runs every second in the Swing thread)
-    // (by goals it counts up: secondsLeft is then the time played)
-    public static final int DEFAULT_MATCH_SECONDS = 60;
+    // Light of the aura (ball with a power shot and player with the power active): the same for every character
+    private static final Color AURA_LIGHT = new Color(170, 230, 255, 200);
+    private static final Color AURA_PILL = new Color(200, 240, 255);
+    private static final int TRAIL_LENGTH = 6; // previous positions of the ball drawn behind it
+    private static final int SUDDEN_DEATH_BANNER_MS = 3000; // time the "¡MUERTE SÚBITA!" banner is shown
 
     // Player 1 HUD components
     protected StatBar p1HpBar;
@@ -57,39 +61,50 @@ public abstract class GameView extends View {
     public JButton endGameBtn;
     private static final Color PAUSE_SHADOW = new Color(0, 0, 0, 150); // black, alpha 150 of 255
 
-    // Scoreboard data
-    private String p1Code = "CO";
-    private String p2Code = "AR";
-    private String iaCode = "IA";
+    // Result card (end of the match or of the series), also over the match, and its buttons
+    public JPanel resultOverlay;
+    public JButton againBtn;
+    public JButton menuBtn;
+    private Color resultBorderColor = YELLOW; // border of the result card (it can change: champion / eliminated)
 
-    // Time data
-    private boolean countDown = true; // true: time match (goes down), false: goals match (goes up)
-    private int secondsLeft = DEFAULT_MATCH_SECONDS;
-    private Timer matchTimer = new Timer(1000, e -> tic());
+    // Scoreboard data (given by the GUI)
+    private String p1Code = "";
+    private String p2Code = "";
+    private String rivalTag = "";
 
-    // Goals to win in a goals match (0 = no goal target, it's a time match)
-    private int goalTarget = 0;
+    // Power names of the players (domain), for the "PODER:" / "AURA ACTIVA" texts
+    private String p1Power = "";
+    private String p2Power = "";
 
-    public GameView(Font luckiest, DOPOSoccer game) {
+    // Sudden death: when it started, to show the banner a few seconds
+    private boolean suddenDeath = false;
+    private long suddenDeathSince = 0;
+
+    // Last positions of the ball while it carries a power shot (only for drawing the trail)
+    private final ArrayList<Point> ballTrail = new ArrayList<>();
+
+    public MatchView(Font luckiest, DOPOSoccer game) {
         super(luckiest, STADIUM_BACKGROUND); // super must be the first line of a constructor
         this.game = game;
-        pauseOverlay = createPauseOverlay();
+        pauseOverlay = createOverlay(createPauseCard());
     }
-    
-    // Draws the match over the stadium: players and ball, in the places the domain says
+
+    // Draws the match over the stadium: players, fake balls and ball, in the places the domain says
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);   // View's version: the stadium background
         if (game == null) return;
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         try {
-            drawPlayer(g, "LEFT");
-            drawPlayer(g, "RIGHT");
-
-            int d = sx(game.getBallRadius() * 2);
-            g.drawImage(ballImage(game.getBallName()), sx(game.getBallX()), sy(game.getBallY()), d, d, null);
+            drawPlayer(g2, "LEFT");
+            drawPlayer(g2, "RIGHT");
+            drawBalls(g2);
         } catch (DOPOSoccerException e) {
             // no match started yet: only the background
         }
+        drawSuddenDeathBanner(g2);
+        g2.dispose();
     }
 
     // Domain pixels -> screen pixels (the field fills the whole view, like the background)
@@ -101,23 +116,122 @@ public abstract class GameView extends View {
         return (int) (y * getHeight() / game.getFieldHeight());
     }
 
-    // Player image (normal or kicking); the right one looks to the left
-    private void drawPlayer(Graphics g, String side) throws DOPOSoccerException {
-        String file = "assets/img/players/" + imageOf(game.getCharacter(side)) + (game.isKicking(side) ? "-kick" : "") + ".png";
+    // Player image (normal or kicking); the right one looks to the left. With the power active, the aura behind
+    private void drawPlayer(Graphics2D g2, String side) throws DOPOSoccerException {
+        // Under an effect (electrocuted, stunned...) its image; if not, kicking or normal
+        java.util.List<String> states = game.getStates(side);
+        String suffix = states.isEmpty()
+            ? (game.isKicking(side) ? "-kick" : "")
+            : stateSuffix(states.get(states.size() - 1)); // the stun goes last and wins over the effect
+        String file = "assets/img/players/" + imageOf(game.getCharacter(side)) + suffix + ".png";
         Image img = new ImageIcon(file).getImage();
         int x = sx(game.getPlayerX(side));
         int y = sy(game.getPlayerY(side));
         int w = sx(game.getPlayerWidth());
         int h = sy(game.getPlayerHeight());
+        if (game.hasAura(side)) {
+            drawGlow(g2, x + w / 2, y + h / 2, Math.max(w, h) * 0.75f);
+        }
         if ("LEFT".equals(side)) {
-            g.drawImage(img, x, y, w, h, null);
+            g2.drawImage(img, x, y, w, h, null);
         } else {
-            g.drawImage(img, x + w, y, -w, h, null);   // negative width = flipped
+            g2.drawImage(img, x + w, y, -w, h, null);   // negative width = flipped
+        }
+        // Effects on the player (electrocuted, stunned...), as the domain names them
+        if (!states.isEmpty()) {
+            drawPill(g2, String.join(" · ", states).toUpperCase(), x + w / 2, y - 6, RED, WHITE);
         }
     }
 
-    // Image of the ball the domain uses ("Clásico" -> assets/img/balls/classic.png)
-    private Image ballImage(String ballName) {
+    // Fake balls (illusion) and the real ball; if the ball carries a power shot: trail, aura and its name
+    private void drawBalls(Graphics2D g2) throws DOPOSoccerException {
+        Image ball = ballImage(game.getBallName());
+        int d = sx(game.getBallRadius() * 2);
+        for (double[] fake : game.getFakeBalls()) {
+            g2.drawImage(ball, sx(fake[0]), sy(fake[1]), d, d, null);
+        }
+
+        int x = sx(game.getBallX());
+        int y = sy(game.getBallY());
+        String power = game.getBallPower(); // null if it is a normal ball
+        if (power != null) {
+            drawTrail(g2, ball, d);
+            drawGlow(g2, x + d / 2, y + d / 2, d * 0.95f);
+            drawPill(g2, "TIRO " + power.toUpperCase(), x + d / 2, y - 14, AURA_PILL, LIGHT_BLUE);
+            ballTrail.add(0, new Point(x, y));
+            if (ballTrail.size() > TRAIL_LENGTH) ballTrail.remove(ballTrail.size() - 1);
+        } else {
+            ballTrail.clear();
+        }
+        g2.drawImage(ball, x, y, d, d, null);
+    }
+
+    // The previous positions of the ball, more transparent the older they are
+    private void drawTrail(Graphics2D g2, Image ball, int d) {
+        for (int i = ballTrail.size() - 1; i >= 0; i--) {
+            float alpha = 0.35f * (TRAIL_LENGTH - i) / TRAIL_LENGTH;
+            Graphics2D t = (Graphics2D) g2.create();
+            t.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            Point p = ballTrail.get(i);
+            t.drawImage(ball, p.x, p.y, d, d, null);
+            t.dispose();
+        }
+    }
+
+    // Light-blue light that fades out, centered in (cx, cy)
+    private void drawGlow(Graphics2D g2, int cx, int cy, float radius) {
+        g2.setPaint(new RadialGradientPaint(
+            cx, cy, radius,
+            new float[]{0.45f, 1f},
+            new Color[]{AURA_LIGHT, new Color(AURA_LIGHT.getRed(), AURA_LIGHT.getGreen(), AURA_LIGHT.getBlue(), 0)}
+        ));
+        g2.fillOval(Math.round(cx - radius), Math.round(cy - radius), Math.round(radius * 2), Math.round(radius * 2));
+    }
+
+    // Pill with a text (power shot, effects), centered over (cx, bottom)
+    private void drawPill(Graphics2D g2, String text, int cx, int bottom, Color bg, Color fg) {
+        g2.setFont(luckiest.deriveFont(16f));
+        FontMetrics fm = g2.getFontMetrics();
+        int w = fm.stringWidth(text) + 32;
+        int h = fm.getAscent() + 12;
+        int x = cx - w / 2;
+        int y = bottom - h;
+        g2.setColor(bg);
+        g2.fillRoundRect(x, y, w, h, h, h);
+        g2.setColor(fg);
+        g2.drawString(text, x + 16, y + fm.getAscent() + 4);
+    }
+
+    // "¡MUERTE SÚBITA!" banner in the middle of the field, the first seconds of the sudden death
+    private void drawSuddenDeathBanner(Graphics2D g2) {
+        if (!suddenDeath || System.currentTimeMillis() - suddenDeathSince > SUDDEN_DEATH_BANNER_MS) return;
+        String title = "¡MUERTE SÚBITA!";
+        String subtitle = "EMPATE AL TERMINAR EL TIEMPO · EL PRÓXIMO GOL GANA";
+        Font titleFont = luckiest.deriveFont(56f);
+        Font subtitleFont = luckiest.deriveFont(18f);
+        FontMetrics tm = g2.getFontMetrics(titleFont);
+        FontMetrics sm = g2.getFontMetrics(subtitleFont);
+
+        int w = Math.max(tm.stringWidth(title), sm.stringWidth(subtitle)) + 80;
+        int h = tm.getAscent() + sm.getAscent() + 60;
+        int x = (getWidth() - w) / 2;
+        int y = (getHeight() - h) / 2;
+
+        g2.setColor(DARK_GREEN);
+        g2.fillRoundRect(x, y, w, h, 30, 30);
+        g2.setColor(YELLOW);
+        g2.setStroke(new BasicStroke(5));
+        g2.drawRoundRect(x, y, w, h, 30, 30);
+
+        g2.setFont(titleFont);
+        g2.drawString(title, x + (w - tm.stringWidth(title)) / 2, y + 22 + tm.getAscent());
+        g2.setFont(subtitleFont);
+        g2.setColor(WHITE);
+        g2.drawString(subtitle, x + (w - sm.stringWidth(subtitle)) / 2, y + h - 22);
+    }
+
+    // Image of a ball of the domain ("Clásico" -> assets/img/balls/classic.png)
+    protected Image ballImage(String ballName) {
         String file;
         switch (ballName) {
             case "Tricolor": file = "tricolor"; break;
@@ -130,8 +244,20 @@ public abstract class GameView extends View {
         return new ImageIcon("assets/img/balls/" + file + ".png").getImage();
     }
 
+    // State of the domain -> end of the image file ("Electrocutado" -> colombia-electrocuted.png)
+    private String stateSuffix(String state) {
+        switch (state) {
+            case "Electrocutado": return "-electrocuted";
+            case "Aturdido": return "-stunned";
+            case "Confusión": return "-confused";
+            case "Empuje": return "-pushed";
+            case "Inconsciente": return "-unconscious";
+            default: return ""; // a new effect without image: the normal one
+        }
+    }
+
     // Country of the domain -> name of the image file
-    private String imageOf(String country) {
+    protected String imageOf(String country) {
         switch (country) {
             case "Corea del Sur": return "corea-sur";
             case "Camerún": return "cameroon";
@@ -141,30 +267,39 @@ public abstract class GameView extends View {
             default: return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
         }
     }
-    
 
-
-    // Player 1 data: info box and the code in the scoreboard
+    // Player 1 data (from the domain): info box and the code in the scoreboard
     public void setPlayer1(String name, String character, String power, String countryCode) {
         p1NameLabel.setText(name + " · " + character);
-        p1PowerLabel.setText("PODER: " + power);
+        p1Power = power;
+        p1PowerLabel.setText(powerText(power, false));
         p1Code = countryCode;
         updateTeamLabels();
     }
 
-    // Rival data: info box and the code in the scoreboard
-    public void setPlayer2(String name, String character, String power, String countryCode) {
+    // Rival data (from the domain): tag ("IA" or "J2"), info box and the code in the scoreboard
+    public void setPlayer2(String tag, String name, String character, String power, String countryCode) {
+        rivalTag = tag;
+        p2TagLabel.setText(tag);
         p2NameLabel.setText(name + " · " + character);
-        p2PowerLabel.setText("PODER: " + power);
+        p2Power = power;
+        p2PowerLabel.setText(powerText(power, false));
         p2Code = countryCode;
         updateTeamLabels();
     }
 
-    // The rival is the AI (IA) or player 2 (J2)
-    public void setVsMachine(boolean vsMachine) {
-        iaCode = vsMachine ? "IA" : "J2";
-        p2TagLabel.setText(iaCode);
-        updateTeamLabels();
+    // Whether each player has its power active (aura), as the domain says
+    public void setAura(boolean p1Aura, boolean p2Aura) {
+        p1PowerLabel.setText(powerText(p1Power, p1Aura));
+        p2PowerLabel.setText(powerText(p2Power, p2Aura));
+    }
+
+    private String powerText(String power, boolean aura) {
+        return aura ? "AURA ACTIVA · TIRO: " + power : "PODER: " + power;
+    }
+
+    public String getRivalTag() {
+        return rivalTag;
     }
 
     // Bars values from 0 (empty) to 1 (full)
@@ -184,22 +319,8 @@ public abstract class GameView extends View {
         p2PowerBar.setValue(value);
     }
 
-    public void setAILabel(String profile, String character) {
-        p2NameLabel.setText("IA · " + character + " (" + profile + ")");
-    }
-
-    // In a goals match, the match ends when someone gets to the goal target
     public void setScore(int p1Goals, int p2Goals) {
         scoreLabel.setText(p1Goals + " - " + p2Goals);
-        if (goalTarget > 0 && (p1Goals >= goalTarget || p2Goals >= goalTarget)) {
-            matchTimer.stop();
-            onGoalTargetReached();
-        }
-    }
-
-    // Goals to win (only for goals matches)
-    public void setGoalTarget(int goals) {
-        goalTarget = goals;
     }
 
     // Time in seconds, shown as m:ss
@@ -207,60 +328,17 @@ public abstract class GameView extends View {
         timeLabel.setText(formatTime(seconds));
     }
 
-    // Starts the countdown from the given seconds (DEFAULT_MATCH_SECONDS = 1 minute)
-    public void startTimer(int seconds) {
-        countDown = true;
-        goalTarget = 0; // a time match has no goal target
-        secondsLeft = seconds;
-        setTime(secondsLeft);
-        matchTimer.restart();
+    // Any text in the time pill ("MUERTE SÚBITA", "PARTIDO 3"...)
+    public void setTimeText(String text) {
+        timeLabel.setText(text);
     }
 
-    // Starts the clock from 0:00 counting up (goals match: no time limit)
-    public void startStopwatch() {
-        countDown = false;
-        secondsLeft = 0;
-        setTime(secondsLeft);
-        matchTimer.restart();
-    }
-
-    // Stops the clock without losing the time (for the pause)
-    public void pauseTimer() {
-        matchTimer.stop();
-    }
-
-    // Continues the clock after a pause
-    public void resumeTimer() {
-        if (!countDown || secondsLeft > 0) matchTimer.start(); // the countdown doesn't continue from 0:00
-    }
-
-    public int getSecondsLeft() {
-        return secondsLeft;
-    }
-
-    // What happens when the countdown gets to 0:00 (each match view can change it)
-    protected void onTimeUp() {
-        JOptionPane.showMessageDialog(this, "El tiempo ha terminado.");
-    }
-
-    // What happens when someone gets to the goal target (each match view can change it)
-    protected void onGoalTargetReached() {
-        JOptionPane.showMessageDialog(this, "¡Alguien llegó a " + goalTarget + " goles!");
-    }
-
-    // One second less (countdown) or one more (stopwatch)
-    private void tic() {
-        if (countDown) {
-            secondsLeft--;
-            setTime(secondsLeft);
-            if (secondsLeft <= 0) {
-                matchTimer.stop();
-                onTimeUp();
-            }
-        } else {
-            secondsLeft++; // By goals, only shows the time played
-            setTime(secondsLeft);
+    // Sudden death (domain): the banner is shown the first seconds after it starts
+    public void setSuddenDeath(boolean value) {
+        if (value && !suddenDeath) {
+            suddenDeathSince = System.currentTimeMillis();
         }
+        suddenDeath = value;
     }
 
     protected String formatTime(int seconds) {
@@ -269,7 +347,7 @@ public abstract class GameView extends View {
 
     private void updateTeamLabels() {
         p1TeamLabel.setText("(" + p1Code + ") J1");
-        p2TeamLabel.setText("(" + p2Code + ") " + iaCode);
+        p2TeamLabel.setText("(" + p2Code + ") " + rivalTag);
     }
 
     // Default top bar: player 1 HUD, scoreboard + time + pause and rival HUD, together and centered
@@ -292,17 +370,17 @@ public abstract class GameView extends View {
     protected JPanel createPlayer1Block() {
         p1HpBar = new StatBar(NORMAL_GREEN, 1.0);
         p1PowerBar = new StatBar(YELLOW, 0);
-        p1NameLabel = new JLabel("TÚ · COLOMBIA");
-        p1PowerLabel = new JLabel("PODER: ILUSIÓN");
+        p1NameLabel = new JLabel(" ");
+        p1PowerLabel = new JLabel(" ");
         return createBlock(BLUE, new JLabel("J1"), p1HpBar, p1PowerBar, p1NameLabel, p1PowerLabel, false);
     }
 
     protected JPanel createPlayer2Block() {
         p2HpBar = new StatBar(NORMAL_GREEN, 1.0);
         p2PowerBar = new StatBar(YELLOW, 0);
-        p2TagLabel = new JLabel(iaCode);
-        p2NameLabel = new JLabel("");
-        p2PowerLabel = new JLabel("PODER: RAYO");
+        p2TagLabel = new JLabel(" ");
+        p2NameLabel = new JLabel(" ");
+        p2PowerLabel = new JLabel(" ");
         return createBlock(RED, p2TagLabel, p2HpBar, p2PowerBar, p2NameLabel, p2PowerLabel, true);
     }
 
@@ -419,7 +497,7 @@ public abstract class GameView extends View {
 
     // Time in a yellow pill, centered under the scoreboard
     protected JPanel createTimeRow() {
-        timeLabel = createOutlinedLabel(formatTime(secondsLeft), DARK_GREEN, YELLOW, 20f);
+        timeLabel = createOutlinedLabel(formatTime(0), DARK_GREEN, YELLOW, 20f);
 
         JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         row.setOpaque(false);
@@ -454,10 +532,8 @@ public abstract class GameView extends View {
         return pauseBtn;
     }
 
-    // Transparent layer with the pause card centered (it goes in the window glass pane, over the match)
-    protected JPanel createPauseOverlay() {
-        JPanel card = createPauseCard();
-
+    // Transparent layer with a card centered (it goes in the window glass pane, over the match)
+    protected JPanel createOverlay(JPanel card) {
         JPanel overlay = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)) {
             // Translucent black over the whole match, so the card stands out
             @Override
@@ -486,9 +562,9 @@ public abstract class GameView extends View {
         JPanel card = createRoundedPanel(new BorderLayout(0, 22), MEDIUM_GREEN, WHITE, 26);
         card.setBorder(BorderFactory.createEmptyBorder(26, 40, 34, 40));
 
-        resumeBtn = createPauseMenuButton("REANUDAR", LIGHT_BLUE);
-        saveGameBtn = createPauseMenuButton("GUARDAR PARTIDA", ORANGE);
-        endGameBtn = createPauseMenuButton("TERMINAR JUEGO", RED);
+        resumeBtn = createMenuButton("REANUDAR", LIGHT_BLUE, WHITE);
+        saveGameBtn = createMenuButton("GUARDAR PARTIDA", ORANGE, WHITE);
+        endGameBtn = createMenuButton("TERMINAR JUEGO", RED, WHITE);
 
         JPanel buttons = new JPanel(new GridLayout(3, 1, 0, 12));
         buttons.setOpaque(false);
@@ -502,12 +578,91 @@ public abstract class GameView extends View {
         return card;
     }
 
-    private JButton createPauseMenuButton(String text, Color color) {
-        JButton btn = createButton(text, color, WHITE, null);
+    protected JButton createMenuButton(String text, Color color, Color textColor) {
+        JButton btn = createButton(text, color, textColor, null);
         btn.setFont(luckiest.deriveFont(22f));
         btn.setBorder(BorderFactory.createEmptyBorder(14, 20, 8, 20));
         btn.setFocusable(false); // without focus, Space doesn't press it
         return btn;
+    }
+
+    // Result card: dark green with a colored border, title on top and the 2 buttons at the bottom
+    // (againBtn: "REVANCHA" / "OTRA SERIE", menuBtn: "MENÚ"); the content goes in the center
+    protected JPanel createResultCard(Color borderColor, JLabel title, JComponent content, String againText) {
+        resultBorderColor = borderColor;
+        JPanel card = new JPanel(new BorderLayout(0, 24)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(DARK_GREEN);
+                g2.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+                g2.setColor(resultBorderColor);
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(BorderFactory.createEmptyBorder(26, 44, 30, 44));
+
+        title.setFont(luckiest.deriveFont(48f));
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0)); // room for accents
+
+        againBtn = createMenuButton(againText, NORMAL_GREEN, DARK_GREEN);
+        menuBtn = createMenuButton("MENÚ", YELLOW, DARK_GREEN);
+
+        JPanel buttons = new JPanel(new GridLayout(1, 2, 30, 0));
+        buttons.setOpaque(false);
+        buttons.add(againBtn);
+        buttons.add(menuBtn);
+        JPanel buttonsRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        buttonsRow.setOpaque(false);
+        buttonsRow.add(buttons);
+        // The buttons row gives the card its width (the height follows the content)
+        buttonsRow.setPreferredSize(new Dimension(560, buttons.getPreferredSize().height));
+
+        card.add(title, BorderLayout.NORTH);
+        card.add(content, BorderLayout.CENTER);
+        card.add(buttonsRow, BorderLayout.SOUTH);
+        return card;
+    }
+
+    // Changes the border of the result card (e.g. yellow for a win, red for a defeat)
+    protected void setResultBorderColor(Color color) {
+        resultBorderColor = color;
+        if (resultOverlay != null) resultOverlay.repaint();
+    }
+
+    // White label of the result card
+    protected JLabel createResultLabel(float size, int align) {
+        JLabel label = new JLabel(" ", align);
+        label.setFont(luckiest.deriveFont(size));
+        label.setForeground(WHITE);
+        label.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0)); // room for accents
+        return label;
+    }
+
+    // Coin and "+points" in yellow
+    protected JLabel createCoinsLabel() {
+        JLabel label = new JLabel(" ", loadIcon(COIN_IMAGE, 24), SwingConstants.CENTER);
+        label.setFont(luckiest.deriveFont(24f));
+        label.setForeground(YELLOW);
+        label.setIconTextGap(10);
+        return label;
+    }
+
+    // Face of a character of the domain
+    protected ImageIcon faceIcon(String country, int size) {
+        return loadIcon("assets/img/players/" + imageOf(country) + ".png", size);
+    }
+
+    // Flag of a character of the domain (assets/img/flags/<country>.png)
+    protected ImageIcon flagIcon(String country, int width, int height) {
+        Image img = new ImageIcon("assets/img/flags/" + country + ".png").getImage();
+        return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
     }
 
     // Panel with a rounded background and an optional border (null = no border)

@@ -12,9 +12,9 @@ package domain;
 public class Ball extends Entity {
 
     /** Share of speed the ball keeps after a rebound; it is given to the physics library. */
-    public static final double RESTITUTION = 0.6;
+    public static final double RESTITUTION = 0.7;
     /** Below this speed, in pixels per second, a power shot is over and the ball loses its charge. */
-    public static final double MIN_SHOT_SPEED = 150;
+    public static final double MIN_SHOT_SPEED = 200;
 
     /** Radius, in pixels. */
     private final double radius;
@@ -146,7 +146,7 @@ public class Ball extends Entity {
      */
     @Override
     public double getGravityScale() {
-        return isPowerShot() && charge.ignoresGravity() ? 0 : 1;
+        return isPowerShot() && charge.ignoresGravity() ? 0 : 0.7;
     }
 
     /**

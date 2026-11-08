@@ -41,6 +41,8 @@ public class DOPOSoccerException extends Exception {
     public static final String UNKNOWN_STAT = "La estadística no es speed, jump, kick ni survival.";
     /** The stat is already at its maximum. */
     public static final String STAT_AT_MAX = "Esa estadística ya está en 10.";
+    /** The volume is not between 0 and 100. */
+    public static final String INVALID_VOLUME = "El volumen debe estar entre 0 y 100.";
 
     /**
      * Creates the exception with one of the message constants.

@@ -16,7 +16,16 @@ import presentation.views.arcade.SelectArcadeCharacterView;
 import presentation.views.arcade.SelectArcadeBallView;
 
 // Match Views classes
+import presentation.views.match.MatchView;
 import presentation.views.match.ArcadeMatchView;
+import presentation.views.match.SurvivalMatchView;
+
+// Tournament Views classes
+import presentation.views.tournament.NewTournamentView;
+import presentation.views.tournament.TournamentBallView;
+import presentation.views.tournament.TournamentBracketView;
+import presentation.views.tournament.TournamentRoundView;
+import presentation.views.tournament.TournamentMatchView;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -26,24 +35,33 @@ import domain.*;
 
 public class DOPOSoccerGUI extends JFrame {
     // Game
-    DOPOSoccer game;
+    private DOPOSoccer game;
 
     // Views components
-    MainMenuView mainMenuView;
-    TutorialView tutorialView;
-    SettingsView settingsView;
-    SelectModeView selectModeView;
+    private MainMenuView mainMenuView;
+    private TutorialView tutorialView;
+    private SettingsView settingsView;
+    private SelectModeView selectModeView;
 
     // Arcade Views components
-    SelectArcadeModeView selectArcadeModeView;
-    SelectArcadeResolutionView selectArcadeResolutionView;
-    SelectArcadeMatchTypeView selectArcadeMatchTypeView;
-    SelectArcadeCharacterView selectArcadeCharacterView;
-    SelectArcadeCharacterView selectArcadeRivalView;
-    SelectArcadeBallView selectArcadeBallView;
+    private SelectArcadeModeView selectArcadeModeView;
+    private SelectArcadeResolutionView selectArcadeResolutionView;
+    private SelectArcadeMatchTypeView selectArcadeMatchTypeView;
+    private SelectArcadeCharacterView selectArcadeCharacterView;
+    private SelectArcadeCharacterView selectArcadeRivalView;
+    private SelectArcadeBallView selectArcadeBallView;
+
+    // Tournament Views components
+    private NewTournamentView newTournamentView;
+    private TournamentBallView tournamentBallView;
+    private TournamentBracketView tournamentBracketView;
+    private TournamentRoundView tournamentRoundView;
+    private TournamentMatchView tournamentMatchView;
 
     // Match Views components
-    ArcadeMatchView arcadePVPMatchView;
+    private ArcadeMatchView arcadeMatchView;
+    private SurvivalMatchView survivalMatchView;
+    private MatchView matchView; // the match view being played (arcade or survival)
 
     // Fonts
     private Font luckiest;
@@ -61,8 +79,11 @@ public class DOPOSoccerGUI extends JFrame {
     public static final Color WHITE = Color.WHITE;
     public static final Color BLACK = new Color(25, 25, 30);
 
-    // Game Constants
-    int goalTarget = 0;
+    // Balls of each player at the start of a survival series (domain)
+    private int maxBalls = 0;
+
+    // Sound player (music, sound effects, etc)
+    private SoundPlayer sounds = new SoundPlayer();
 
     public DOPOSoccerGUI() {
         game = new DOPOSoccer();
@@ -89,12 +110,25 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeRivalView = new SelectArcadeCharacterView(luckiest, true);
         selectArcadeBallView = new SelectArcadeBallView(luckiest);
 
+        // Tournament Views
+        newTournamentView = new NewTournamentView(luckiest);
+        tournamentBallView = new TournamentBallView(luckiest);
+        tournamentBracketView = new TournamentBracketView(luckiest);
+        tournamentRoundView = new TournamentRoundView(luckiest);
+        tournamentMatchView = new TournamentMatchView(luckiest, game);
+
         // Match Views
-        arcadePVPMatchView = new ArcadeMatchView(luckiest, game);
+        arcadeMatchView = new ArcadeMatchView(luckiest, game);
+        survivalMatchView = new SurvivalMatchView(luckiest, game);
+        matchView = arcadeMatchView;
 		add(mainMenuView, BorderLayout.CENTER);
     }
 
     private void prepareController() {
+        // Volumes saved in the domain, then the music
+        sounds.setMusicVolume(game.getMusicVolume());
+        sounds.setEffectsVolume(game.getEffectsVolume());
+        sounds.startMusic("music");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -116,9 +150,16 @@ public class DOPOSoccerGUI extends JFrame {
         prepareSelectArcadeCharacterController();
         prepareSelectArcadeRivalController();
         prepareSelectArcadeBallController();
+        prepareLockedController();
+
+        // Tournament Views
+        prepareNewTournamentController();
+        prepareTournamentBallController();
+        prepareTournamentBracketController();
 
         // Match Views
-        prepareArcadePVPMatchController();
+        prepareMatchController(arcadeMatchView);
+        prepareMatchController(survivalMatchView);
 
         // Key movement
         prepareKeysController();
@@ -127,8 +168,29 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareMainMenuController() {
         mainMenuView.exitBtn.addActionListener(e -> exit());
         mainMenuView.tutorialBtn.addActionListener(e -> showView(tutorialView, "¿Cómo Jugar?"));
-        mainMenuView.settingsBtn.addActionListener(e -> showView(settingsView, "Ajustes"));
+        mainMenuView.settingsBtn.addActionListener(e -> {
+            settingsView.setVolumes(game.getMusicVolume(), game.getEffectsVolume());
+            showView(settingsView, "Ajustes");
+        });
         mainMenuView.playBtn.addActionListener(e -> showView(selectModeView, "Modo de Juego"));
+
+        // Store: the points of player 1 (the store is under construction in the domain)
+        mainMenuView.storeBtn.addActionListener(e -> {
+            try {
+                game.getPoints("LEFT");
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+
+        // Open a saved game (under construction in the domain)
+        mainMenuView.openGameBtn.addActionListener(e -> {
+            try {
+                game.openGame(null);
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
     }
 
     private void prepareTutorialController() {
@@ -137,11 +199,52 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSettingsController() {
         settingsView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
+
+        // Each slider saves its volume in the domain and the sound player uses it
+        settingsView.setMusicListener(e -> {
+            try {
+                game.setMusicVolume(settingsView.getMusicVolume());
+                sounds.setMusicVolume(game.getMusicVolume());
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+        settingsView.setEffectsListener(e -> {
+            try {
+                game.setEffectsVolume(settingsView.getEffectsVolume());
+                sounds.setEffectsVolume(game.getEffectsVolume());
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+
+        // "RESTABLECER": the domain puts back its default volumes
+        settingsView.resetBtn.addActionListener(e -> {
+            game.resetSettings();
+            settingsView.setVolumes(game.getMusicVolume(), game.getEffectsVolume());
+        });
     }
 
     private void prepareSelectModeController()  {
         selectModeView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
         selectModeView.arcadeBtn.addActionListener(e -> showView(selectArcadeModeView, "Modalidad (Arcade)"));
+
+        // Tournament: the teams of the bracket (under construction in the domain)
+        // Tournament: "NUEVO TORNEO" with the team and the stats of player 1 (domain)
+        selectModeView.tournamentBtn.addActionListener(e -> {
+            try {
+                String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
+                int[] stats = new int[STATS.length];
+                for (int i = 0; i < STATS.length; i++) {
+                    stats[i] = game.getStat("LEFT", STATS[i]);
+                }
+                newTournamentView.setTeam(team, game.getPowerNameOf(team), stats);
+                newTournamentView.setPrize(TournamentMode.PRIZE);
+                showView(newTournamentView, "Nuevo Torneo");
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
     }
 
     private void prepareSelectArcadeModeController() {
@@ -181,6 +284,9 @@ public class DOPOSoccerGUI extends JFrame {
         });
     }
 
+    // Stats of a player, in the order of the bars
+    private static final String[] STATS = {"SPEED", "JUMP", "KICK", "SURVIVAL"};
+
     // Asks the domain the stats of a side and gives them to a character view; false if the domain failed
     private boolean loadStats(SelectArcadeCharacterView view, String side) {
         String[] names = {"SPEED", "JUMP", "KICK", "SURVIVAL"}; // same order as the bars
@@ -197,6 +303,62 @@ public class DOPOSoccerGUI extends JFrame {
         return true;
     }
 
+    // Locked character or ball: the domain buys it for that player (the store is under construction)
+    private void prepareLockedController() {
+        selectArcadeCharacterView.setLockedListener(e -> buy(() -> game.buyCharacter("LEFT", toDomainCountry(e.getActionCommand()))));
+        selectArcadeRivalView.setLockedListener(e -> buy(() -> game.buyCharacter("RIGHT", toDomainCountry(e.getActionCommand()))));
+        selectArcadeBallView.setLockedListener(e -> buy(() -> game.buyBall("LEFT", toDomainBall(e.getActionCommand()))));
+    }
+
+    // A purchase in the domain; its error (e.g. "Opción en construcción.") in a message
+    private void buy(Purchase purchase) {
+        try {
+            purchase.run();
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    // An action of the domain that can fail
+    private interface Purchase {
+        void run() throws DOPOSoccerException;
+    }
+
+    private void prepareNewTournamentController() {
+        newTournamentView.backBtn.addActionListener(e -> showView(selectModeView, "Modo de Juego"));
+        newTournamentView.continueBtn.addActionListener(e -> showView(tournamentBallView, "Balón (Torneo)"));
+    }
+
+    private void prepareTournamentBallController() {
+        tournamentBallView.backBtn.addActionListener(e -> showView(newTournamentView, "Nuevo Torneo"));
+        tournamentBallView.setLockedListener(e -> buy(() -> game.buyBall("LEFT", toDomainBall(e.getActionCommand()))));
+        tournamentBallView.continueBtn.addActionListener(e -> {
+            try {
+                String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
+                boolean byTime = newTournamentView.isByTime();
+                game.selectBall("LEFT", toDomainBall(tournamentBallView.getSelectedBall()));
+                game.newGame("PVM", toDomainProfile(selectArcadeModeView.getAIProfile()),
+                    toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), "TOURNAMENT",
+                    team, team, byTime ? "TIME" : "GOALS",
+                    byTime ? newTournamentView.getMinutes() : newTournamentView.getGoalTarget());
+
+                tournamentBracketView.setTeams(game.getTournamentTeams(), java.util.List.of(), java.util.List.of(), team);
+                tournamentBracketView.setMatchType(byTime
+                    ? "POR TIEMPO · " + newTournamentView.getMinutes() * 60 + " S"
+                    : "POR GOLES · META " + newTournamentView.getGoalTarget());
+                tournamentBracketView.setPrize(TournamentMode.PRIZE);
+                tournamentBracketView.setNextRound(game.getTournamentRound());
+                showView(tournamentBracketView, "Llave del Torneo");
+            } catch (DOPOSoccerException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage()); // "Opción en construcción."
+            }
+        });
+    }
+
+    private void prepareTournamentBracketController() {
+        tournamentBracketView.backBtn.addActionListener(e -> showView(tournamentBallView, "Balón (Torneo)"));
+    }
+
     private void prepareSelectArcadeRivalController() {
         selectArcadeRivalView.backBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
         selectArcadeRivalView.continueBtn.addActionListener(e -> showView(selectArcadeBallView, "Balón (Arcade)"));
@@ -204,29 +366,24 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSelectArcadeBallController() {
         selectArcadeBallView.backBtn.addActionListener(e -> showView(selectArcadeRivalView, "Rival (Arcade)"));
-        // ¡JUGAR!: starts the game in the domain with the choices of every screen (translated to the domain names)
-        selectArcadeBallView.continueBtn.addActionListener(e -> newGame(
-            toDomainProfile(selectArcadeModeView.getAIProfile()),
-            toDomainResolution(selectArcadeResolutionView.getSelectedResolution()),
-            toDomainCountry(selectArcadeCharacterView.getSelectedCharacter()),
-            toDomainCountry(selectArcadeRivalView.getSelectedCharacter())
-        ));
+        selectArcadeBallView.continueBtn.addActionListener(e -> startGame());
     }
 
-    private void prepareArcadePVPMatchController() {
+    // Pause menu and result card of a match view (arcade or survival)
+    private void prepareMatchController(MatchView view) {
         // Pause: stops the game loop and the domain, and shows the pause card over the match (window glass pane)
-        arcadePVPMatchView.pauseBtn.addActionListener(e -> {
+        view.pauseBtn.addActionListener(e -> {
             try {
                 game.pause();
                 gameLoop.stop();
-                setGlassPane(arcadePVPMatchView.pauseOverlay);
+                setGlassPane(view.pauseOverlay);
                 getGlassPane().setVisible(true);
             } catch (DOPOSoccerException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
 
-        arcadePVPMatchView.resumeBtn.addActionListener(e -> {
+        view.resumeBtn.addActionListener(e -> {
             try {
                 game.resume();
                 getGlassPane().setVisible(false);
@@ -238,7 +395,7 @@ public class DOPOSoccerGUI extends JFrame {
         });
 
         // Under construction in the domain: it shows "Opción en construcción."
-        arcadePVPMatchView.saveGameBtn.addActionListener(e -> {
+        view.saveGameBtn.addActionListener(e -> {
             try {
                 game.saveGame(null);
             } catch (DOPOSoccerException ex) {
@@ -246,7 +403,7 @@ public class DOPOSoccerGUI extends JFrame {
             }
         });
 
-        arcadePVPMatchView.endGameBtn.addActionListener(e -> {
+        view.endGameBtn.addActionListener(e -> {
             try {
                 game.endGame();
             } catch (DOPOSoccerException ex) {
@@ -254,6 +411,19 @@ public class DOPOSoccerGUI extends JFrame {
             }
             gameLoop.stop();
             getGlassPane().setVisible(false);
+            sounds.startMusic("music");
+            showView(mainMenuView, "Inicio");
+        });
+
+        // Result card: "REVANCHA" / "OTRA SERIE" plays again with the same choices, "MENÚ" goes to the menu
+        view.againBtn.addActionListener(e -> {
+            getGlassPane().setVisible(false);
+            startGame();
+        });
+
+        view.menuBtn.addActionListener(e -> {
+            getGlassPane().setVisible(false);
+            sounds.startMusic("music");
             showView(mainMenuView, "Inicio");
         });
     }
@@ -265,6 +435,16 @@ public class DOPOSoccerGUI extends JFrame {
 		revalidate();
 		repaint();
 	}
+
+    // Starts a game in the domain with the choices of every screen (also for "REVANCHA" / "OTRA SERIE")
+    private void startGame() {
+        newGame(
+            toDomainProfile(selectArcadeModeView.getAIProfile()),
+            toDomainResolution(selectArcadeResolutionView.getSelectedResolution()),
+            toDomainCountry(selectArcadeCharacterView.getSelectedCharacter()),
+            toDomainCountry(selectArcadeRivalView.getSelectedCharacter())
+        );
+    }
 
     private void newGame(
         String AIProfile,
@@ -285,29 +465,32 @@ public class DOPOSoccerGUI extends JFrame {
             game.selectBall("LEFT", toDomainBall(selectArcadeBallView.getSelectedBall()));
             game.newGame(modality, AIProfile, resolution, "ARCADE", j1Country, j2Country, matchType, amount);
 
-            // Only if the domain accepted it: players data in the HUD and scoreboard
-            boolean vsMachine = selectArcadeModeView.isVsMachine();
-            arcadePVPMatchView.setPlayer1(
-                "TÚ",
-                selectArcadeCharacterView.getSelectedCharacter(),
-                selectArcadeCharacterView.getSelectedPower(),
+            // Only if the domain accepted it: the view of the match type, with the players data of the domain
+            boolean survival = "SURVIVAL".equals(game.getMatchType());
+            matchView = survival ? survivalMatchView : arcadeMatchView;
+            boolean vsMachine = "PVM".equals(game.getModality());
+            matchView.setPlayer1(
+                "JUGADOR 1",
+                game.getCharacter("LEFT").toUpperCase(),
+                game.getPowerName("LEFT").toUpperCase(),
                 selectArcadeCharacterView.getSelectedCode()
             );
-            arcadePVPMatchView.setPlayer2(
+            matchView.setPlayer2(
                 vsMachine ? "IA" : "J2",
-                selectArcadeRivalView.getSelectedCharacter(),
-                selectArcadeRivalView.getSelectedPower(),
+                vsMachine ? "IA" : "JUGADOR 2",
+                game.getCharacter("RIGHT").toUpperCase(),
+                game.getPowerName("RIGHT").toUpperCase(),
                 selectArcadeRivalView.getSelectedCode()
             );
-
-            arcadePVPMatchView.setVsMachine(vsMachine);
-            if (vsMachine) { // against the AI, also its profile (style)
-                arcadePVPMatchView.setAILabel(selectArcadeModeView.getAIProfile(), selectArcadeRivalView.getSelectedCharacter());
+            matchView.setSuddenDeath(false);
+            if (survival) {
+                maxBalls = game.getBalls("LEFT"); // the balls at the start of the series
             }
 
-            showView(arcadePVPMatchView, "Partido (Arcade)");
+            showView(matchView, survival ? "Supervivencia" : "Partido (Arcade)");
             refreshMatchView();  // 0 - 0, full time, full life... before the first tick
             lastTime = System.nanoTime(); // so the first dt isn't huge
+            sounds.startMusic("match");
             gameLoop.start();
         } catch (DOPOSoccerException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage()); // e.g. "Opción en construcción."
@@ -348,38 +531,115 @@ public class DOPOSoccerGUI extends JFrame {
     private Timer gameLoop = new Timer(16, e -> {
         long now = System.nanoTime();
         game.update((now - lastTime) / 1_000_000_000.0);
+        try {
+            for (String event : game.pollEvents()) {
+                switch (event) {
+                    case "KICK": sounds.play("kick"); break;
+                    case "POST": sounds.play("post"); break;
+                    case "GOAL": sounds.play("goal"); break;
+                }
+            }
+        } catch (DOPOSoccerException ex) {
+            // no match: no sounds
+        }
         lastTime = now;
         refreshMatchView();
     });
 
     private void refreshMatchView() {
         try {
-            arcadePVPMatchView.setScore(game.getGoals("LEFT"), game.getGoals("RIGHT"));
+            // Players HUD (both match types)
+            matchView.setPlayer1Hp(game.getLife("LEFT") / (double) game.getMaxLife("LEFT"));
+            matchView.setPlayer2Hp(game.getLife("RIGHT") / (double) game.getMaxLife("RIGHT"));
+            matchView.setPlayer1Power(game.getPowerCharge("LEFT"));
+            matchView.setPlayer2Power(game.getPowerCharge("RIGHT"));
+            matchView.setAura(game.hasAura("LEFT"), game.hasAura("RIGHT"));
 
-            int timeLeft = game.getTimeLeft();// -1 in a goals match
-            if (timeLeft >= 0) arcadePVPMatchView.setTime(timeLeft);
-
-            arcadePVPMatchView.setPlayer1Hp(game.getLife("LEFT") / (double) game.getMaxLife("LEFT"));
-            arcadePVPMatchView.setPlayer2Hp(game.getLife("RIGHT") / (double) game.getMaxLife("RIGHT"));
-            arcadePVPMatchView.setPlayer1Power(game.getPowerCharge("LEFT"));
-            arcadePVPMatchView.setPlayer2Power(game.getPowerCharge("RIGHT"));
-
-            // End of the match
-            if (game.isMatchOver()) {
-                gameLoop.stop();
-                String winner = game.getWinner();  // "LEFT", "RIGHT" or null
-                String text = winner == null ? "Partido terminado."
-                    : ("LEFT".equals(winner) ? "¡Ganó J1!" : "¡Ganó el rival!")
-                    + " Puntos: " + game.getPointsEarned(winner);
-                JOptionPane.showMessageDialog(this, text);
-                showView(mainMenuView, "Inicio");
+            if (matchView == survivalMatchView) {
+                refreshSurvival();
+            } else {
+                refreshArcade();
             }
-
-            // Enables movement
-            arcadePVPMatchView.repaint();
+            matchView.repaint(); // players and ball in their new places
         } catch (DOPOSoccerException ex) {
             gameLoop.stop();
             JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    // Arcade: score, time (or sudden death) and, at the end, the result card
+    private void refreshArcade() throws DOPOSoccerException {
+        arcadeMatchView.setScore(game.getGoals("LEFT"), game.getGoals("RIGHT"));
+
+        boolean suddenDeath = game.isSuddenDeath();
+        arcadeMatchView.setSuddenDeath(suddenDeath);
+        int timeLeft = game.getTimeLeft(); // -1 in a goals match
+        if (suddenDeath) {
+            arcadeMatchView.setTimeText("MUERTE SÚBITA");
+        } else if (timeLeft >= 0) {
+            arcadeMatchView.setTime(timeLeft);
+        } else {
+            arcadeMatchView.setTimeText("A " + selectArcadeMatchTypeView.getGoalTarget() + " GOLES");
+        }
+
+        if (game.isMatchOver()) {
+            gameLoop.stop();
+            String winner = game.getWinner(); // "LEFT", "RIGHT" or null
+            boolean vsMachine = "PVM".equals(game.getModality());
+            String title;
+            Color color;
+            if (winner == null) {
+                title = "PARTIDO TERMINADO";
+                color = WHITE;
+            } else if ("LEFT".equals(winner)) {
+                title = vsMachine ? "¡VICTORIA!" : "¡GANA J1!";
+                color = YELLOW;
+            } else {
+                title = vsMachine ? "DERROTA" : "¡GANA J2!";
+                color = vsMachine ? RED : YELLOW;
+            }
+            // Against the AI the points of player 1; between 2 players the points of the winner
+            String pointsSide = vsMachine || winner == null ? "LEFT" : winner;
+            arcadeMatchView.showResult(
+                title, color,
+                game.getGoals("LEFT"), game.getGoals("RIGHT"),
+                winner == null ? null : game.getCharacter(winner),
+                toMatchTypeText(game.getMatchType()),
+                game.getPointsEarned(pointsSide)
+            );
+            showResultCard();
+        }
+    }
+
+    // Survival: balls left and match number; a finished match goes to the next one, until the series ends
+    private void refreshSurvival() throws DOPOSoccerException {
+        survivalMatchView.setRound(game.getRound());
+        survivalMatchView.setBalls(game.getBalls("LEFT"), game.getBalls("RIGHT"), maxBalls,
+            survivalMatchView.getBallImage(game.getBallName()));
+
+        if (game.isModeOver()) {
+            gameLoop.stop();
+            int round = game.getRound();
+            int wins = "LEFT".equals(game.getWinner()) ? round : round - 1; // the last match was lost (or won)
+            survivalMatchView.showSeriesResult(round, wins, game.getCharacter("LEFT"), game.getPointsEarned("LEFT"));
+            showResultCard();
+        } else if (game.isMatchOver()) {
+            game.nextMatch();
+        }
+    }
+
+    // The result card of the match view over the match (window glass pane)
+    private void showResultCard() {
+        setGlassPane(matchView.resultOverlay);
+        getGlassPane().setVisible(true);
+    }
+
+    // "TIME" (domain) -> "POR TIEMPO", "GOALS" -> "POR GOLES"
+    private String toMatchTypeText(String matchType) {
+        switch (matchType) {
+            case "TIME": return "POR TIEMPO";
+            case "GOALS": return "POR GOLES";
+            default: return "SUPERVIVENCIA";
         }
     }
 
@@ -387,16 +647,16 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareKeysController() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             boolean inMatch = getContentPane().getComponentCount() > 0
-                && getContentPane().getComponent(0) == arcadePVPMatchView;
+                && getContentPane().getComponent(0) == matchView;
             if (!inMatch) return false; // in the menus the keys work as always
 
             // Esc: pause, or resume if it's already paused (same as clicking the buttons)
             if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    if (getGlassPane().isVisible()) {
-                        arcadePVPMatchView.resumeBtn.doClick();
+                    if (getGlassPane() == matchView.pauseOverlay && getGlassPane().isVisible()) {
+                        matchView.resumeBtn.doClick();
                     } else if (gameLoop.isRunning()) {
-                        arcadePVPMatchView.pauseBtn.doClick();
+                        matchView.pauseBtn.doClick();
                     }
                 }
                 return true;
