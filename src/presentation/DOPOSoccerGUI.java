@@ -160,7 +160,12 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareSelectArcadeMatchTypeController() {
         selectArcadeMatchTypeView.backBtn.addActionListener(e -> showView(selectArcadeResolutionView, "Resolución (Arcade)"));
-        selectArcadeMatchTypeView.continueBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
+        selectArcadeMatchTypeView.continueBtn.addActionListener(e -> {
+            // The bars show the stats of player 1 (domain)
+            if (loadStats(selectArcadeCharacterView, "LEFT")) {
+                showView(selectArcadeCharacterView, "Personaje (Arcade)");
+            }
+        });
     }
 
     private void prepareSelectArcadeCharacterController() {
@@ -169,8 +174,27 @@ public class DOPOSoccerGUI extends JFrame {
             // The rival view shows the character of player 1 and if the rival is the AI or player 2
             selectArcadeRivalView.setPlayerCharacter(selectArcadeCharacterView.getSelectedCharacter());
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
-            showView(selectArcadeRivalView, "Rival (Arcade)");
+            // The bars show the stats of the rival (domain)
+            if (loadStats(selectArcadeRivalView, "RIGHT")) {
+                showView(selectArcadeRivalView, "Rival (Arcade)");
+            }
         });
+    }
+
+    // Asks the domain the stats of a side and gives them to a character view; false if the domain failed
+    private boolean loadStats(SelectArcadeCharacterView view, String side) {
+        String[] names = {"SPEED", "JUMP", "KICK", "SURVIVAL"}; // same order as the bars
+        int[] values = new int[names.length];
+        try {
+            for (int i = 0; i < names.length; i++) {
+                values[i] = game.getStat(side, names[i]);
+            }
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            return false;
+        }
+        view.setPlayerStats(values);
+        return true;
     }
 
     private void prepareSelectArcadeRivalController() {
