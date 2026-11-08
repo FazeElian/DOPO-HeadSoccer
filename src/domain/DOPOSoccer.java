@@ -854,6 +854,15 @@ public class DOPOSoccer {
         settings.reset();
     }
 
+        /**
+     * Returns the points the champion of a tournament wins, to show them before and during the tournament.
+     *
+     * @return {@link TournamentMode#PRIZE}
+     */
+    public int getTournamentPrize() {
+        return TournamentMode.PRIZE;
+    }
+    
     /**
      * Tells whether there is saved progress. Under construction (persistence).
      *
@@ -901,6 +910,8 @@ public class DOPOSoccer {
     public void openGame(File file) throws DOPOSoccerException {
         throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
     }
+
+
 
     //  helpers
 

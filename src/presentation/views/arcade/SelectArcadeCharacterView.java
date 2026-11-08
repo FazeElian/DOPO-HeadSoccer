@@ -28,14 +28,14 @@ public class SelectArcadeCharacterView extends ArcadeView {
     // Characters: name, country code, image, power, price (0 = unlocked) and flag image (assets/img/flags/<flag>.png).
     // They have no stats: the bars show the stats of the player, that come from the domain
     private static final CharacterInfo[] CHARACTERS = {
-        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN", 0, "Colombia"),
-        new CharacterInfo("ARGENTINA", "AR", "argentina", "RAYO", 0, "Argentina"),
-        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "AURA AZUL", 0, "Corea del Sur"),
-        new CharacterInfo("CAMERÚN", "CM", "cameroon", "RAYO", 0, "Camerún"),
-        new CharacterInfo("NIGERIA", "NG", "nigeria", "TORNADO", 0, "Nigeria"),
-        new CharacterInfo("ESTADOS UNIDOS", "US", "usa", "ILUSIÓN", 0, "Estados Unidos"),
-        new CharacterInfo("ESPAÑA", "ES", "spain", "AURA AZUL", 800, "España"),
-        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", 1200, "Japón")
+        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN",  "Colombia"),
+        new CharacterInfo("ARGENTINA", "AR", "argentina", "RAYO",  "Argentina"),
+        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "AURA AZUL",  "Corea del Sur"),
+        new CharacterInfo("CAMERÚN", "CM", "cameroon", "RAYO",  "Camerún"),
+        new CharacterInfo("NIGERIA", "NG", "nigeria", "TORNADO",  "Nigeria"),
+        new CharacterInfo("ESTADOS UNIDOS", "US", "usa", "ILUSIÓN",  "Estados Unidos"),
+        new CharacterInfo("ESPAÑA", "ES", "spain", "AURA AZUL", "España"),
+        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", "Japón")
     };
 
     private final boolean rival;
@@ -58,6 +58,10 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     // Stats of the player (speed, jump, kick, survival) given by the domain; 1 = Stats.MIN_STAT
     private int[] playerStats = {1, 1, 1, 1};
+
+    // Price and lock of each character for the player that is choosing, given by the domain
+    private final int[] prices = new int[CHARACTERS.length];
+    private final boolean[] unlocked = new boolean[CHARACTERS.length];
 
     public SelectArcadeCharacterView(Font luckiest, boolean rival) {
         super(luckiest);
@@ -99,6 +103,26 @@ public class SelectArcadeCharacterView extends ArcadeView {
         playerStats = stats;
         updateDetails();
     }
+
+    // Names of the characters, in the order of the grid
+    public String[] getCharacterNames() {
+        String[] names = new String[CHARACTERS.length];
+        for (int i = 0; i < CHARACTERS.length; i++) names[i] = CHARACTERS[i].name;
+        return names;
+    }
+
+    // Price and lock of each character (same order as getCharacterNames), from the domain
+    public void setAvailability(int[] newPrices, boolean[] newUnlocked) {
+        for (int i = 0; i < CHARACTERS.length; i++) {
+            prices[i] = newPrices[i];
+            unlocked[i] = newUnlocked[i];
+        }
+        cardsGrid.removeAll();
+        for (int i = 0; i < CHARACTERS.length; i++) cardsGrid.add(new CharacterCard(i));
+        cardsGrid.revalidate();
+        cardsGrid.repaint();
+    }
+
     public String getSelectedCharacter() {
         return CHARACTERS[selected].name;
     }
@@ -264,7 +288,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             // Blocked characters show the price instead of the flag
             JLabel flagOrPrice;
             if (isLocked()) {
-                flagOrPrice = createPriceLabel(character.price);
+                flagOrPrice = createPriceLabel(prices[index]);
             } else {
                 flagOrPrice = new JLabel(loadFlag(character, 38, 23));
             }
@@ -298,7 +322,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
         }
 
         private boolean isLocked() {
-            return character.price > 0;
+            return !unlocked[index];
         }
 
         private boolean isPlayerPick() {
@@ -361,15 +385,13 @@ public class SelectArcadeCharacterView extends ArcadeView {
         private final String code; // country code for the scoreboard ("CO", "AR"...)
         private final String image;
         private final String power;
-        private final int price;
         private final String flag; // name of the flag image ("Colombia", "Corea del Sur"...)
 
-        public CharacterInfo(String name, String code, String image, String power, int price, String flag) {
+        public CharacterInfo(String name, String code, String image, String power, String flag) {
             this.name = name;
             this.code = code;
             this.image = image;
             this.power = power;
-            this.price = price;
             this.flag = flag;
         }
     }
