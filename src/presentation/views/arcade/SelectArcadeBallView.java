@@ -21,12 +21,12 @@ public class SelectArcadeBallView extends ArcadeView {
 
     // Balls: name, image (assets/img/balls/<image>.png) and price (0 = obtained)
     private static final BallInfo[] BALLS = {
-        new BallInfo("CLÁSICO", "classic", 0),
-        new BallInfo("TRICOLOR", "tricolor", 0),
-        new BallInfo("DORADO", "golden", 500),
-        new BallInfo("FUEGO", "fire", 700),
-        new BallInfo("HIELO", "ice", 700),
-        new BallInfo("GALAXIA", "galaxy", 1000)
+        new BallInfo("CLÁSICO", "classic"),
+        new BallInfo("TRICOLOR", "tricolor"),
+        new BallInfo("DORADO", "golden"),
+        new BallInfo("FUEGO", "fire"),
+        new BallInfo("HIELO", "ice"),
+        new BallInfo("GALAXIA", "galaxy")
     };
 
     private int selected = 1; // Tricolor by default
@@ -38,6 +38,11 @@ public class SelectArcadeBallView extends ArcadeView {
 
     // Who is told when a locked ball is pressed (the GUI, to ask the domain)
     private ActionListener lockedListener;
+
+    
+    // Price and lock of each ball for player 1, given by the domain
+    private final int[] prices = new int[BALLS.length];
+    private final boolean[] unlocked = new boolean[BALLS.length];
 
     public SelectArcadeBallView(Font luckiest) {
         super(luckiest);
@@ -85,6 +90,25 @@ public class SelectArcadeBallView extends ArcadeView {
 
     public String getSelectedBall() {
         return BALLS[selected].name;
+    }
+
+        // Names of the balls, in the order of the grid
+    public String[] getNames() {
+        String[] names = new String[BALLS.length];
+        for (int i = 0; i < BALLS.length; i++) names[i] = BALLS[i].name;
+        return names;
+    }
+
+    // Price and lock of each ball (same order as getNames), from the domain
+    public void setAvailability(int[] newPrices, boolean[] newUnlocked) {
+        for (int i = 0; i < BALLS.length; i++) {
+            prices[i] = newPrices[i];
+            unlocked[i] = newUnlocked[i];
+        }
+        ballsGrid.removeAll();
+        for (int i = 0; i < BALLS.length; i++) ballsGrid.add(new BallCard(i));
+        ballsGrid.revalidate();
+        ballsGrid.repaint();
     }
 
     private void selectBall(int index) {
@@ -208,7 +232,7 @@ public class SelectArcadeBallView extends ArcadeView {
             // Blocked balls show the price, the others "OBTENIDO" / "EN USO"
             JLabel statusOrPrice;
             if (isLocked()) {
-                statusOrPrice = createPriceLabel(ball.price);
+                statusOrPrice = createPriceLabel(prices[index]);
             } else {
                 status = createRoundedLabel("", 22);
                 status.setFont(luckiest.deriveFont(12f));
@@ -242,7 +266,7 @@ public class SelectArcadeBallView extends ArcadeView {
         }
 
         private boolean isLocked() {
-            return ball.price > 0;
+            return !unlocked[index];
         }
 
         private boolean isSelected() {
@@ -289,12 +313,10 @@ public class SelectArcadeBallView extends ArcadeView {
     private static class BallInfo {
         private final String name;
         private final String image;
-        private final int price;
 
-        public BallInfo(String name, String image, int price) {
+        public BallInfo(String name, String image) {
             this.name = name;
             this.image = image;
-            this.price = price;
         }
     }
 }

@@ -1,6 +1,9 @@
 package presentation;
 
 import javax.sound.sampled.*;
+
+import domain.Log;
+
 import java.io.File;
 
 /** Plays the sound effects and the music of the game (WAV files in assets/sounds). */
@@ -17,7 +20,7 @@ public class SoundPlayer {
             clip.addLineListener(e -> { if (e.getType() == LineEvent.Type.STOP) clip.close(); });
             clip.start();
         } catch (Exception e) {
-            // without the sound the game goes on
+            Log.record(e);
         }
     }
 
@@ -30,6 +33,7 @@ public class SoundPlayer {
             music.loop(Clip.LOOP_CONTINUOUSLY);
         } catch (Exception e) {
             music = null;
+            Log.record(e);
         }
     }
 
