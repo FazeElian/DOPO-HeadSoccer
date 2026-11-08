@@ -791,6 +791,59 @@ public class DOPOSoccer {
         return ball.getName();
     }
 
+    // settings
+
+    /**
+     * Returns the volume of the music. Under construction (settings).
+     *
+     * @return never returns
+     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     */
+    public int getMusicVolume() throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    }
+
+    /**
+     * Changes the volume of the music. Under construction (settings).
+     *
+     * @param volume new volume, from 0 to 100
+     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     */
+    public void setMusicVolume(int volume) throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    }
+
+    /**
+     * Returns the volume of the sound effects. Under construction (settings).
+     *
+     * @return never returns
+     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     */
+    public int getEffectsVolume() throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    }
+
+    /**
+     * Changes the volume of the sound effects. Under construction (settings).
+     *
+     * @param volume new volume, from 0 to 100
+     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     */
+    public void setEffectsVolume(int volume) throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    }
+
+    /**
+     * Puts both volumes back to 100. Under construction (settings).
+     *
+     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     */
+    public void resetSettings() throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    }
+
+    
+
     /**
      * Tells whether there is saved progress. Under construction (persistence).
      *
