@@ -68,6 +68,9 @@ public class PhysicsEngine implements Serializable {
     /** Pairs of bodies that started touching in the last step. */
     private LinkedHashSet<List<Body>> contacts;
 
+    /** Bodies of the crossbars, to tell the presentation the ball hit the post. */
+    private Set<Body> crossbars;
+
     /**
      * Creates the adapter for a field. The world of the library is built on the first step.
      *
@@ -143,6 +146,7 @@ public class PhysicsEngine implements Serializable {
         bodies = new HashMap<>();
         players = new HashMap<>();
         borders = new HashSet<>();
+        crossbars = new HashSet<>();
         contacts = new LinkedHashSet<>();
         ballBody = null;
         double w = stadium.getWidth();
@@ -153,7 +157,9 @@ public class PhysicsEngine implements Serializable {
         borders.add(addStatic(-WALL, -WALL, w + 2 * WALL, WALL));
         for (String side : new String[]{"LEFT", "RIGHT"}) {
             Goal goal = stadium.getGoal(side);
-            borders.add(addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10));
+            Body bar = addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10);
+            borders.add(bar);   // it ends a power shot
+            crossbars.add(bar); // and it is the post, for the sound
             addGoalArea(goal); // the players can't walk into the goal
         }
         world.addContactListener(new ContactListenerAdapter<Body>() {
@@ -295,6 +301,7 @@ public class PhysicsEngine implements Serializable {
         if (p != null) {
             match.onBallTouch(p);
         } else if (borders.contains(other)) {
+            if (crossbars.contains(other)) match.addEvent("POST");
             match.onBallHitsBorder();
         }
     }

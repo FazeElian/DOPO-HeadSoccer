@@ -278,6 +278,7 @@ public class Match implements Serializable {
             if (stadium.getGoal(defender).contains(ball)) {
                 String scorer = "LEFT".equals(defender) ? "RIGHT" : "LEFT";
                 scoreBoard.addGoal(scorer);
+                addEvent("GOAL");
                 getPlayer(defender).onGoalAgainst();
                 type.onGoal(scorer, this);
                 fakeBalls.clear();
@@ -300,5 +301,31 @@ public class Match implements Serializable {
         rightPlayer.setVelocity(0, 0);
         ball.reset(width / 2 - ball.getRadius(), stadium.getHeight() * 0.15);
         fakeBalls.clear();
+    }
+
+    /** Things that happened since the last poll, for the sounds of the presentation; not saved. */
+    private transient List<String> events;
+
+    /**
+     * Records something the presentation may want to play a sound for.
+     *
+     * @param event "KICK", "POST" or "GOAL"
+     */
+    public void addEvent(String event) {
+        if (events == null) {
+            events = new ArrayList<>(); // also after opening a saved game
+        }
+        events.add(event);
+    }
+
+    /**
+     * Returns the events since the last call and forgets them.
+     *
+     * @return the events, in the order they happened
+     */
+    public List<String> pollEvents() {
+        List<String> copy = events == null ? new ArrayList<>() : new ArrayList<>(events);
+        events = null;
+        return copy;
     }
 }
