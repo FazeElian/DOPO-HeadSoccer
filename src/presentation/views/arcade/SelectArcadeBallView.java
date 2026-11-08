@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 // Color constants
 import static presentation.DOPOSoccerGUI.*;
@@ -33,6 +35,9 @@ public class SelectArcadeBallView extends ArcadeView {
     private JLabel detailBall;
     private JLabel detailName;
     private JPanel ballsGrid;
+
+    // Who is told when a locked ball is pressed (the GUI, to ask the domain)
+    private ActionListener lockedListener;
 
     public SelectArcadeBallView(Font luckiest) {
         super(luckiest);
@@ -71,6 +76,11 @@ public class SelectArcadeBallView extends ArcadeView {
         add(block, BorderLayout.CENTER);
 
         updateDetails();
+    }
+
+    // The action command of the event is the name of the locked ball ("DORADO")
+    public void setLockedListener(ActionListener listener) {
+        lockedListener = listener;
     }
 
     public String getSelectedBall() {
@@ -217,15 +227,18 @@ public class SelectArcadeBallView extends ArcadeView {
             add(statusOrPrice);
             updateStatus();
 
-            if (!isLocked()) {
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mousePressed(MouseEvent e) {
+            // Free: it is chosen. Locked: the GUI asks the domain to buy it (the store, under construction)
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (!isLocked()) {
                         selectBall(BallCard.this.index);
+                    } else if (lockedListener != null) {
+                        lockedListener.actionPerformed(new ActionEvent(BallCard.this, ActionEvent.ACTION_PERFORMED, ball.name));
                     }
-                });
-            }
+                }
+            });
         }
 
         private boolean isLocked() {
