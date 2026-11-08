@@ -137,6 +137,7 @@ public abstract class GameView extends View {
             case "Camerún": return "cameroon";
             case "España": return "spain";
             case "Japón": return "japan";
+            case "Estados Unidos": return "usa";
             default: return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
         }
     }
