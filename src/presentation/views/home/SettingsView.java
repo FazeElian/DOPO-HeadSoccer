@@ -1,18 +1,18 @@
 package presentation.views.home;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 
 // Color constants
 import static presentation.DOPOSoccerGUI.*;
 
+/**
+ * "AJUSTES": volume of the music and of the sound effects. The volumes are given by the GUI (domain data);
+ * when a slider moves, the GUI saves the new value in the domain.
+ */
 public class SettingsView extends HomeView {
-    // Settings constants
-    private static final int DEFAULT_VOLUME = 70;
-    private int musicVolPercentage = DEFAULT_VOLUME;
-    private int soundEffectsVolPercentage = DEFAULT_VOLUME;
-
     // Settings components
     private JSlider musicSlider;
     private JSlider soundEffectsSlider;
@@ -48,13 +48,13 @@ public class SettingsView extends HomeView {
         options.setOpaque(false);
 
         // music
-        musicSlider = createVolumeSlider(musicVolPercentage);
-        musicPercentage = createPercentageLabel(musicVolPercentage);
+        musicSlider = createVolumeSlider();
+        musicPercentage = createPercentageLabel();
         options.add(createVolumeOption("MÚSICA", musicSlider, musicPercentage));
 
         // Sound Effects
-        soundEffectsSlider = createVolumeSlider(soundEffectsVolPercentage);
-        soundEffectsPercentage = createPercentageLabel(soundEffectsVolPercentage);
+        soundEffectsSlider = createVolumeSlider();
+        soundEffectsPercentage = createPercentageLabel();
         options.add(createVolumeOption("EFECTOS DE SONIDO", soundEffectsSlider, soundEffectsPercentage));
 
         // Reset button
@@ -75,34 +75,35 @@ public class SettingsView extends HomeView {
         add(block, BorderLayout.CENTER);
     }
 
+    // The percentages follow the sliders
     private void prepareController() {
-        musicSlider.addChangeListener(e -> updateMusicPercentage());
-        soundEffectsSlider.addChangeListener(e -> updateSoundEffectsPercentage());
-        resetBtn.addActionListener(e-> reset());
+        musicSlider.addChangeListener(e -> musicPercentage.setText(musicSlider.getValue() + "%"));
+        soundEffectsSlider.addChangeListener(e -> soundEffectsPercentage.setText(soundEffectsSlider.getValue() + "%"));
     }
 
-    private void updateMusicPercentage() {
-        musicVolPercentage = musicSlider.getValue();
-        musicPercentage.setText(musicVolPercentage + "%");
+    // Volumes from the domain (moving the sliders updates the percentages)
+    public void setVolumes(int music, int effects) {
+        musicSlider.setValue(music);
+        soundEffectsSlider.setValue(effects);
+        musicPercentage.setText(music + "%");
+        soundEffectsPercentage.setText(effects + "%");
     }
 
-    private void updateSoundEffectsPercentage() {
-        soundEffectsVolPercentage = soundEffectsSlider.getValue();
-        soundEffectsPercentage.setText(soundEffectsVolPercentage + "%");
+    public int getMusicVolume() {
+        return musicSlider.getValue();
     }
 
-    private void reset() {
-        // Moving the sliders fires their listeners, which update the percentages
-        musicSlider.setValue(DEFAULT_VOLUME);
-        soundEffectsSlider.setValue(DEFAULT_VOLUME);
+    public int getEffectsVolume() {
+        return soundEffectsSlider.getValue();
     }
 
-    public int getMusicVolPercentage() {
-        return musicVolPercentage;
+    // Called when a slider moves (the GUI saves the value in the domain)
+    public void setMusicListener(ChangeListener listener) {
+        musicSlider.addChangeListener(listener);
     }
 
-    public int getSoundEffectsVolPercentage() {
-        return soundEffectsVolPercentage;
+    public void setEffectsListener(ChangeListener listener) {
+        soundEffectsSlider.addChangeListener(listener);
     }
 
     // Option row: name on the left, slider + percentage on the right
@@ -130,8 +131,8 @@ public class SettingsView extends HomeView {
         return option;
     }
 
-    private JLabel createPercentageLabel(int value) {
-        JLabel percentage = new JLabel(value + "%");
+    private JLabel createPercentageLabel() {
+        JLabel percentage = new JLabel(" ");
         percentage.setOpaque(false);
         percentage.setForeground(WHITE);
         percentage.setFont(luckiest.deriveFont(20f));
@@ -139,8 +140,8 @@ public class SettingsView extends HomeView {
         return percentage;
     }
 
-    private JSlider createVolumeSlider(int value) {
-        JSlider slider = new JSlider(0, 100, value); // max value of 100, min of 0
+    private JSlider createVolumeSlider() {
+        JSlider slider = new JSlider(0, 100); // max value of 100, min of 0
         slider.setOpaque(false);
         slider.setFocusable(false);
         slider.setPreferredSize(new Dimension(115, 20));

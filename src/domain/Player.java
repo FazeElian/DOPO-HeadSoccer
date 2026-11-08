@@ -187,6 +187,7 @@ public class Player extends Entity {
         kickTimer = KICK_WINDOW;
         Ball ball = match.getBall();
         if (reachesBall(ball)) {
+            match.addEvent("KICK");
             if (aura) {
                 match.onBallTouch(this);
             } else {

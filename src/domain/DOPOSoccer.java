@@ -334,6 +334,16 @@ public class DOPOSoccer {
     }
 
     /**
+     * Returns what happened since the last call, for the sounds ("KICK", "POST", "GOAL").
+     *
+     * @return the events, in the order they happened
+     * @throws DOPOSoccerException GAME_NOT_STARTED
+     */
+    public List<String> pollEvents() throws DOPOSoccerException {
+        return match().pollEvents();
+    }
+
+    /**
      * Returns the current life of a side.
      *
      * @param side "LEFT" or "RIGHT"
@@ -800,51 +810,47 @@ public class DOPOSoccer {
     // settings
 
     /**
-     * Returns the volume of the music. Under construction (settings).
+     * Returns the volume of the music.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the volume, from 0 to 100
      */
-    public int getMusicVolume() throws DOPOSoccerException {
+    public int getMusicVolume() {
         return settings.getMusicVolume();
     }
 
     /**
-     * Changes the volume of the music. Under construction (settings).
+     * Changes the volume of the music.
      *
      * @param volume new volume, from 0 to 100
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setMusicVolume(int volume) throws DOPOSoccerException {
         settings.setMusicVolume(volume);
     }
 
     /**
-     * Returns the volume of the sound effects. Under construction (settings).
+     * Returns the volume of the sound effects.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the volume, from 0 to 100
      */
-    public int getEffectsVolume() throws DOPOSoccerException {
+    public int getEffectsVolume() {
         return settings.getEffectsVolume();
     }
 
     /**
-     * Changes the volume of the sound effects. Under construction (settings).
+     * Changes the volume of the sound effects.
      *
      * @param volume new volume, from 0 to 100
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setEffectsVolume(int volume) throws DOPOSoccerException {
         settings.setEffectsVolume(volume);
     }
 
     /**
-     * Puts both volumes back to 100. Under construction (settings).
-     *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * Puts both volumes back to their default values.
      */
-    public void resetSettings() throws DOPOSoccerException {
+    public void resetSettings() {
         settings.reset();
     }
 

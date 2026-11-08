@@ -65,6 +65,7 @@ public abstract class GameView extends View {
     public JPanel resultOverlay;
     public JButton againBtn;
     public JButton menuBtn;
+    private Color resultBorderColor = YELLOW; // border of the result card (it can change: champion / eliminated)
 
     // Scoreboard data (given by the GUI)
     private String p1Code = "";
@@ -588,7 +589,22 @@ public abstract class GameView extends View {
     // Result card: dark green with a colored border, title on top and the 2 buttons at the bottom
     // (againBtn: "REVANCHA" / "OTRA SERIE", menuBtn: "MENÚ"); the content goes in the center
     protected JPanel createResultCard(Color borderColor, JLabel title, JComponent content, String againText) {
-        JPanel card = createRoundedPanel(new BorderLayout(0, 24), DARK_GREEN, borderColor, 30);
+        resultBorderColor = borderColor;
+        JPanel card = new JPanel(new BorderLayout(0, 24)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(DARK_GREEN);
+                g2.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+                g2.setColor(resultBorderColor);
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        card.setOpaque(false);
         card.setBorder(BorderFactory.createEmptyBorder(26, 44, 30, 44));
 
         title.setFont(luckiest.deriveFont(48f));
@@ -612,6 +628,12 @@ public abstract class GameView extends View {
         card.add(content, BorderLayout.CENTER);
         card.add(buttonsRow, BorderLayout.SOUTH);
         return card;
+    }
+
+    // Changes the border of the result card (e.g. yellow for a win, red for a defeat)
+    protected void setResultBorderColor(Color color) {
+        resultBorderColor = color;
+        if (resultOverlay != null) resultOverlay.repaint();
     }
 
     // White label of the result card
