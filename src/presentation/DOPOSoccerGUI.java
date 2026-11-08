@@ -7,6 +7,7 @@ import presentation.views.home.MainMenuView;
 import presentation.views.home.SelectModeView;
 import presentation.views.home.SettingsView;
 import presentation.views.home.TutorialView;
+import presentation.views.home.StoreView;
 
 // Arcade Module Views classes
 import presentation.views.arcade.SelectArcadeModeView;
@@ -41,6 +42,7 @@ public class DOPOSoccerGUI extends JFrame {
     private MainMenuView mainMenuView;
     private TutorialView tutorialView;
     private SettingsView settingsView;
+    private StoreView storeView;
     private SelectModeView selectModeView;
 
     // Arcade Views components
@@ -100,6 +102,7 @@ public class DOPOSoccerGUI extends JFrame {
         mainMenuView = new MainMenuView(luckiest);
         tutorialView = new TutorialView(luckiest);
         settingsView = new SettingsView(luckiest);
+        storeView = new StoreView(luckiest);
         selectModeView = new SelectModeView(luckiest);
 
         // Arcade Views
@@ -141,6 +144,7 @@ public class DOPOSoccerGUI extends JFrame {
         prepareMainMenuController();
         prepareTutorialController();
         prepareSettingsController();
+        prepareStoreController();
 
         // Arcade Views
         prepareSelectModeController();
@@ -176,17 +180,17 @@ public class DOPOSoccerGUI extends JFrame {
 
         // Store: the points of player 1 (the store is under construction in the domain)
         mainMenuView.storeBtn.addActionListener(e -> {
-            try {
-                game.getPoints("LEFT");
-            } catch (DOPOSoccerException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage());
-            }
+            loadStore();
+            showView(storeView, "Tienda");
         });
 
         // Open a saved game (under construction in the domain)
         mainMenuView.openGameBtn.addActionListener(e -> {
             try {
-                game.openGame(null);
+                JFileChooser chooser = new JFileChooser();
+                if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    game.openGame(chooser.getSelectedFile());
+                }
             } catch (DOPOSoccerException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
@@ -239,7 +243,7 @@ public class DOPOSoccerGUI extends JFrame {
                     stats[i] = game.getStat("LEFT", STATS[i]);
                 }
                 newTournamentView.setTeam(team, game.getPowerNameOf(team), stats);
-                newTournamentView.setPrize(TournamentMode.PRIZE);
+                newTournamentView.setPrize(game.getTournamentPrize());
                 showView(newTournamentView, "Nuevo Torneo");
             } catch (DOPOSoccerException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -266,6 +270,7 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeMatchTypeView.continueBtn.addActionListener(e -> {
             // The bars show the stats of player 1 (domain)
             if (loadStats(selectArcadeCharacterView, "LEFT")) {
+                loadCharacterAvailability(selectArcadeCharacterView, "LEFT");
                 showView(selectArcadeCharacterView, "Personaje (Arcade)");
             }
         });
@@ -279,6 +284,7 @@ public class DOPOSoccerGUI extends JFrame {
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
             // The bars show the stats of the rival (domain)
             if (loadStats(selectArcadeRivalView, "RIGHT")) {
+                loadCharacterAvailability(selectArcadeRivalView, "RIGHT");
                 showView(selectArcadeRivalView, "Rival (Arcade)");
             }
         });
@@ -286,6 +292,7 @@ public class DOPOSoccerGUI extends JFrame {
 
     // Stats of a player, in the order of the bars
     private static final String[] STATS = {"SPEED", "JUMP", "KICK", "SURVIVAL"};
+    private static final String[] SIDES = {"LEFT", "RIGHT"};
 
     // Asks the domain the stats of a side and gives them to a character view; false if the domain failed
     private boolean loadStats(SelectArcadeCharacterView view, String side) {
@@ -319,6 +326,91 @@ public class DOPOSoccerGUI extends JFrame {
         }
     }
 
+    // Store: buy characters and balls (player 1) and upgrade the stats of both players
+    private void prepareStoreController() {
+        storeView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
+        storeView.buyCharacterBtn.addActionListener(e -> {
+            buy(() -> game.buyCharacter("LEFT", toDomainCountry(storeView.getSelectedCharacter())));
+            loadStore();
+        });
+        storeView.buyBallBtn.addActionListener(e -> {
+            buy(() -> game.buyBall("LEFT", toDomainBall(storeView.getSelectedBall())));
+            loadStore();
+        });
+        for (int s = 0; s < SIDES.length; s++) {
+            String side = SIDES[s];
+            for (JButton upgradeBtn : storeView.upgradeBtns[s]) {
+                upgradeBtn.addActionListener(e -> {
+                    buy(() -> game.upgrade(side, e.getActionCommand()));
+                    loadStore();
+                });
+            }
+        }
+    }
+
+    // Asks the domain for everything the store shows
+    private void loadStore() {
+        storeView.setPoints(getPointsOrNone("LEFT"));
+
+        // Characters of player 1
+        String[] characters = storeView.getCharacterNames();
+        int[] characterPrices = new int[characters.length];
+        boolean[] characterUnlocked = new boolean[characters.length];
+        for (int i = 0; i < characters.length; i++) {
+            String country = toDomainCountry(characters[i]);
+            try {
+                characterPrices[i] = game.getCharacterPrice(country);
+                characterUnlocked[i] = game.isCharacterUnlocked("LEFT", country);
+            } catch (DOPOSoccerException ex) {
+                characterUnlocked[i] = false;
+            }
+        }
+        storeView.setCharacters(characterPrices, characterUnlocked);
+
+        // Balls of player 1
+        String[] balls = storeView.getBallNames();
+        int[] ballPrices = new int[balls.length];
+        boolean[] ballUnlocked = new boolean[balls.length];
+        for (int i = 0; i < balls.length; i++) {
+            String ball = toDomainBall(balls[i]);
+            try {
+                ballPrices[i] = game.getBallPrice(ball);
+            } catch (DOPOSoccerException ex) {
+                continue;
+            }
+            try {
+                ballUnlocked[i] = game.isBallUnlocked("LEFT", ball);
+            } catch (DOPOSoccerException ex) {
+                ballUnlocked[i] = ballPrices[i] == 0; // store under construction: only the free balls
+            }
+        }
+        storeView.setBalls(ballPrices, ballUnlocked);
+
+        // Stats of both players
+        for (int s = 0; s < SIDES.length; s++) {
+            int[] levels = new int[STATS.length];
+            int[] costs = new int[STATS.length];
+            for (int i = 0; i < STATS.length; i++) {
+                try {
+                    levels[i] = game.getStat(SIDES[s], STATS[i]);
+                    costs[i] = game.getUpgradeCost(SIDES[s], STATS[i]);
+                } catch (DOPOSoccerException ex) {
+                    costs[i] = -1; // STAT_AT_MAX: no next upgrade
+                }
+            }
+            storeView.setPlayerStats(s, getPointsOrNone(SIDES[s]), levels, costs);
+        }
+    }
+
+    // Points of a player, or -1 while the wallet is under construction
+    private int getPointsOrNone(String side) {
+        try {
+            return game.getPoints(side);
+        } catch (DOPOSoccerException ex) {
+            return -1;
+        }
+    }
+
     // An action of the domain that can fail
     private interface Purchase {
         void run() throws DOPOSoccerException;
@@ -326,7 +418,10 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareNewTournamentController() {
         newTournamentView.backBtn.addActionListener(e -> showView(selectModeView, "Modo de Juego"));
-        newTournamentView.continueBtn.addActionListener(e -> showView(tournamentBallView, "Balón (Torneo)"));
+                newTournamentView.continueBtn.addActionListener(e -> {
+            loadBallAvailability(tournamentBallView);
+            showView(tournamentBallView, "Balón (Torneo)");
+        });
     }
 
     private void prepareTournamentBallController() {
@@ -346,7 +441,7 @@ public class DOPOSoccerGUI extends JFrame {
                 tournamentBracketView.setMatchType(byTime
                     ? "POR TIEMPO · " + newTournamentView.getMinutes() * 60 + " S"
                     : "POR GOLES · META " + newTournamentView.getGoalTarget());
-                tournamentBracketView.setPrize(TournamentMode.PRIZE);
+                tournamentBracketView.setPrize(game.getTournamentPrize());
                 tournamentBracketView.setNextRound(game.getTournamentRound());
                 showView(tournamentBracketView, "Llave del Torneo");
             } catch (DOPOSoccerException ex) {
@@ -358,10 +453,13 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareTournamentBracketController() {
         tournamentBracketView.backBtn.addActionListener(e -> showView(tournamentBallView, "Balón (Torneo)"));
     }
-
+    
     private void prepareSelectArcadeRivalController() {
         selectArcadeRivalView.backBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
-        selectArcadeRivalView.continueBtn.addActionListener(e -> showView(selectArcadeBallView, "Balón (Arcade)"));
+        selectArcadeRivalView.continueBtn.addActionListener(e -> {
+            loadBallAvailability(selectArcadeBallView);
+            showView(selectArcadeBallView, "Balón (Arcade)");
+        });
     }
 
     private void prepareSelectArcadeBallController() {
@@ -397,7 +495,10 @@ public class DOPOSoccerGUI extends JFrame {
         // Under construction in the domain: it shows "Opción en construcción."
         view.saveGameBtn.addActionListener(e -> {
             try {
-                game.saveGame(null);
+                JFileChooser chooser = new JFileChooser();
+                if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    game.saveGame(chooser.getSelectedFile());
+                }
             } catch (DOPOSoccerException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
@@ -497,6 +598,44 @@ public class DOPOSoccerGUI extends JFrame {
         }
     }
 
+    // Price and lock of each character for a side, asked to the domain
+    private void loadCharacterAvailability(SelectArcadeCharacterView view, String side) {
+        String[] names = view.getCharacterNames();
+        int[] prices = new int[names.length];
+        boolean[] unlocked = new boolean[names.length];
+        for (int i = 0; i < names.length; i++) {
+            String country = toDomainCountry(names[i]);
+            try {
+                prices[i] = game.getCharacterPrice(country);
+                unlocked[i] = game.isCharacterUnlocked(side, country);
+            } catch (DOPOSoccerException ex) {
+                unlocked[i] = false; // a character the domain doesn't know can't be chosen
+            }
+        }
+        view.setAvailability(prices, unlocked);
+    }
+
+    // Price and lock of each ball for player 1, asked to the domain
+    private void loadBallAvailability(SelectArcadeBallView view) {
+        String[] names = view.getNames();
+        int[] prices = new int[names.length];
+        boolean[] unlocked = new boolean[names.length];
+        for (int i = 0; i < names.length; i++) {
+            String ball = toDomainBall(names[i]);
+            try {
+                prices[i] = game.getBallPrice(ball);
+            } catch (DOPOSoccerException ex) {
+                unlocked[i] = false; // a ball the domain doesn't know can't be chosen
+                continue;
+            }
+            try {
+                unlocked[i] = game.isBallUnlocked("LEFT", ball);
+            } catch (DOPOSoccerException ex) {
+                unlocked[i] = prices[i] == 0; // store under construction: only the free balls
+            }
+        }
+        view.setAvailability(prices, unlocked);
+    }
     // "COLOMBIA" (GUI) -> "Colombia" (domain). If it doesn't exist (e.g. "PERÚ"), the domain says it
     private String toDomainCountry(String guiName) {
         for (String country : game.getCharacters()) {
@@ -717,12 +856,19 @@ public class DOPOSoccerGUI extends JFrame {
             luckiest = Font.createFont(Font.TRUETYPE_FONT, new java.io.File("assets/font/LuckiestGuy-Regular.ttf"));
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(luckiest);
         } catch (Exception e) {
-            System.out.println("No se pudo cargar la fuente: " + e.getMessage());
+            Log.record(e);
             luckiest = new Font(Font.SANS_SERIF, Font.BOLD, 12); // respaldo
         }
     }
 
     public static void main(String[] args) {
+        // Unexpected errors: to DOPOSoccer.log, and a short message to the user
+        Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
+            Log.record(e);
+            JOptionPane.showMessageDialog(null,
+                "Ocurrió un error inesperado. Se guardó en DOPOSoccer.log.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+        });
         DOPOSoccerGUI ui = new DOPOSoccerGUI();
         ui.setVisible(true);
     }
