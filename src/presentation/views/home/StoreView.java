@@ -144,8 +144,6 @@ public class StoreView extends HomeView {
         selectBall(0);
     }
 
-    // ---------------------------------------------------------------- Public API (used by the GUI)
-
     /**
      * Shows the points of player 1 in the header.
      * @param points points of the player, or -1 if the domain can't give them yet
@@ -260,7 +258,7 @@ public class StoreView extends HomeView {
         root.setGlassPane(oldGlass);
     }
 
-    // ---------------------------------------------------------------- Header and tabs
+    // Header and tabs
 
     // Title in the middle and the player's points on the right
     private JPanel createHeader() {
@@ -328,7 +326,7 @@ public class StoreView extends HomeView {
         tabsLayout.show(tabsContent, String.valueOf(index));
     }
 
-    // ---------------------------------------------------------------- Characters tab
+    // Characters tab
 
     private JPanel createCharactersTab() {
         characterFace = new JLabel();
@@ -364,7 +362,7 @@ public class StoreView extends HomeView {
             characterPrices[selectedCharacter], characterUnlocked[selectedCharacter]);
     }
 
-    // ---------------------------------------------------------------- Balls tab
+    // Balls tab
 
     private JPanel createBallsTab() {
         ballImage = new JLabel();
@@ -396,7 +394,7 @@ public class StoreView extends HomeView {
         updateBuyButton(buyBallBtn, ballPrice, ballPrices[selectedBall], ballUnlocked[selectedBall]);
     }
 
-    // ---------------------------------------------------------------- Shared by characters and balls
+    // Shared by characters and balls
 
     // Details panel on top and the cards in a row below
     private JPanel createTab(JPanel details, JPanel grid) {
@@ -510,7 +508,7 @@ public class StoreView extends HomeView {
         grid.repaint();
     }
 
-    // ---------------------------------------------------------------- Upgrades tab
+    // Upgrades tab
 
     private JPanel createUpgradesTab() {
         JPanel tab = new JPanel(new GridLayout(1, 2, 24, 0));
@@ -632,7 +630,7 @@ public class StoreView extends HomeView {
         };
     }
 
-    // ---------------------------------------------------------------- "Puntos insuficientes" dialog
+    //  "Puntos insuficientes" dialog
 
     private JPanel createNotEnoughPointsPanel(String item, int price, int points, JButton okBtn) {
         JLabel title = new JLabel("PUNTOS INSUFICIENTES");
@@ -672,7 +670,7 @@ public class StoreView extends HomeView {
         return card;
     }
 
-    // ---------------------------------------------------------------- Helpers
+    // Helpers
 
     // "1.250" (with a dot every three digits)
     private static String formatPoints(int points) {
@@ -684,7 +682,7 @@ public class StoreView extends HomeView {
         return new ImageIcon(img);
     }
 
-    // ---------------------------------------------------------------- Card of a character or a ball
+    // Card of a character or a ball
 
     private class StoreCard extends JPanel {
         private final int index;
