@@ -178,7 +178,7 @@ public class DOPOSoccerGUI extends JFrame {
         });
         mainMenuView.playBtn.addActionListener(e -> showView(selectModeView, "Modo de Juego"));
 
-        // Store: the points of player 1 (the store is under construction in the domain)
+        // Store: points, characters, balls and stats of both players
         mainMenuView.storeBtn.addActionListener(e -> {
             loadStore();
             showView(storeView, "Tienda");
@@ -284,7 +284,9 @@ public class DOPOSoccerGUI extends JFrame {
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
             // The bars show the stats of the rival (domain)
             if (loadStats(selectArcadeRivalView, "RIGHT")) {
-                loadCharacterAvailability(selectArcadeRivalView, "RIGHT");
+                // The machine plays with any character; player 2 only with its own
+                loadCharacterAvailability(selectArcadeRivalView,
+                    selectArcadeModeView.isVsMachine() ? null : "RIGHT");
                 showView(selectArcadeRivalView, "Rival (Arcade)");
             }
         });
@@ -310,18 +312,63 @@ public class DOPOSoccerGUI extends JFrame {
         return true;
     }
 
-    // Locked character or ball: the domain buys it for that player (the store is under construction)
+    // Locked character or ball: the domain buys it for that player with its points
     private void prepareLockedController() {
-        selectArcadeCharacterView.setLockedListener(e -> buy(() -> game.buyCharacter("LEFT", toDomainCountry(e.getActionCommand()))));
-        selectArcadeRivalView.setLockedListener(e -> buy(() -> game.buyCharacter("RIGHT", toDomainCountry(e.getActionCommand()))));
-        selectArcadeBallView.setLockedListener(e -> buy(() -> game.buyBall("LEFT", toDomainBall(e.getActionCommand()))));
+        selectArcadeCharacterView.setLockedListener(e -> {
+            buyCharacter("LEFT", e.getActionCommand());
+            loadCharacterAvailability(selectArcadeCharacterView, "LEFT");
+        });
+        selectArcadeRivalView.setLockedListener(e -> {
+            buyCharacter("RIGHT", e.getActionCommand());
+            loadCharacterAvailability(selectArcadeRivalView, "RIGHT");
+        });
+        selectArcadeBallView.setLockedListener(e -> {
+            buyBall("LEFT", e.getActionCommand());
+            loadBallAvailability(selectArcadeBallView);
+        });
     }
 
-    // A purchase in the domain; its error (e.g. "Opción en construcción.") in a message
-    private void buy(Purchase purchase) {
+    // Buys a character for a player (item = name shown on the screen, "ESPAÑA")
+    private void buyCharacter(String side, String item) {
+        String country = toDomainCountry(item);
+        int price = 0;
         try {
-            purchase.run();
+            price = game.getCharacterPrice(country);
+            game.buyCharacter(side, country);
         } catch (DOPOSoccerException ex) {
+            showPurchaseError(ex, item, price, side);
+        }
+    }
+
+    // Buys a ball for a player (item = name shown on the screen, "DORADO")
+    private void buyBall(String side, String item) {
+        String ball = toDomainBall(item);
+        int price = 0;
+        try {
+            price = game.getBallPrice(ball);
+            game.buyBall(side, ball);
+        } catch (DOPOSoccerException ex) {
+            showPurchaseError(ex, "BALÓN " + item, price, side);
+        }
+    }
+
+    // Upgrades a stat of a player one level
+    private void upgradeStat(String side, String stat) {
+        int price = 0;
+        try {
+            price = game.getUpgradeCost(side, stat);
+            game.upgrade(side, stat);
+        } catch (DOPOSoccerException ex) {
+            showPurchaseError(ex, "LA MEJORA", price, side);
+        }
+    }
+
+    // Error of a purchase: in the store, without points, the "puntos insuficientes" dialog;
+    // any other error (or outside the store) in a message
+    private void showPurchaseError(DOPOSoccerException ex, String item, int price, String side) {
+        if (DOPOSoccerException.NOT_ENOUGH_POINTS.equals(ex.getMessage()) && storeView.isShowing()) {
+            storeView.showNotEnoughPoints(item, price, getPointsOrNone(side));
+        } else {
             JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
@@ -330,18 +377,18 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareStoreController() {
         storeView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
         storeView.buyCharacterBtn.addActionListener(e -> {
-            buy(() -> game.buyCharacter("LEFT", toDomainCountry(storeView.getSelectedCharacter())));
+            buyCharacter("LEFT", storeView.getSelectedCharacter());
             loadStore();
         });
         storeView.buyBallBtn.addActionListener(e -> {
-            buy(() -> game.buyBall("LEFT", toDomainBall(storeView.getSelectedBall())));
+            buyBall("LEFT", storeView.getSelectedBall());
             loadStore();
         });
         for (int s = 0; s < SIDES.length; s++) {
             String side = SIDES[s];
             for (JButton upgradeBtn : storeView.upgradeBtns[s]) {
                 upgradeBtn.addActionListener(e -> {
-                    buy(() -> game.upgrade(side, e.getActionCommand()));
+                    upgradeStat(side, e.getActionCommand());
                     loadStore();
                 });
             }
@@ -381,7 +428,7 @@ public class DOPOSoccerGUI extends JFrame {
             try {
                 ballUnlocked[i] = game.isBallUnlocked("LEFT", ball);
             } catch (DOPOSoccerException ex) {
-                ballUnlocked[i] = ballPrices[i] == 0; // store under construction: only the free balls
+                ballUnlocked[i] = ballPrices[i] == 0; // if the domain fails: only the free balls
             }
         }
         storeView.setBalls(ballPrices, ballUnlocked);
@@ -402,18 +449,13 @@ public class DOPOSoccerGUI extends JFrame {
         }
     }
 
-    // Points of a player, or -1 while the wallet is under construction
+    // Points of a player, or -1 if the domain can't give them
     private int getPointsOrNone(String side) {
         try {
             return game.getPoints(side);
         } catch (DOPOSoccerException ex) {
             return -1;
         }
-    }
-
-    // An action of the domain that can fail
-    private interface Purchase {
-        void run() throws DOPOSoccerException;
     }
 
     private void prepareNewTournamentController() {
@@ -426,7 +468,10 @@ public class DOPOSoccerGUI extends JFrame {
 
     private void prepareTournamentBallController() {
         tournamentBallView.backBtn.addActionListener(e -> showView(newTournamentView, "Nuevo Torneo"));
-        tournamentBallView.setLockedListener(e -> buy(() -> game.buyBall("LEFT", toDomainBall(e.getActionCommand()))));
+        tournamentBallView.setLockedListener(e -> {
+            buyBall("LEFT", e.getActionCommand());
+            loadBallAvailability(tournamentBallView);
+        });
         tournamentBallView.continueBtn.addActionListener(e -> {
             try {
                 String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
@@ -607,7 +652,7 @@ public class DOPOSoccerGUI extends JFrame {
             String country = toDomainCountry(names[i]);
             try {
                 prices[i] = game.getCharacterPrice(country);
-                unlocked[i] = game.isCharacterUnlocked(side, country);
+                unlocked[i] = side == null || game.isCharacterUnlocked(side, country); // null: the machine
             } catch (DOPOSoccerException ex) {
                 unlocked[i] = false; // a character the domain doesn't know can't be chosen
             }
@@ -631,7 +676,7 @@ public class DOPOSoccerGUI extends JFrame {
             try {
                 unlocked[i] = game.isBallUnlocked("LEFT", ball);
             } catch (DOPOSoccerException ex) {
-                unlocked[i] = prices[i] == 0; // store under construction: only the free balls
+                unlocked[i] = prices[i] == 0; // if the domain fails: only the free balls
             }
         }
         view.setAvailability(prices, unlocked);

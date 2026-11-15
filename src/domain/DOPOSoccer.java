@@ -7,7 +7,8 @@ import java.util.List;
 
 /**
  * Facade of the domain: the only class the interface talks to (Facade pattern).
- * In this mock-up only player vs player in Arcade works, by time or by goals.
+ * Arcade works player vs player and player vs machine, by time or by goals, and the store
+ * (points, characters, balls and stats) works while the game is open.
  * Every other option of the design throws a {@link DOPOSoccerException} with
  * {@link DOPOSoccerException#UNDER_CONSTRUCTION}, which the interface catches and shows.
  * The public methods keep the signatures of the full version.
@@ -31,6 +32,8 @@ public class DOPOSoccer {
     private final LinkedHashMap<String, BallSkin> balls;
     /** Ball used in the matches (the last one chosen). */
     private BallSkin ball;
+    /** Modality of the current game: "PVP" or "PVM". */
+    private String modality;
     /** Game being played, or null. */
     private GameMode mode;
     /** Whether the game is paused. */
@@ -74,11 +77,11 @@ public class DOPOSoccer {
     // game
 
     /**
-     * Validates the choices and prepares the game. Only "PVP", "ARCADE", "TIME" and "GOALS" are built;
-     * player vs machine, the tournament, survival and the locked characters are under construction.
+     * Validates the choices and prepares the game. Arcade is built, player vs player or against
+     * the machine, by time or by goals; the tournament and survival are under construction.
      *
-     * @param modality       "PVP" ("PVM" is under construction)
-     * @param aiProfile      machine profile; not used in player vs player
+     * @param modality       "PVP" or "PVM"
+     * @param aiProfile      "CLUMSY", "OFFENSIVE", "DEFENSIVE" or "EXPERT"; not used in player vs player
      * @param resolution     "SMALL", "MEDIUM" or "LARGE"
      * @param modeName       "ARCADE" ("TOURNAMENT" is under construction)
      * @param leftCharacter  country of the left player
@@ -86,15 +89,13 @@ public class DOPOSoccer {
      * @param matchType      "TIME" or "GOALS" ("SURVIVAL" is under construction)
      * @param amount         minutes of the match or goals to win
      * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER,
-     *                             UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION, INVALID_MINUTES or INVALID_GOAL_TARGET
+     *                             CHARACTER_LOCKED, UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION, INVALID_MINUTES or INVALID_GOAL_TARGET
      */
     public void newGame(String modality, String aiProfile, String resolution, String modeName,
                         String leftCharacter, String rightCharacter, String matchType, int amount)
             throws DOPOSoccerException {
-        if ("PVM".equals(modality)) {
-            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
-        }
-        else if (!"PVP".equals(modality)) {
+        boolean vsMachine = "PVM".equals(modality);
+        if (!vsMachine && !"PVP".equals(modality)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODALITY);
         }
 
@@ -106,14 +107,19 @@ public class DOPOSoccer {
         }
         GameCharacter left = character(leftCharacter);
         GameCharacter right = character(rightCharacter);
-        if (!left.isFree() || !right.isFree()) {
-            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        // Each person plays only with its own characters; the machine plays with any
+        if (!profiles[0].isCharacterUnlocked(left)
+                || (!vsMachine && !profiles[1].isCharacterUnlocked(right))) {
+            throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);
         }
         MatchType type = createType(matchType, amount);
+        PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
+        Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
         GameMode newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
-                right, profiles[1].getStats(), new HumanController(), type, resolution, ball);
+                right, rivalStats, rival, type, resolution, ball);
         newMode.start();
         mode = newMode;
+        this.modality = modality;
         paused = false;
         pointsGiven = false;
         lastPoints[0] = 0;
@@ -131,7 +137,7 @@ public class DOPOSoccer {
             return;
         }
         mode.update(dt);
-        if (mode.getMatch().isFinished() && !pointsGiven) {
+        if (mode.isMatchFinished() && !pointsGiven) {
             givePoints();
         }
     }
@@ -144,7 +150,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public void press(String side, String action) throws DOPOSoccerException {
-        player(side).getController().press(action);
+        player(side).press(action);
     }
 
     /**
@@ -155,7 +161,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public void release(String side, String action) throws DOPOSoccerException {
-        player(side).getController().release(action);
+        player(side).release(action);
     }
 
 
@@ -285,7 +291,7 @@ public class DOPOSoccer {
      */
     public String getModality() throws DOPOSoccerException {
         match();
-        return "PVP";
+        return modality;
     }
 
     /**
@@ -295,7 +301,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getMatchType() throws DOPOSoccerException {
-        return match().getType().getName();
+        return match().getTypeName();
     }
 
     // state for drawing
@@ -309,7 +315,7 @@ public class DOPOSoccer {
      */
     public int getGoals(String side) throws DOPOSoccerException {
         index(side);
-        return match().getScoreBoard().getGoals(side);
+        return match().getGoals(side);
     }
 
     /**
@@ -319,8 +325,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public int getTimeLeft() throws DOPOSoccerException {
-        Match match = match();
-        return match.getType().getTimeLeft(match);
+        return match().getTimeLeft();
     }
 
     /**
@@ -330,7 +335,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isSuddenDeath() throws DOPOSoccerException {
-        return match().getType().isSuddenDeath();
+        return match().isSuddenDeath();
     }
 
     /**
@@ -417,7 +422,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public String getCharacter(String side) throws DOPOSoccerException {
-        return player(side).getCharacter().getCountry();
+        return player(side).getCountry();
     }
 
     /**
@@ -428,7 +433,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public String getPowerName(String side) throws DOPOSoccerException {
-        return player(side).getCharacter().getPowerName();
+        return player(side).getPowerName();
     }
 
     /**
@@ -478,7 +483,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getBallX() throws DOPOSoccerException {
-        return match().getBall().getX();
+        return match().getBallX();
     }
 
     /**
@@ -488,7 +493,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getBallY() throws DOPOSoccerException {
-        return match().getBall().getY();
+        return match().getBallY();
     }
 
     /**
@@ -521,7 +526,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getBallName() throws DOPOSoccerException {
-        return match().getBall().getSkin().getName();
+        return match().getBallName();
     }
 
     /**
@@ -531,7 +536,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getFieldWidth() throws DOPOSoccerException {
-        return match().getStadium().getWidth();
+        return match().getFieldWidth();
     }
 
     /**
@@ -541,7 +546,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getFieldHeight() throws DOPOSoccerException {
-        return match().getStadium().getHeight();
+        return match().getFieldHeight();
     }
 
     /**
@@ -551,7 +556,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getGroundY() throws DOPOSoccerException {
-        return match().getStadium().getGroundY();
+        return match().getGroundY();
     }
 
     /**
@@ -563,8 +568,7 @@ public class DOPOSoccer {
      */
     public double[] getGoal(String side) throws DOPOSoccerException {
         index(side);
-        Goal goal = match().getStadium().getGoal(side);
-        return new double[]{goal.getX(), goal.getY(), goal.getWidth(), goal.getHeight()};
+        return match().getGoalBounds(side);
     }
 
     //  options for the screens
@@ -601,16 +605,15 @@ public class DOPOSoccer {
     }
 
     /**
-     * Tells whether a player can use a character. In the mock-up only the free ones.
+     * Tells whether a player can use a character: the free ones and the ones it bought.
      *
      * @param side    "LEFT" or "RIGHT"
      * @param country country of the character
-     * @return true if it is free
+     * @return true if it is free or the player bought it
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_CHARACTER
      */
     public boolean isCharacterUnlocked(String side, String country) throws DOPOSoccerException {
-        index(side);
-        return character(country).isFree();
+        return profiles[index(side)].isCharacterUnlocked(character(country));
     }
 
     /**
@@ -665,11 +668,11 @@ public class DOPOSoccer {
     }
 
     /**
-     * Returns the points of a profile. Under construction (store).
+     * Returns the points of a profile, to show them in the store.
      *
      * @param side "LEFT" or "RIGHT"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return points of the player
+     * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     public int getPoints(String side) throws DOPOSoccerException {
         return profiles[index(side)].getPoints();
@@ -684,7 +687,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getStat(String side, String stat) throws DOPOSoccerException {
-        return profiles[index(side)].getStats().get(stat);
+        return profiles[index(side)].getStat(stat);
     }
 
     /**
@@ -696,26 +699,26 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getUpgradeCost(String side, String stat) throws DOPOSoccerException {
-        return profiles[index(side)].getStats().getUpgradeCost(stat);
+        return profiles[index(side)].getUpgradeCost(stat);
     }
 
     /**
-     * Buys one point of a stat. Under construction (store).
+     * Buys one point of a stat with the points of the player.
      *
      * @param side "LEFT" or "RIGHT"
      * @param stat "SPEED", "JUMP", "KICK" or "SURVIVAL"
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_STAT, STAT_AT_MAX or NOT_ENOUGH_POINTS
      */
     public void upgrade(String side, String stat) throws DOPOSoccerException {
         profiles[index(side)].upgrade(stat);
     }
 
     /**
-     * Buys a locked character. Under construction (store).
+     * Buys a locked character with the points of the player.
      *
      * @param side    "LEFT" or "RIGHT"
      * @param country country of the character
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_CHARACTER, ALREADY_OWNED or NOT_ENOUGH_POINTS
      */
     public void buyCharacter(String side, String country) throws DOPOSoccerException {
         profiles[index(side)].unlockCharacter(character(country));
@@ -748,31 +751,27 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getBallPower() throws DOPOSoccerException {
-        Ball ball = match().getBall();
-        if (ball.isPowerShot()) {
-            return ball.getCharge().getName();
-        }
-        return null;
+        return match().getBallPower();
     }
 
     /**
-     * Tells whether a profile bought a ball. Under construction (store).
+     * Tells whether a player can use a ball: the free ones and the ones it bought.
      *
      * @param side "LEFT" or "RIGHT"
      * @param name name of the ball
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return true if it is free or the player bought it
+     * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_BALL
      */
     public boolean isBallUnlocked(String side, String name) throws DOPOSoccerException {
-        return profiles[index(side)].isBallUnlocked(ballSkin(name).getName());
+        return profiles[index(side)].isBallUnlocked(ballSkin(name));
     }
 
     /**
-     * Buys a ball. Under construction (store).
+     * Buys a locked ball with the points of the player.
      *
      * @param side "LEFT" or "RIGHT"
      * @param name name of the ball
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL, ALREADY_OWNED or NOT_ENOUGH_POINTS
      */
     public void buyBall(String side, String name) throws DOPOSoccerException {
         profiles[index(side)].unlockBall(ballSkin(name));
@@ -780,18 +779,15 @@ public class DOPOSoccer {
 
     /**
      * Chooses the ball of the next matches. In this version there is one ball for the game,
-     * so the last one chosen is used. Only the free balls: the locked ones are bought in the store.
+     * so the last one chosen is used. Only the free balls and the ones the player bought.
      *
      * @param side "LEFT" or "RIGHT"
      * @param name name of the ball
-     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL, or UNDER_CONSTRUCTION for a locked ball
+     * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL or BALL_LOCKED
      */
     public void selectBall(String side, String name) throws DOPOSoccerException {
-        index(side);
         BallSkin skin = ballSkin(name);
-        if (skin.getPrice() > 0) {
-            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
-        }
+        profiles[index(side)].selectBall(skin);
         ball = skin;
     }
 
@@ -854,7 +850,7 @@ public class DOPOSoccer {
         settings.reset();
     }
 
-        /**
+    /**
      * Returns the points the champion of a tournament wins, to show them before and during the tournament.
      *
      * @return {@link TournamentMode#PRIZE}
@@ -862,7 +858,7 @@ public class DOPOSoccer {
     public int getTournamentPrize() {
         return TournamentMode.PRIZE;
     }
-    
+
     /**
      * Tells whether there is saved progress. Under construction (persistence).
      *
@@ -911,23 +907,48 @@ public class DOPOSoccer {
         throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
     }
 
-
-
     //  helpers
 
     /**
-     * Computes 100 points for the winner and 25 for the loser, to show them in the result message.
-     * They are not kept yet: the store is under construction.
+     * Gives 100 points to the winner and 25 to the loser and keeps them in their profiles, to spend
+     * them in the store. Against the machine only player 1 gets points. They last while the game is open.
      */
     private void givePoints() {
         pointsGiven = true;
-        String winner = mode.getMatch().getWinner();
+        String winner = mode.getMatchWinner();
         if (winner == null) {
             return;
         }
         int w = "LEFT".equals(winner) ? 0 : 1;
         lastPoints[w] = WIN_POINTS;
         lastPoints[1 - w] = LOSE_POINTS;
+        profiles[0].addPoints(lastPoints[0]);
+        if ("PVP".equals(modality)) {
+            profiles[1].addPoints(lastPoints[1]); // the machine has no wallet
+        }
+    }
+
+    /**
+     * Creates the controller of the machine.
+     *
+     * @param profile "CLUMSY", "OFFENSIVE", "DEFENSIVE" or "EXPERT"
+     * @return the controller of that profile
+     * @throws DOPOSoccerException UNKNOWN_AI_PROFILE
+     */
+    private static PlayerController createAI(String profile) throws DOPOSoccerException {
+        if ("CLUMSY".equals(profile)) {
+            return new ClumsyAI();
+        }
+        if ("OFFENSIVE".equals(profile)) {
+            return new OffensiveAI();
+        }
+        if ("DEFENSIVE".equals(profile)) {
+            return new DefensiveAI();
+        }
+        if ("EXPERT".equals(profile)) {
+            return new ExpertAI();
+        }
+        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_AI_PROFILE);
     }
 
     /**

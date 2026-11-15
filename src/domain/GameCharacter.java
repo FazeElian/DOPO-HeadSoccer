@@ -53,15 +53,6 @@ public class GameCharacter implements Serializable {
     }
 
     /**
-     * Returns the power shot of the character.
-     *
-     * @return its power shot
-     */
-    public PowerShot getPowerShot() {
-        return powerShot;
-    }
-
-    /**
      * Returns the name of its power shot.
      *
      * @return the name of the shot
@@ -86,5 +77,15 @@ public class GameCharacter implements Serializable {
      */
     public boolean isFree() {
         return price == 0;
+    }
+
+    /**
+     * Launches the power shot of this character.
+     *
+     * @param match   the match where it is launched
+     * @param shooter the player that launches it
+     */
+    public void launchPowerShot(Match match, Player shooter) {
+        powerShot.launch(match, shooter);
     }
 }
