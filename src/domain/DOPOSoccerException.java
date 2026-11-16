@@ -2,7 +2,7 @@ package domain;
 
 /**
  * Error of the game: an invalid choice, an action that cannot be done at that moment,
- * or an option that is still under construction in this mock-up.
+ * or an option that is still under construction.
  * Every message is a constant written in Spanish, so the interface can show it to the user as it is.
  *
  * @author Elian Ibarra
@@ -41,6 +41,16 @@ public class DOPOSoccerException extends Exception {
     public static final String UNKNOWN_STAT = "La estadística no es speed, jump, kick ni survival.";
     /** The stat is already at its maximum. */
     public static final String STAT_AT_MAX = "Esa estadística ya está en 10.";
+    /** Message: the player doesn't have the points to pay. */
+    public static final String NOT_ENOUGH_POINTS = "No tienes puntos suficientes.";
+    /** Message: the player already has that character or ball. */
+    public static final String ALREADY_OWNED = "Ya lo tienes.";
+    /** Message: the character must be bought first. */
+    public static final String CHARACTER_LOCKED = "Ese personaje está bloqueado: cómpralo en la tienda.";
+    /** Message: the ball must be bought first. */
+    public static final String BALL_LOCKED = "Ese balón está bloqueado: cómpralo en la tienda.";
+    /** Message: the machine profile doesn't exist. */
+    public static final String UNKNOWN_AI_PROFILE = "El perfil de la máquina no existe.";
     /** The volume is not between 0 and 100. */
     public static final String INVALID_VOLUME = "El volumen debe estar entre 0 y 100.";
 

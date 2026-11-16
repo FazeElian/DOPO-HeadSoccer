@@ -3,9 +3,7 @@ package domain;
 import java.io.Serializable;
 
 /**
- * Points of a player, earned in the matches and spent in the store.
- * Under construction: the store does not exist yet, so its methods throw
- * {@link DOPOSoccerException#UNDER_CONSTRUCTION}.
+ * Points of a player: they are won playing and spent in the store.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -13,45 +11,46 @@ import java.io.Serializable;
  */
 public class Wallet implements Serializable {
 
-    /** Points available. */
+    /** Points the player has. */
     private int points;
 
     /**
      * Creates a wallet.
      *
-     * @param points initial points; negative values count as 0
+     * @param points initial points (a negative amount counts as 0)
      */
     public Wallet(int points) {
         this.points = Math.max(0, points);
     }
 
     /**
-     * Adds points. Under construction (store).
+     * Adds points.
      *
-     * @param amount points to add
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @param amount points won (a negative amount is ignored)
      */
-    public void add(int amount) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    public void add(int amount) {
+        points += Math.max(0, amount);
     }
 
     /**
-     * Spends points. Under construction (store).
+     * Spends points.
      *
-     * @param amount points to spend
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @param amount points to pay
+     * @throws DOPOSoccerException NOT_ENOUGH_POINTS if the wallet has less than the amount
      */
     public void spend(int amount) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        if (amount > points) {
+            throw new DOPOSoccerException(DOPOSoccerException.NOT_ENOUGH_POINTS);
+        }
+        points -= amount;
     }
 
     /**
-     * Returns the points available. Under construction (store).
+     * Returns the points.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return points the player has
      */
-    public int getPoints() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    public int getPoints() {
+        return points;
     }
 }

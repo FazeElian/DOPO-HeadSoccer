@@ -1,11 +1,12 @@
 package domain;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Expert machine: attacks when it is losing or the ball is in the rival half, defends otherwise,
- * reacts faster and only uses the power shot near the rival goal.
- * Under construction: creating it throws {@link DOPOSoccerException#UNDER_CONSTRUCTION}.
+ * Machine that plays well: it reacts faster, clears the ball when it is in its half,
+ * attacks when it is closer to the ball than the rival and goes back to guard its goal
+ * when the rival has the ball in the other half.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -13,63 +14,66 @@ import java.util.Set;
  */
 public class ExpertAI extends AIController {
 
-    /** Seconds between two decisions, faster than the other profiles. */
+    /** Seconds between two decisions of the expert. */
     public static final double EXPERT_REACTION_TIME = 0.1;
 
-    /** Strategy to attack. */
-    private OffensiveAI attack;
-    /** Strategy to defend. */
-    private DefensiveAI defense;
-
     /**
-     * Creates the profile. Under construction.
-     *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * Creates the expert profile.
      */
-    public ExpertAI() throws DOPOSoccerException {
+    public ExpertAI() {
         super();
     }
 
-    /**
-     * Decides the actions of this tick. Under construction.
-     *
-     * @param self  the player it controls
-     * @param match the match
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
-     */
     @Override
-    protected Set<String> decide(Player self, Match match) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    protected Set<String> decide(Player self, Match match) {
+        Set<String> actions = new HashSet<>();
+        Ball ball = match.getBall();
+        Player rival = match.getOpponent(self);
+
+        if (isBallInOwnHalf(self, match) || isCloserToBall(self, rival, ball)) {
+            playBall(self, ball, actions);             // clears it or attacks
+            if (isNearRivalGoal(self, match)) {
+                actions.add("KICK");                   // shoots as soon as it is in front of the goal
+            }
+        } else {
+            DefensiveAI.guard(self, match, actions);   // the rival has the ball: goes back to its goal
+        }
+        return actions;
     }
 
     /**
-     * Tells whether the player is near the rival goal. Under construction.
+     * Tells whether the player is closer to the ball than the rival, measured on the field width.
+     *
+     * @param self  the player
+     * @param rival the other player
+     * @param ball  the ball
+     * @return true if it is closer or at the same distance
+     */
+    private static boolean isCloserToBall(Player self, Player rival, Ball ball) {
+        double ballX = ball.getX() + ball.getWidth() / 2;
+        double mine = Math.abs(ballX - (self.getX() + self.getWidth() / 2));
+        double theirs = Math.abs(ballX - (rival.getX() + rival.getWidth() / 2));
+        return mine <= theirs;
+    }
+
+    /**
+     * Tells whether the player is in the last quarter of the field, next to the rival goal.
      *
      * @param self  the player
      * @param match the match
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return true if it is in front of the rival goal
      */
-    private static boolean isNearRivalGoal(Player self, Match match) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    private static boolean isNearRivalGoal(Player self, Match match) {
+        double center = self.getX() + self.getWidth() / 2;
+        double width = match.getFieldWidth();
+        return "LEFT".equals(self.getSide()) ? center > width * 0.75 : center < width * 0.25;
     }
 
-    /**
-     * Returns the seconds between two decisions.
-     *
-     * @return {@link #EXPERT_REACTION_TIME}
-     */
     @Override
     protected double getReactionTime() {
         return EXPERT_REACTION_TIME;
     }
 
-    /**
-     * Returns the name of the profile.
-     *
-     * @return "EXPERT"
-     */
     @Override
     public String getProfile() {
         return "EXPERT";

@@ -307,7 +307,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             add(Box.createVerticalStrut(4));
             add(name);
 
-            // Free: it is chosen. Locked: the GUI asks the domain to buy it (the store, under construction)
+            // Free: it is chosen. Locked: the GUI asks the domain to buy it
             setCursor(new Cursor(Cursor.HAND_CURSOR));
             addMouseListener(new MouseAdapter() {
                 @Override

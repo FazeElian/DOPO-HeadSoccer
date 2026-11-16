@@ -1,10 +1,10 @@
 package domain;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Defensive machine: plays the ball in its half and goes back to guard its goal otherwise.
- * Under construction: creating it throws {@link DOPOSoccerException#UNDER_CONSTRUCTION}.
+ * Machine that guards its goal: it only goes for the ball when the ball is in its half.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -12,36 +12,43 @@ import java.util.Set;
  */
 public class DefensiveAI extends AIController {
 
-    /** Distance, in pixels, in front of its goal where it waits. */
+    /** Distance from its goal, in pixels, where it waits. */
     public static final double GUARD_DISTANCE = 60;
 
     /**
-     * Creates the profile. Under construction.
-     *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * Creates the defensive profile.
      */
-    public DefensiveAI() throws DOPOSoccerException {
+    public DefensiveAI() {
         super();
     }
 
-    /**
-     * Decides the actions of this tick. Under construction.
-     *
-     * @param self  the player it controls
-     * @param match the match
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
-     */
     @Override
-    protected Set<String> decide(Player self, Match match) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    protected Set<String> decide(Player self, Match match) {
+        Set<String> actions = new HashSet<>();
+        if (isBallInOwnHalf(self, match)) {
+            playBall(self, match.getBall(), actions);
+        } else {
+            guard(self, match, actions);
+        }
+        return actions;
     }
 
     /**
-     * Returns the name of the profile.
+     * Goes back to wait {@link #GUARD_DISTANCE} pixels in front of its own goal.
+     * The expert uses it too when the rival has the ball.
      *
-     * @return "DEFENSIVE"
+     * @param self    the player
+     * @param match   the match
+     * @param actions where the movement is added
      */
+    protected static void guard(Player self, Match match, Set<String> actions) {
+        double[] goal = match.getGoalBounds(self.getSide()); // {x, y, width, height}
+        double spot = "LEFT".equals(self.getSide())
+                ? goal[0] + goal[2] + GUARD_DISTANCE
+                : goal[0] - GUARD_DISTANCE;
+        moveTo(self, spot, actions);
+    }
+
     @Override
     public String getProfile() {
         return "DEFENSIVE";

@@ -1,11 +1,11 @@
 package domain;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
 /**
- * Clumsy machine: moves, jumps and kicks at random.
- * Under construction: creating it throws {@link DOPOSoccerException#UNDER_CONSTRUCTION}.
+ * Machine that plays badly: sometimes it goes for the ball and sometimes it does anything.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -13,36 +13,33 @@ import java.util.Set;
  */
 public class ClumsyAI extends AIController {
 
-    /** Decides the random actions. */
-    private Random random;
+    /** Chance of going for the ball in each decision. */
+    public static final double FOCUS = 0.4;
+    /** Things it does when it is not going for the ball. */
+    private static final String[] MISTAKES = {"MOVE_LEFT", "MOVE_RIGHT", "JUMP", "KICK"};
+
+    /** Source of its mistakes. */
+    private final Random random;
 
     /**
-     * Creates the profile. Under construction.
-     *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * Creates the clumsy profile.
      */
-    public ClumsyAI() throws DOPOSoccerException {
+    public ClumsyAI() {
         super();
+        random = new Random();
     }
 
-    /**
-     * Decides the actions of this tick. Under construction.
-     *
-     * @param self  the player it controls
-     * @param match the match
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
-     */
     @Override
-    protected Set<String> decide(Player self, Match match) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    protected Set<String> decide(Player self, Match match) {
+        Set<String> actions = new HashSet<>();
+        if (random.nextDouble() < FOCUS) {
+            playBall(self, match.getBall(), actions);
+        } else {
+            actions.add(MISTAKES[random.nextInt(MISTAKES.length)]);
+        }
+        return actions;
     }
 
-    /**
-     * Returns the name of the profile.
-     *
-     * @return "CLUMSY"
-     */
     @Override
     public String getProfile() {
         return "CLUMSY";

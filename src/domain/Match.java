@@ -120,12 +120,12 @@ public class Match implements Serializable {
         if (p.hasAura()) {
             p.useAura();
             ball.clearCharge();
-            p.getCharacter().getPowerShot().launch(this, p);
+            p.launchPowerShot(this);
             return;
         }
         if (ball.isPowerShot() && !p.getSide().equals(ball.getShooter())) {
             PowerShot shot = ball.getCharge();
-            double multiplier = getPlayer(ball.getShooter()).getStats().getKickMultiplier();
+            double multiplier = getPlayer(ball.getShooter()).getKickMultiplier();
             p.takeDamage((int) Math.round(shot.getBaseDamage() * multiplier));
             p.applyEffect(shot.createEffect());
             ball.clearCharge();
@@ -234,15 +234,6 @@ public class Match implements Serializable {
     }
 
     /**
-     * Returns the field.
-     *
-     * @return the stadium
-     */
-    public Stadium getStadium() {
-        return stadium;
-    }
-
-    /**
      * Returns the scoreboard.
      *
      * @return the scoreboard
@@ -275,7 +266,7 @@ public class Match implements Serializable {
      */
     private void checkGoals() {
         for (String defender : new String[]{"LEFT", "RIGHT"}) {
-            if (stadium.getGoal(defender).contains(ball)) {
+            if (stadium.isInGoal(defender, ball)) {
                 String scorer = "LEFT".equals(defender) ? "RIGHT" : "LEFT";
                 scoreBoard.addGoal(scorer);
                 addEvent("GOAL");
@@ -327,5 +318,117 @@ public class Match implements Serializable {
         List<String> copy = events == null ? new ArrayList<>() : new ArrayList<>(events);
         events = null;
         return copy;
+    }
+
+    //  answers for the facade: the match asks its own parts
+
+    /**
+     * Returns the name of its type.
+     *
+     * @return "TIME", "GOALS" or "SURVIVAL"
+     */
+    public String getTypeName() {
+        return type.getName();
+    }
+
+    /**
+     * Returns the time left.
+     *
+     * @return seconds left, or -1 if the match has no time limit
+     */
+    public int getTimeLeft() {
+        return type.getTimeLeft(this);
+    }
+
+    /**
+     * Tells whether the match is in sudden death.
+     *
+     * @return true in sudden death
+     */
+    public boolean isSuddenDeath() {
+        return type.isSuddenDeath();
+    }
+
+    /**
+     * Returns the goals of a side.
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @return its goals
+     */
+    public int getGoals(String side) {
+        return scoreBoard.getGoals(side);
+    }
+
+    /**
+     * Returns the horizontal position of the ball.
+     *
+     * @return left edge, in pixels
+     */
+    public double getBallX() {
+        return ball.getX();
+    }
+
+    /**
+     * Returns the vertical position of the ball.
+     *
+     * @return top edge, in pixels
+     */
+    public double getBallY() {
+        return ball.getY();
+    }
+
+    /**
+     * Returns the name of the skin of the ball.
+     *
+     * @return the name of the skin
+     */
+    public String getBallName() {
+        return ball.getSkinName();
+    }
+
+    /**
+     * Returns the power shot the ball carries.
+     *
+     * @return the name of the shot, or null if the ball is normal
+     */
+    public String getBallPower() {
+        return ball.getChargeName();
+    }
+
+    /**
+     * Returns the width of the field.
+     *
+     * @return width, in pixels
+     */
+    public double getFieldWidth() {
+        return stadium.getWidth();
+    }
+
+    /**
+     * Returns the height of the field.
+     *
+     * @return height, in pixels
+     */
+    public double getFieldHeight() {
+        return stadium.getHeight();
+    }
+
+    /**
+     * Returns the height of the ground.
+     *
+     * @return y of the ground, in pixels
+     */
+    public double getGroundY() {
+        return stadium.getGroundY();
+    }
+
+    /**
+     * Returns the rectangle of the goal a side defends.
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @return {x, y, width, height}, in pixels
+     */
+    public double[] getGoalBounds(String side) {
+        return stadium.getGoalBounds(side);
     }
 }

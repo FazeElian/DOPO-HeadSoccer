@@ -41,7 +41,7 @@ public class MainMenuView extends HomeView {
         JPanel center = createCenterBlock(190);
 
         // Game Title
-        JLabel gameTitle = createRoundedLabel("POOBSOCCER", 30);
+        JLabel gameTitle = createRoundedLabel("DOPOSOCCER", 30);
         gameTitle.setBackground(DARK_GREEN);
         gameTitle.setFont(luckiest.deriveFont(72f));
         gameTitle.setForeground(WHITE);

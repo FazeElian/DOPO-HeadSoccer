@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests of the facade {@link DOPOSoccer}: a new game in Arcade player vs player, the match,
+ * Tests of the facade {@link DOPOSoccer}: a new game in Arcade (player vs player and vs the machine), the match,
  * the catalogs, the stats, the settings and the options that are under construction.
  *
  * @author Elian Ibarra
@@ -332,15 +332,71 @@ public class DOPOSoccerTest {
     public void shouldSayThatTheUnfinishedOptionsAreUnderConstruction() {
         String building = DOPOSoccerException.UNDER_CONSTRUCTION;
         assertMessage(building,
-                () -> game.newGame("PVM", "EXPERT", "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3));
-        assertMessage(building,
                 () -> game.newGame("PVP", null, "MEDIUM", "TOURNAMENT", "Colombia", "Argentina", "GOALS", 3));
         assertMessage(building,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "España", "Argentina", "GOALS", 3));
-        assertMessage(building,
                 () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "SURVIVAL", 0));
-        assertMessage(building, () -> game.selectBall("LEFT", "Dorado"));
         assertMessage(building, () -> game.nextMatch());
         assertMessage(building, () -> game.saveProgress());
+    }
+
+    // player vs machine
+
+    @Test
+    public void shouldStartAGameAgainstTheMachine() throws DOPOSoccerException {
+        game.newGame("PVM", "EXPERT", "MEDIUM", "ARCADE", "Colombia", "Japón", "GOALS", 3);
+        assertEquals("PVM", game.getModality());
+        assertEquals("Japón", game.getCharacter("RIGHT")); // the machine plays with any character
+    }
+
+    @Test
+    public void shouldNotAcceptAnUnknownMachineProfile() {
+        assertMessage(DOPOSoccerException.UNKNOWN_AI_PROFILE,
+                () -> game.newGame("PVM", "GENIUS", "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3));
+    }
+
+    @Test
+    public void shouldMoveTheMachineByItself() throws DOPOSoccerException {
+        game.newGame("PVM", "OFFENSIVE", "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3);
+        double before = game.getPlayerX("RIGHT");
+        for (int i = 0; i < 60; i++) {
+            game.update(1 / 60.0);
+        }
+        assertTrue(game.getPlayerX("RIGHT") < before); // it goes for the ball, to its left
+    }
+
+    // store
+
+    @Test
+    public void shouldStartWithoutPoints() throws DOPOSoccerException {
+        assertEquals(0, game.getPoints("LEFT"));
+        assertEquals(0, game.getPoints("RIGHT"));
+    }
+
+    @Test
+    public void shouldNotBuyWithoutPoints() {
+        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.buyCharacter("LEFT", "España"));
+        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.buyBall("LEFT", "Dorado"));
+        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.upgrade("LEFT", "SPEED"));
+    }
+
+    @Test
+    public void shouldNotBuyWhatIsAlreadyOwned() {
+        assertMessage(DOPOSoccerException.ALREADY_OWNED, () -> game.buyCharacter("LEFT", "Colombia"));
+        assertMessage(DOPOSoccerException.ALREADY_OWNED, () -> game.buyBall("LEFT", "Tricolor"));
+    }
+
+    @Test
+    public void shouldNotPlayWithALockedCharacter() {
+        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
+                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "España", "Argentina", "GOALS", 3));
+        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
+                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Japón", "GOALS", 3));
+    }
+
+    @Test
+    public void shouldNotSelectALockedBall() throws DOPOSoccerException {
+        assertFalse(game.isBallUnlocked("LEFT", "Dorado"));
+        assertTrue(game.isBallUnlocked("LEFT", "Tricolor"));
+        assertMessage(DOPOSoccerException.BALL_LOCKED, () -> game.selectBall("LEFT", "Dorado"));
     }
 }

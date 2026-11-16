@@ -128,4 +128,26 @@ public class Stadium implements Serializable {
     public String getResolution() {
         return resolution;
     }
+
+    /**
+     * Returns the rectangle of the goal a side defends.
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @return {x, y, width, height}, in pixels
+     */
+    public double[] getGoalBounds(String side) {
+        Goal goal = getGoal(side);
+        return new double[]{goal.getX(), goal.getY(), goal.getWidth(), goal.getHeight()};
+    }
+
+    /**
+     * Tells whether a ball is inside the goal a side defends.
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @param ball the ball
+     * @return true if the ball crossed into that goal
+     */
+    public boolean isInGoal(String side, Ball ball) {
+        return getGoal(side).contains(ball);
+    }
 }
