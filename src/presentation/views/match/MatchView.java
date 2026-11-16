@@ -19,6 +19,7 @@ import static presentation.DOPOSoccerGUI.*;
  */
 public abstract class MatchView extends View {
     private DOPOSoccer game;
+    private static final boolean DEBUG_HITBOX = true;
     public static final String STADIUM_BACKGROUND = "assets/img/stadiumBackground.png";
 
     protected static final int HUD_WIDTH = 320;
@@ -140,6 +141,41 @@ public abstract class MatchView extends View {
         // Effects on the player (electrocuted, stunned...), as the domain names them
         if (!states.isEmpty()) {
             drawPill(g2, String.join(" · ", states).toUpperCase(), x + w / 2, y - 6, RED, WHITE);
+        }
+    
+        // Just to see the hitboxes of every component
+        if (DEBUG_HITBOX) {
+            g2.setStroke(new BasicStroke(2));
+            int cx = x + w / 2;
+            int cy = y + h / 2;
+
+            g2.setColor(Color.YELLOW);
+            g2.drawRect(x, y, w, h);
+
+            g2.setColor(Color.RED);
+            int foot = sx("LEFT".equals(side) ? 7 : -7);
+            // Head: radius 32, center 7 px above the box center (bottom at +25 = top of the feet)
+            g2.drawOval(cx - sx(32), cy - sy(7) - sy(32), sx(64), sy(64));
+
+            // Feet: capsule 45 x 20, center 35 px below the box center (from +25 to +45)
+            g2.drawRoundRect(cx + foot - sx(22.5), cy + sy(35) - sy(10), sx(45), sy(20), sy(20), sy(20));
+
+            // Goal of this side (drawPlayer runs once per side, so each goal is drawn once)
+            double[] goal = game.getGoal(side);   // {x, y, width, height}, in domain pixels
+
+            // Goal area: same rectangle as addGoalArea
+            g2.setColor(Color.CYAN);
+            g2.drawRect(sx(goal[0]), sy(goal[1]), sx(goal[2]), sy(goal[3]));
+
+            // Crossbar: same 4 points as addCrossbar (higher on the wall side, so the ball rolls to the field)
+            double he = 25, bottom = goal[1];   // usa PhysicsEngine.CROSSBAR_HEIGHT si lo dejas público
+            double wallX = "LEFT".equals(side) ? goal[0] : goal[0] + goal[2];
+            double postX = "LEFT".equals(side) ? goal[0] + goal[2] : goal[0];
+            g2.setColor(Color.RED);
+            g2.drawPolygon(
+                new int[]{sx(wallX), sx(wallX), sx(postX)},
+                new int[]{sy(bottom - he), sy(bottom), sy(bottom)},
+                3);
         }
     }
 

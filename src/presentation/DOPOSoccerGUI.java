@@ -89,7 +89,11 @@ public class DOPOSoccerGUI extends JFrame {
 
     public DOPOSoccerGUI() {
         game = new DOPOSoccer();
-        setSize(1280, 900); // Small Laptop size
+        // Fixed window: the inside is exactly 1280 x 900 (the proportion of the stadium image), so nothing stretches
+        getContentPane().setPreferredSize(new Dimension(1280, 900));
+        pack();
+        setResizable(false);
+        setLocationRelativeTo(null); // centered on the screen
         setTitle("DOPOSoccer | Inicio");
         prepareView();
         prepareController();
