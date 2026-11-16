@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * A ball of the store catalog. It only changes the picture of the ball: the physics is the same.
- * In this version every match uses the free ball; the store is under construction.
+ * The free balls are of everyone; the others are bought in the store.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda

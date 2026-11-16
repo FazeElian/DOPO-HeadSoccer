@@ -367,30 +367,12 @@ public class Player extends Entity {
     }
 
     /**
-     * Returns the character of the player.
-     *
-     * @return the character
-     */
-    public GameCharacter getCharacter() {
-        return character;
-    }
-
-    /**
      * Returns the stats of the player.
      *
      * @return the stats of its profile
      */
     public Stats getStats() {
         return stats;
-    }
-
-    /**
-     * Returns who controls the player.
-     *
-     * @return the controller
-     */
-    public PlayerController getController() {
-        return controller;
     }
 
     /**
@@ -437,5 +419,59 @@ public class Player extends Entity {
     @Override
     void addTo(PhysicsEngine engine) {
         engine.addPlayer(this);
+    }
+
+    /**
+     * Tells its controller that an action key went down.
+     *
+     * @param action the action
+     */
+    public void press(String action) {
+        controller.press(action);
+    }
+
+    /**
+     * Tells its controller that an action key went up.
+     *
+     * @param action the action
+     */
+    public void release(String action) {
+        controller.release(action);
+    }
+
+    /**
+     * Launches the power shot of its character.
+     *
+     * @param match the match where it is launched
+     */
+    public void launchPowerShot(Match match) {
+        character.launchPowerShot(match, this);
+    }
+
+    /**
+     * Returns how much its kick stat multiplies the damage it does.
+     *
+     * @return the kick multiplier of its stats
+     */
+    public double getKickMultiplier() {
+        return stats.getKickMultiplier();
+    }
+
+    /**
+     * Returns the country of its character.
+     *
+     * @return the country
+     */
+    public String getCountry() {
+        return character.getCountry();
+    }
+
+    /**
+     * Returns the name of the power shot of its character.
+     *
+     * @return the name of the power
+     */
+    public String getPowerName() {
+        return character.getPowerName();
     }
 }

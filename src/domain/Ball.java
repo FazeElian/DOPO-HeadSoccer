@@ -122,15 +122,6 @@ public class Ball extends Entity {
     }
 
     /**
-     * Returns the chosen ball, to draw it.
-     *
-     * @return the ball of the catalog
-     */
-    public BallSkin getSkin() {
-        return skin;
-    }
-
-    /**
      * Returns the radius.
      *
      * @return radius, in pixels
@@ -157,5 +148,23 @@ public class Ball extends Entity {
     @Override
     void addTo(PhysicsEngine engine) {
         engine.addBall(this);
+    }
+
+    /**
+     * Returns the name of its skin.
+     *
+     * @return the name of the skin
+     */
+    public String getSkinName() {
+        return skin.getName();
+    }
+
+    /**
+     * Returns the name of the power shot it carries.
+     *
+     * @return the name of the shot, or null if the ball is normal
+     */
+    public String getChargeName() {
+        return charge == null ? null : charge.getName();
     }
 }

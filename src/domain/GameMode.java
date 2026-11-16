@@ -132,4 +132,22 @@ public abstract class GameMode implements Serializable {
      * @return "ARCADE" or "TOURNAMENT"
      */
     public abstract String getName();
+
+    /**
+     * Tells whether the current match finished.
+     *
+     * @return true if the match is over or was ended
+     */
+    public boolean isMatchFinished() {
+        return match.isFinished();
+    }
+
+    /**
+     * Returns the winner of the current match.
+     *
+     * @return "LEFT", "RIGHT" or null
+     */
+    public String getMatchWinner() {
+        return match.getWinner();
+    }
 }
