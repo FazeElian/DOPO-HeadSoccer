@@ -191,7 +191,7 @@ public class Player extends Entity {
             if (aura) {
                 match.onBallTouch(this);
             } else {
-                ball.applyImpulse(getDirection() * KICK_SPEED, -KICK_SPEED * 0.5);
+                ball.applyImpulse(getDirection() * KICK_SPEED, -KICK_SPEED * 0.6);
             }
         }
         Player rival = match.getOpponent(this);

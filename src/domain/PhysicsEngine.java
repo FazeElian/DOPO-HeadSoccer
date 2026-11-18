@@ -14,6 +14,7 @@ import org.dyn4j.collision.CategoryFilter;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.contact.Contact;
+import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
@@ -52,6 +53,8 @@ public class PhysicsEngine implements Serializable {
     private static final long GOAL_AREA = 16;
     /** Thickness of the walls, the ground and the ceiling, in pixels. */
     private static final double WALL = 200;
+    /** Height of the crossbar on the wall side, in pixels; on the post side it is 0 (a triangle). */
+    private static final double CROSSBAR_HEIGHT = 25;
 
     /** Field whose limits become static bodies. */
     private final Stadium stadium;
@@ -107,10 +110,27 @@ public class PhysicsEngine implements Serializable {
      * @param p the player
      */
     void addPlayer(Player p) {
+        CategoryFilter filter = new CategoryFilter(PLAYER, STATIC | PLAYER | BALL | GOAL_AREA);
+
         Body body = new Body();
-        BodyFixture fixture = body.addFixture(
-                Geometry.createRectangle(p.getWidth() / PIXELS_PER_METER, p.getHeight() / PIXELS_PER_METER), 1.0, 0.4, 0.0);
-        fixture.setFilter(new CategoryFilter(PLAYER, STATIC | PLAYER | BALL | GOAL_AREA));
+        // To create a circle we set a radius centered in the body
+        Convex head = Geometry.createCircle(33 / PIXELS_PER_METER);
+        
+        // The head is on the center of the body (x = 0) and is elevated 7px
+        head.translate(0, -8 / PIXELS_PER_METER);
+
+        // With add fixture we add physics properties to a shape
+        // 1.0 -> density (allow to calculate the mass)
+        // 0.4 -> friction
+        // 0.0 -> restitution (how much it bounces)
+        body.addFixture(head, 1.0, 0.0, 0.0).setFilter(filter);
+        
+        // To create a feet we create a capsule (which is a rectangle with rounded edges) with 
+        double foot = "LEFT".equals(p.getSide()) ? 7 : -7;
+        Convex feet = Geometry.createCapsule(45 / PIXELS_PER_METER, 20 / PIXELS_PER_METER);
+        feet.translate(foot / PIXELS_PER_METER, 35 / PIXELS_PER_METER);
+        body.addFixture(feet, 1.0, 0.0, 0.0).setFilter(filter);
+
         body.setMass(MassType.FIXED_ANGULAR_VELOCITY);
         register(p, body);
         players.put(body, p);
@@ -157,7 +177,9 @@ public class PhysicsEngine implements Serializable {
         borders.add(addStatic(-WALL, -WALL, w + 2 * WALL, WALL));
         for (String side : new String[]{"LEFT", "RIGHT"}) {
             Goal goal = stadium.getGoal(side);
-            Body bar = addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10);
+            // Body bar = addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10);
+            Body bar = addCrossbar(goal, side);
+
             borders.add(bar);   // it ends a power shot
             crossbars.add(bar); // and it is the post, for the sound
             addGoalArea(goal); // the players can't walk into the goal
@@ -168,6 +190,35 @@ public class PhysicsEngine implements Serializable {
                 contacts.add(List.of(collision.getBody1(), collision.getBody2()));
             }
         });
+    }
+
+    /**
+    * Adds the crossbar of a goal: a still triangle over the goal mouth, high on the wall side and
+    * thin on the post side, so a ball that falls on top rolls back to the field.
+    *
+    * @param goal the goal
+    * @param side "LEFT" or "RIGHT"
+    * @return the new body
+    */
+    private Body addCrossbar(Goal goal, String side) {
+        double bottom = goal.getY();   // arriba de la boca del arco
+        double wallX = "LEFT".equals(side) ? goal.getX() : goal.getX() + goal.getWidth();
+        double postX = "LEFT".equals(side) ? goal.getX() + goal.getWidth() : goal.getX();
+
+        Vector2[] points = Geometry.cleanse(
+            new Vector2(wallX / PIXELS_PER_METER, (bottom - CROSSBAR_HEIGHT) / PIXELS_PER_METER),
+            new Vector2(wallX / PIXELS_PER_METER, bottom / PIXELS_PER_METER),
+            new Vector2(postX / PIXELS_PER_METER, bottom / PIXELS_PER_METER)
+        );
+        Convex bar = Geometry.createTriangle(points[0], points[1], points[2]);
+
+        Body body = new Body();
+        BodyFixture fixture = body.addFixture(bar);
+        fixture.setFriction(0.5);
+        fixture.setFilter(new CategoryFilter(STATIC, PLAYER | BALL | FAKE));
+        body.setMass(MassType.INFINITE);
+        world.addBody(body);
+        return body;
     }
 
     /**
@@ -273,7 +324,7 @@ public class PhysicsEngine implements Serializable {
     private void syncFromBodies() {
         for (Map.Entry<Entity, Body> entry : bodies.entrySet()) {
             Entity e = entry.getKey();
-            Vector2 center = entry.getValue().getWorldCenter();
+            Vector2 center = entry.getValue().getTransform().getTranslation();
             Vector2 velocity = entry.getValue().getLinearVelocity();
             e.setPosition(center.x * PIXELS_PER_METER - e.getWidth() / 2, center.y * PIXELS_PER_METER - e.getHeight() / 2);
             e.setVelocity(velocity.x * PIXELS_PER_METER, velocity.y * PIXELS_PER_METER);
