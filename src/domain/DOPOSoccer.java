@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Facade of the domain: the only class the interface talks to (Facade pattern).
@@ -46,6 +47,8 @@ public class DOPOSoccer {
     private final PlayerProfile[] profiles;
     /** Settings of the game. */
     private final Settings settings;
+    /** Tournament being played, or null in Arcade. */
+    private TournamentMode tournament;
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
@@ -77,19 +80,21 @@ public class DOPOSoccer {
     // game
 
     /**
-     * Validates the choices and prepares the game. Arcade is built, player vs player or against
-     * the machine, by time or by goals; the tournament and survival are under construction.
+     * Validates the choices and prepares the game. Arcade is played player vs player or against
+     * the machine; the tournament is played against the machine, with 7 rivals drawn at random.
+     * Both are played by time or by goals; survival is under construction.
      *
      * @param modality       "PVP" or "PVM"
      * @param aiProfile      "CLUMSY", "OFFENSIVE", "DEFENSIVE" or "EXPERT"; not used in player vs player
      * @param resolution     "SMALL", "MEDIUM" or "LARGE"
-     * @param modeName       "ARCADE" ("TOURNAMENT" is under construction)
+     * @param modeName       "ARCADE" or "TOURNAMENT"
      * @param leftCharacter  country of the left player
-     * @param rightCharacter country of the right player
+     * @param rightCharacter country of the right player (not used in the tournament)
      * @param matchType      "TIME" or "GOALS" ("SURVIVAL" is under construction)
      * @param amount         minutes of the match or goals to win
      * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER,
-     *                             CHARACTER_LOCKED, UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION, INVALID_MINUTES or INVALID_GOAL_TARGET
+     *                             CHARACTER_LOCKED, UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION,
+     *                             INVALID_MINUTES, INVALID_GOAL_TARGET or INVALID_TOURNAMENT_TYPE
      */
     public void newGame(String modality, String aiProfile, String resolution, String modeName,
                         String leftCharacter, String rightCharacter, String matchType, int amount)
@@ -98,20 +103,21 @@ public class DOPOSoccer {
         if (!vsMachine && !"PVP".equals(modality)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODALITY);
         }
-
-        if ("TOURNAMENT".equals(modeName)) {
-            throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
-        }
-        else if (!"ARCADE".equals(modeName)) {
+        boolean isTournament = "TOURNAMENT".equals(modeName);
+        if (!isTournament && !"ARCADE".equals(modeName)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);
         }
-        
+        // Checked before createType, which throws UNDER_CONSTRUCTION for survival
+        if (isTournament && "SURVIVAL".equals(matchType)) {
+            throw new DOPOSoccerException(DOPOSoccerException.INVALID_TOURNAMENT_TYPE);
+        }
+
         GameCharacter left = character(leftCharacter);
         GameCharacter right = character(rightCharacter);
         
         // Each person plays only with its own characters; the machine plays with any
         if (!profiles[0].isCharacterUnlocked(left)
-                || (!vsMachine && !profiles[1].isCharacterUnlocked(right))) {
+                || (!isTournament && !vsMachine && !profiles[1].isCharacterUnlocked(right))) {
             throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);
         }
 
@@ -119,13 +125,26 @@ public class DOPOSoccer {
             throw new DOPOSoccerException(DOPOSoccerException.SURVIVAL_ONLY_PVM);
         }
         MatchType type = createType(matchType, amount);
-        PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
-        Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
-        GameMode newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
-                right, rivalStats, rival, type, resolution, ball);
+
+        GameMode newMode;
+        if (isTournament) {
+            // Always against the machine: the 7 rivals are the other teams
+            List<GameCharacter> others = new ArrayList<>(characters.values());
+            others.remove(left);
+            tournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),
+                    new Stats(), createAI(aiProfile), type, resolution, ball, others, new Random());
+            newMode = tournament;
+            this.modality = "PVM";
+        } else {
+            PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
+            Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
+            tournament = null;
+            newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
+                    right, rivalStats, rival, type, resolution, ball);
+            this.modality = modality;
+        }
         newMode.start();
         mode = newMode;
-        this.modality = modality;
         paused = false;
         pointsGiven = false;
         lastPoints[0] = 0;
@@ -218,15 +237,19 @@ public class DOPOSoccer {
     }
 
     /**
-     * Goes to the next match of the mode. Under construction (Arcade has only one match).
+     * Goes to the next match of the mode: in the tournament, the next round. The new match gives points again.
      *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException GAME_NOT_STARTED; INVALID_STATE in Arcade (it has only one match)
+     *                             or if the current match is not over; GAME_OVER if the mode already ended
      */
     public void nextMatch() throws DOPOSoccerException {
         match();
         mode.nextMatch();
+        paused = false;
         pointsGiven = false;   // the new match gives points again
-        paused = false;    }
+        lastPoints[0] = 0;
+        lastPoints[1] = 0;
+    }
 
     /**
      * Tells whether the current match ended.
@@ -239,14 +262,15 @@ public class DOPOSoccer {
     }
 
     /**
-     * Tells whether the mode ended. In Arcade it is the same as the match.
+     * Tells whether the mode ended. In Arcade it is the same as the match; the tournament ends
+     * when the player loses a match or wins the final.
      *
      * @return true if it ended
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isModeOver() throws DOPOSoccerException {
-            match();
-            return mode.isOver();
+        match();
+        return mode.isOver();
     }
 
     /**
@@ -657,23 +681,109 @@ public class DOPOSoccer {
         return match().getBalls(side);    }
 
     /**
-     * Returns the teams of the tournament bracket. Under construction.
+     * Returns the tournament being played.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the tournament
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
      */
-    public List<String> getTournamentTeams() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    private TournamentMode tournament() throws DOPOSoccerException {
+        if(tournament == null) {
+            throw new DOPOSoccerException(DOPOSoccerException.GAME_NOT_STARTED);
+        }
+        return tournament;
     }
 
     /**
-     * Returns the current tournament round. Under construction.
+     * Turns a list of characters into their countries, so the interface only gets texts.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @param list the characters
+     * @return their countries, in the same order
+     */
+    private static List<String> countries(List<GameCharacter> list) {
+        List<String> names = new ArrayList<>();
+        for (GameCharacter c : list) {
+            names.add(c.getCountry());
+        }
+        return names;
+    }
+
+    /**
+     * Returns the 8 teams of the quarterfinals, in bracket order: each 2 consecutive teams play each other.
+     *
+     * @return the countries of the teams
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public List<String> getTournamentTeams() throws DOPOSoccerException {
+        return countries(tournament().getTeams(1));
+    }
+
+    /**
+     * Returns the 4 teams of the semifinal, in bracket order.
+     *
+     * @return the countries of the teams, empty if the semifinal was not reached yet
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public List<String> getTournamentSemifinalists() throws DOPOSoccerException {
+        return countries(tournament().getTeams(2));
+    }
+
+    /**
+     * Returns the 2 teams of the final.
+     *
+     * @return the countries of the teams, empty if the final was not reached yet
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public List<String> getTournamentFinalists() throws DOPOSoccerException {
+        return countries(tournament().getTeams(3));
+    }
+
+    /**
+     * Returns the name of the current round of the tournament.
+     *
+     * @return "CUARTOS", "SEMIFINAL" or "FINAL"
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
      */
     public String getTournamentRound() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        return tournament().getRoundName();
+    }
+
+    /**
+     * Returns the names of the rounds of the tournament, in order.
+     *
+     * @return "CUARTOS", "SEMIFINAL" and "FINAL"
+     */
+    public List<String> getTournamentRounds() {
+        return List.of(TournamentMode.ROUND_NAMES);
+    }
+
+    /**
+     * Returns the rival of the player in the current round.
+     *
+     * @return the country of the rival
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public String getTournamentRival() throws DOPOSoccerException {
+        return tournament().getRival().getCountry();
+    }
+
+    /**
+     * Tells whether the player won the tournament.
+     *
+     * @return true if the player won the final
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public boolean isTournamentChampion() throws DOPOSoccerException {
+        return tournament().isChampion();
+    }
+
+    /**
+     * Returns how many matches of the tournament the player won.
+     *
+     * @return wins of the player, from 0 to 3
+     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     */
+    public int getTournamentWins() throws DOPOSoccerException {
+        return tournament().getWins();
     }
 
     /**
@@ -920,7 +1030,8 @@ public class DOPOSoccer {
 
     /**
      * Gives 100 points to the winner and 25 to the loser and keeps them in their profiles, to spend
-     * them in the store. Against the machine only player 1 gets points. They last while the game is open.
+     * them in the store. Against the machine only player 1 gets points. The champion of a tournament also
+     * wins the prize. They last while the game is open.
      */
     private void givePoints() {
         pointsGiven = true;
@@ -934,6 +1045,10 @@ public class DOPOSoccer {
         profiles[0].addPoints(lastPoints[0]);
         if ("PVP".equals(modality)) {
             profiles[1].addPoints(lastPoints[1]); // the machine has no wallet
+        }
+        if (tournament != null && tournament.isChampion()) {
+            lastPoints[0] += TournamentMode.PRIZE;
+            profiles[0].addPoints(TournamentMode.PRIZE);
         }
     }
 

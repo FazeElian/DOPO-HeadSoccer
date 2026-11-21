@@ -63,7 +63,8 @@ public class DOPOSoccerGUI extends JFrame {
     // Match Views components
     private ArcadeMatchView arcadeMatchView;
     private SurvivalMatchView survivalMatchView;
-    private MatchView matchView; // the match view being played (arcade or survival)
+    private MatchView matchView; // the match view being played (arcade, survival or tournament)
+    private String tournamentTypeText = ""; // "POR TIEMPO · 60 S", "POR GOLES · META 3"
 
     // Fonts
     private Font luckiest;
@@ -164,10 +165,12 @@ public class DOPOSoccerGUI extends JFrame {
         prepareNewTournamentController();
         prepareTournamentBallController();
         prepareTournamentBracketController();
+        prepareTournamentRoundController();
 
-        // Match Views
-        prepareMatchController(arcadeMatchView);
-        prepareMatchController(survivalMatchView);
+        // Match Views ("REVANCHA" / "OTRA SERIE" play again; "NUEVO TORNEO" goes to a new tournament)
+        prepareMatchController(arcadeMatchView, this::startGame);
+        prepareMatchController(survivalMatchView, this::startGame);
+        prepareMatchController(tournamentMatchView, this::showNewTournament);
 
         // Key movement
         prepareKeysController();
@@ -237,22 +240,24 @@ public class DOPOSoccerGUI extends JFrame {
         selectModeView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
         selectModeView.arcadeBtn.addActionListener(e -> showView(selectArcadeModeView, "Modalidad (Arcade)"));
 
-        // Tournament: the teams of the bracket (under construction in the domain)
         // Tournament: "NUEVO TORNEO" with the team and the stats of player 1 (domain)
-        selectModeView.tournamentBtn.addActionListener(e -> {
-            try {
-                String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
-                int[] stats = new int[STATS.length];
-                for (int i = 0; i < STATS.length; i++) {
-                    stats[i] = game.getStat("LEFT", STATS[i]);
-                }
-                newTournamentView.setTeam(team, game.getPowerNameOf(team), stats);
-                newTournamentView.setPrize(game.getTournamentPrize());
-                showView(newTournamentView, "Nuevo Torneo");
-            } catch (DOPOSoccerException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage());
+        selectModeView.tournamentBtn.addActionListener(e -> showNewTournament());
+    }
+
+    // "NUEVO TORNEO": the team of player 1, its power and stats, and the prize (domain)
+    private void showNewTournament() {
+        try {
+            String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
+            int[] stats = new int[STATS.length];
+            for (int i = 0; i < STATS.length; i++) {
+                stats[i] = game.getStat("LEFT", STATS[i]);
             }
-        });
+            newTournamentView.setTeam(team, game.getPowerNameOf(team), stats);
+            newTournamentView.setPrize(game.getTournamentPrize());
+            showView(newTournamentView, "Nuevo Torneo");
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
     }
 
     private void prepareSelectArcadeModeController() {
@@ -481,26 +486,90 @@ public class DOPOSoccerGUI extends JFrame {
                 String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
                 boolean byTime = newTournamentView.isByTime();
                 game.selectBall("LEFT", toDomainBall(tournamentBallView.getSelectedBall()));
-                game.newGame("PVM", toDomainProfile(selectArcadeModeView.getAIProfile()),
+                game.newGame("PVM", toDomainProfile("EXPERTA"),
+                // game.newGame("PVM", toDomainProfile(selectArcadeModeView.getAIProfile()),
                     toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), "TOURNAMENT",
                     team, team, byTime ? "TIME" : "GOALS",
                     byTime ? newTournamentView.getMinutes() : newTournamentView.getGoalTarget());
 
-                tournamentBracketView.setTeams(game.getTournamentTeams(), java.util.List.of(), java.util.List.of(), team);
-                tournamentBracketView.setMatchType(byTime
+                tournamentTypeText = byTime
                     ? "POR TIEMPO · " + newTournamentView.getMinutes() * 60 + " S"
-                    : "POR GOLES · META " + newTournamentView.getGoalTarget());
-                tournamentBracketView.setPrize(game.getTournamentPrize());
-                tournamentBracketView.setNextRound(game.getTournamentRound());
-                showView(tournamentBracketView, "Llave del Torneo");
+                    : "POR GOLES · META " + newTournamentView.getGoalTarget();
+                showBracket();
             } catch (DOPOSoccerException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage()); // "Opción en construcción."
+                JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
     }
 
+    // Bracket: back to the ball (a new tournament), or to the screen of the next round
     private void prepareTournamentBracketController() {
         tournamentBracketView.backBtn.addActionListener(e -> showView(tournamentBallView, "Balón (Torneo)"));
+        tournamentBracketView.continueBtn.addActionListener(e -> showTournamentRound());
+    }
+
+    // Round: back to the bracket, or play the match of the player
+    private void prepareTournamentRoundController() {
+        tournamentRoundView.backBtn.addActionListener(e -> showBracket());
+        tournamentRoundView.continueBtn.addActionListener(e -> startTournamentMatch());
+    }
+
+    // The bracket with the teams of each round reached so far (domain)
+    private void showBracket() {
+        try {
+            tournamentBracketView.setTeams(
+                game.getTournamentTeams(),
+                game.getTournamentSemifinalists(),
+                game.getTournamentFinalists(),
+                game.getCharacter("LEFT")
+            );
+            tournamentBracketView.setMatchType(tournamentTypeText);
+            tournamentBracketView.setPrize(game.getTournamentPrize());
+            tournamentBracketView.setNextRound(game.getTournamentRound());
+            showView(tournamentBracketView, "Llave del Torneo");
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    // The round being played: the rounds, the player against its rival, the type and the points (domain)
+    private void showTournamentRound() {
+        try {
+            tournamentRoundView.setRound(
+                game.getTournamentRounds(),
+                game.getRound() - 1,
+                game.getCharacter("LEFT"),
+                game.getTournamentRival(),
+                tournamentTypeText
+            );
+            tournamentRoundView.setPoints(game.getPoints("LEFT"));
+            tournamentRoundView.setPrize(game.getTournamentPrize());
+            showView(tournamentRoundView, "Ronda del Torneo");
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    // The match of the player in the current round, against the machine
+    private void startTournamentMatch() {
+        try {
+            matchView = tournamentMatchView;
+            String me = game.getCharacter("LEFT");
+            String rival = game.getCharacter("RIGHT");
+            matchView.setPlayer1("JUGADOR 1", me.toUpperCase(), game.getPowerName("LEFT").toUpperCase(),
+                selectArcadeCharacterView.getCodeOf(me));
+            matchView.setPlayer2("IA", "IA", rival.toUpperCase(), game.getPowerName("RIGHT").toUpperCase(),
+                selectArcadeCharacterView.getCodeOf(rival));
+            matchView.setSuddenDeath(false);
+
+            showView(matchView, "Partido (Torneo · " + game.getTournamentRound() + ")");
+            refreshMatchView();
+            lastTime = System.nanoTime(); // so the first dt isn't huge
+            sounds.startMusic("match");
+            gameLoop.start();
+        } catch (DOPOSoccerException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
     }
     
     private void prepareSelectArcadeRivalController() {
@@ -516,8 +585,9 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeBallView.continueBtn.addActionListener(e -> startGame());
     }
 
-    // Pause menu and result card of a match view (arcade or survival)
-    private void prepareMatchController(MatchView view) {
+    // Pause menu and result card of a match view (arcade, survival or tournament);
+    // again: what the first button of the result card does
+    private void prepareMatchController(MatchView view, Runnable again) {
         // Pause: stops the game loop and the domain, and shows the pause card over the match (window glass pane)
         view.pauseBtn.addActionListener(e -> {
             try {
@@ -565,10 +635,13 @@ public class DOPOSoccerGUI extends JFrame {
             showView(mainMenuView, "Inicio");
         });
 
-        // Result card: "REVANCHA" / "OTRA SERIE" plays again with the same choices, "MENÚ" goes to the menu
+        // Result card: "REVANCHA" / "OTRA SERIE" / "NUEVO TORNEO", and "MENÚ" goes to the menu
         view.againBtn.addActionListener(e -> {
             getGlassPane().setVisible(false);
-            startGame();
+            if (view == tournamentMatchView) {
+                sounds.startMusic("music");
+            }
+            again.run();
         });
 
         view.menuBtn.addActionListener(e -> {
@@ -745,6 +818,8 @@ public class DOPOSoccerGUI extends JFrame {
 
             if (matchView == survivalMatchView) {
                 refreshSurvival();
+            } else if (matchView == tournamentMatchView) {
+                refreshTournament();
             } else {
                 refreshArcade();
             }
@@ -796,6 +871,47 @@ public class DOPOSoccerGUI extends JFrame {
                 game.getPointsEarned(pointsSide)
             );
             showResultCard();
+        }
+    }
+
+    // Tournament: score and time like Arcade. When the match ends: the result card if the tournament
+    // is over (champion or eliminated), or the next round in the bracket if the player won
+    private void refreshTournament() throws DOPOSoccerException {
+        tournamentMatchView.setScore(game.getGoals("LEFT"), game.getGoals("RIGHT"));
+
+        boolean suddenDeath = game.isSuddenDeath();
+        tournamentMatchView.setSuddenDeath(suddenDeath);
+        int timeLeft = game.getTimeLeft(); // -1 in a goals match
+        if (suddenDeath) {
+            tournamentMatchView.setTimeText("MUERTE SÚBITA");
+        } else if (timeLeft >= 0) {
+            tournamentMatchView.setTime(timeLeft);
+        } else {
+            tournamentMatchView.setTimeText("A " + newTournamentView.getGoalTarget() + " GOLES");
+        }
+
+        if (!game.isMatchOver()) {
+            return;
+        }
+        gameLoop.stop();
+        String me = game.getCharacter("LEFT");
+        String rival = game.getCharacter("RIGHT");
+        int goals = game.getGoals("LEFT");
+        int rivalGoals = game.getGoals("RIGHT");
+
+        if (game.isModeOver()) {
+            if (game.isTournamentChampion()) {
+                tournamentMatchView.showChampion(me, rival, goals, rivalGoals, game.getPointsEarned("LEFT"));
+            } else {
+                tournamentMatchView.showEliminated(me, rival, goals, rivalGoals,
+                    game.getTournamentRound(), game.getTournamentWins());
+            }
+            showResultCard();
+        } else {
+            // Won the round: the domain simulates the other matches and draws the next round
+            game.nextMatch();
+            sounds.startMusic("music");
+            showBracket();
         }
     }
 

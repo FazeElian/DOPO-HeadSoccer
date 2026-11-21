@@ -55,6 +55,8 @@ public class DOPOSoccerException extends Exception {
     public static final String INVALID_VOLUME = "El volumen debe estar entre 0 y 100.";
     /** Message: survival is only played against the machine. */
     public static final String SURVIVAL_ONLY_PVM = "Supervivencia solo se juega contra la máquina.";
+    /** The tournament is only played by time or by goals, not in survival. */
+    public static final String INVALID_TOURNAMENT_TYPE = "El torneo solo se juega por tiempo o por goles.";
     /**
      * Creates the exception with one of the message constants.
      *
