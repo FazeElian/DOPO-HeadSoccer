@@ -138,6 +138,14 @@ public class SelectArcadeCharacterView extends ArcadeView {
         return CHARACTERS[selected].code;
     }
 
+    // Country code of any character ("Argentina" -> "AR"), for the rivals of the tournament; "" if unknown
+    public String getCodeOf(String country) {
+        for (CharacterInfo character : CHARACTERS) {
+            if (character.name.equalsIgnoreCase(country)) return character.code;
+        }
+        return "";
+    }
+
     // Rival view: marks the character chosen by player 1 (J1)
     public void setPlayerCharacter(String name) {
         for (int i = 0; i < CHARACTERS.length; i++) {

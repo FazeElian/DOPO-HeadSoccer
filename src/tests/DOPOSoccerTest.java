@@ -330,13 +330,92 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldSayThatTheUnfinishedOptionsAreUnderConstruction() {
-        String building = DOPOSoccerException.UNDER_CONSTRUCTION;
-        assertMessage(building,
-                () -> game.newGame("PVP", null, "MEDIUM", "TOURNAMENT", "Colombia", "Argentina", "GOALS", 3));
-        assertMessage(building,
+        assertMessage(DOPOSoccerException.UNDER_CONSTRUCTION, () -> game.saveProgress());
+    }
+
+    @Test
+    public void shouldPlaySurvivalOnlyAgainstTheMachine() {
+        assertMessage(DOPOSoccerException.SURVIVAL_ONLY_PVM,
                 () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "SURVIVAL", 0));
-        assertMessage(building, () -> game.nextMatch());
-        assertMessage(building, () -> game.saveProgress());
+    }
+
+    // tournament
+
+    @Test
+    public void shouldStartATournamentWithEightTeams() throws DOPOSoccerException {
+        game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "GOALS", 3);
+        List<String> teams = game.getTournamentTeams();
+        assertEquals(8, teams.size());
+        assertEquals(8, teams.stream().distinct().count());
+        assertEquals("Colombia", teams.get(0));
+        assertEquals("CUARTOS", game.getTournamentRound());
+        assertEquals("PVM", game.getModality());
+        assertEquals(game.getTournamentRival(), game.getCharacter("RIGHT"));
+    }
+
+    @Test
+    public void shouldNotPlayATournamentInSurvival() {
+        assertMessage(DOPOSoccerException.INVALID_TOURNAMENT_TYPE,
+                () -> game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "SURVIVAL", 0));
+    }
+
+    @Test
+    public void shouldNotPlayATournamentWithALockedCharacter() {
+        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
+                () -> game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "España", "España", "GOALS", 3));
+    }
+
+    @Test
+    public void shouldNotGoToTheNextMatchInArcade() throws DOPOSoccerException {
+        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.nextMatch());
+        newGoalsGame(3);
+        game.endGame();
+        assertMessage(DOPOSoccerException.INVALID_STATE, () -> game.nextMatch());
+    }
+
+    @Test
+    public void shouldNotAskForTheTournamentInArcade() throws DOPOSoccerException {
+        newGoalsGame(3);
+        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getTournamentTeams());
+    }
+
+    private void newTournament() throws DOPOSoccerException {
+        game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "GOALS", 3);
+    }
+
+    @Test
+    public void shouldStartTheTournamentWithoutSemifinalNorFinal() throws DOPOSoccerException {
+        newTournament();
+        assertTrue(game.getTournamentSemifinalists().isEmpty());
+        assertTrue(game.getTournamentFinalists().isEmpty());
+        assertEquals(List.of("CUARTOS", "SEMIFINAL", "FINAL"), game.getTournamentRounds());
+        assertEquals(1, game.getRound());
+        assertEquals(0, game.getTournamentWins());
+        assertFalse(game.isModeOver());
+    }
+
+    @Test
+    public void shouldNotGoToTheNextRoundBeforeTheMatchEnds() throws DOPOSoccerException {
+        newTournament();
+        assertMessage(DOPOSoccerException.INVALID_STATE, () -> game.nextMatch());
+    }
+
+    @Test
+    public void shouldBeEliminatedIfTheTournamentMatchIsEndedByHand() throws DOPOSoccerException {
+        newTournament();
+        game.endGame(); // no winner: it counts as lost
+        assertTrue(game.isModeOver());
+        assertFalse(game.isTournamentChampion());
+        assertEquals(0, game.getPointsEarned("LEFT"));
+        assertMessage(DOPOSoccerException.GAME_OVER, () -> game.nextMatch());
+    }
+
+    @Test
+    public void shouldForgetTheTournamentWhenPlayingArcade() throws DOPOSoccerException {
+        newTournament();
+        newGoalsGame(3);
+        assertEquals("ARCADE", game.getMode());
+        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getTournamentTeams());
     }
 
     // player vs machine
