@@ -116,16 +116,17 @@ public class PhysicsEngine implements Serializable {
         // To create a circle we set a radius centered in the body
         Convex head = Geometry.createCircle(33 / PIXELS_PER_METER);
         
-        // The head is on the center of the body (x = 0) and is elevated 7px
+        // The head is on the center of the body (x = 0) and is elevated 8px
         head.translate(0, -8 / PIXELS_PER_METER);
 
         // With add fixture we add physics properties to a shape
         // 1.0 -> density (allow to calculate the mass)
-        // 0.4 -> friction
+        // 0.0 -> friction (so the player doesn't stick to the walls or to the other player)
         // 0.0 -> restitution (how much it bounces)
         body.addFixture(head, 1.0, 0.0, 0.0).setFilter(filter);
-        
-        // To create a feet we create a capsule (which is a rectangle with rounded edges) with 
+
+        // To create the feet we create a capsule (a rectangle with rounded edges) of 45 x 20 px,
+        // 35px below the center and moved 7px towards the side the player faces
         double foot = "LEFT".equals(p.getSide()) ? 7 : -7;
         Convex feet = Geometry.createCapsule(45 / PIXELS_PER_METER, 20 / PIXELS_PER_METER);
         feet.translate(foot / PIXELS_PER_METER, 35 / PIXELS_PER_METER);
