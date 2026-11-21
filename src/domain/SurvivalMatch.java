@@ -1,9 +1,10 @@
 package domain;
 
 /**
- * Survival: each player starts with 3 balls and loses one for each goal received.
- * Under construction: creating it throws {@link DOPOSoccerException#UNDER_CONSTRUCTION},
- * so its rules are never reached.
+ * Survival: each player starts with 3 balls and loses one for each goal received;
+ * the match ends when a player has no balls left. It is a series against the machine:
+ * the left player keeps its balls from one match to the next, and the rival starts
+ * every match with 3. The series ends when the left player has no balls left.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -14,62 +15,96 @@ public class SurvivalMatch extends MatchType {
     /** Balls of each player at the start. */
     public static final int INITIAL_BALLS = 3;
 
-    /** Balls left of the left player. */
+    /** Balls left of the left player (they are kept for the whole series). */
     private int leftBalls;
-    /** Balls left of the right player. */
+    /** Balls left of the right player (3 again in every match). */
     private int rightBalls;
 
     /**
-     * Creates the rule. Under construction.
-     *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * Creates the rule with 3 balls for each player.
      */
-    public SurvivalMatch() throws DOPOSoccerException {
+    public SurvivalMatch() {
         super();
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        this.leftBalls = INITIAL_BALLS;
+        this.rightBalls = INITIAL_BALLS;
     }
 
     /**
-     * Under construction: never reached, the constructor throws.
+     * The player that received the goal loses a ball.
      *
-     * @param match the match
-     * @return false
+     * @param scorer "LEFT" or "RIGHT": the side that scored
+     * @param match  the match being played
+     */
+    @Override
+    public void onGoal(String scorer, Match match) {
+        if ("LEFT".equals(scorer)) {
+            rightBalls = Math.max(0, rightBalls - 1);
+        } else if ("RIGHT".equals(scorer)) {
+            leftBalls = Math.max(0, leftBalls - 1);
+        }
+    }
+
+    /**
+     * The match ends when a player has no balls left.
+     *
+     * @param match the match being played
+     * @return true if a player has 0 balls
      */
     @Override
     public boolean isMatchOver(Match match) {
-        return false;
+        return leftBalls == 0 || rightBalls == 0;
     }
 
     /**
-     * Under construction: never reached, the constructor throws.
+     * The winner is the player that still has balls.
      *
-     * @param match the match
-     * @return null
+     * @param match the match being played
+     * @return "LEFT", "RIGHT" or null if both still have balls
      */
     @Override
     public String getWinner(Match match) {
-        return null;
+        if (leftBalls == 0) {
+            return "RIGHT";
+        }
+        return rightBalls == 0 ? "LEFT" : null;
     }
 
     /**
-     * Returns the balls left of a player. Under construction.
+     * Returns the balls left of a player.
      *
      * @param side "LEFT" or "RIGHT"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the balls left
+     * @throws DOPOSoccerException UNKNOWN_SIDE if the side is not LEFT or RIGHT
      */
+    @Override
     public int getBalls(String side) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        if ("LEFT".equals(side)) {
+            return leftBalls;
+        }
+        if ("RIGHT".equals(side)) {
+            return rightBalls;
+        }
+        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);
     }
 
     /**
-     * Tells whether the series continues after a won match. Under construction.
+     * The series continues while the left player wins.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @param winner the winner of the match that ended
+     * @return true if the left player won
      */
-    public boolean continuesAfterWin() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    @Override
+    public boolean continuesAfter(String winner) {
+        return "LEFT".equals(winner);
+    }
+
+    /**
+     * Gets the rule ready for the next match of the series: the rival gets 3 balls again,
+     * the left player keeps the balls it has.
+     */
+    @Override
+    public void reset() {
+        rightBalls = INITIAL_BALLS;
     }
 
     /**

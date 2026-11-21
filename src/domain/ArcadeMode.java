@@ -8,6 +8,8 @@ package domain;
  * @version 1.0
  */
 public class ArcadeMode extends GameMode {
+    /** Number of the current match: 1 in a single match, it grows in a survival series. */
+    private int round;
 
     /**
      * Keeps the configuration of the game.
@@ -27,6 +29,7 @@ public class ArcadeMode extends GameMode {
                       MatchType type, String resolution, BallSkin skin) {
         super(leftCharacter, leftStats, leftController, rightCharacter, rightStats, rightController,
                 type, resolution, skin);
+        this.round = 1;
     }
 
     /**
@@ -36,6 +39,7 @@ public class ArcadeMode extends GameMode {
      */
     @Override
     public void start() throws DOPOSoccerException {
+        round = 1;
         match = createMatch(rightCharacter);
     }
 
@@ -46,7 +50,7 @@ public class ArcadeMode extends GameMode {
      */
     @Override
     public boolean isOver() {
-        return match != null && match.isFinished();
+                return match != null && match.isFinished() && !type.continuesAfter(match.getWinner());
     }
 
     /**
@@ -57,5 +61,29 @@ public class ArcadeMode extends GameMode {
     @Override
     public String getName() {
         return "ARCADE";
+    }
+
+        /**
+     * Creates the next match of a survival series.
+     *
+     * @throws DOPOSoccerException INVALID_STATE if the match has not ended or the mode is over
+     */
+    @Override
+    public void nextMatch() throws DOPOSoccerException {
+        if (match == null || !match.isFinished() || isOver()) {
+            throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);
+        }
+        round++;
+        match = createMatch(rightCharacter);
+    }
+
+    /**
+     * Returns the number of the current match.
+     *
+     * @return 1 in a single match; 1, 2, 3... in a survival series
+     */
+    @Override
+    public int getRound() {
+        return round;
     }
 }
