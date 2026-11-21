@@ -105,12 +105,18 @@ public class DOPOSoccer {
         else if (!"ARCADE".equals(modeName)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);
         }
+        
         GameCharacter left = character(leftCharacter);
         GameCharacter right = character(rightCharacter);
+        
         // Each person plays only with its own characters; the machine plays with any
         if (!profiles[0].isCharacterUnlocked(left)
                 || (!vsMachine && !profiles[1].isCharacterUnlocked(right))) {
             throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);
+        }
+
+        if ("SURVIVAL".equals(matchType) && !vsMachine) {
+            throw new DOPOSoccerException(DOPOSoccerException.SURVIVAL_ONLY_PVM);
         }
         MatchType type = createType(matchType, amount);
         PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
@@ -217,8 +223,10 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public void nextMatch() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
-    }
+        match();
+        mode.nextMatch();
+        pointsGiven = false;   // the new match gives points again
+        paused = false;    }
 
     /**
      * Tells whether the current match ended.
@@ -237,7 +245,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isModeOver() throws DOPOSoccerException {
-        return match().isFinished();
+            match();
+            return mode.isOver();
     }
 
     /**
@@ -644,8 +653,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNDER_CONSTRUCTION always
      */
     public int getBalls(String side) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
-    }
+        index(side);
+        return match().getBalls(side);    }
 
     /**
      * Returns the teams of the tournament bracket. Under construction.

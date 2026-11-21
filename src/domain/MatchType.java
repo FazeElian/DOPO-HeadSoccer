@@ -77,4 +77,25 @@ public abstract class MatchType implements Serializable {
      * @return "TIME" or "GOALS"
      */
     public abstract String getName();
+    
+        /**
+     * Returns the balls left of a player. Only survival has balls.
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @return the balls left
+     * @throws DOPOSoccerException INVALID_STATE if the rule has no balls
+     */
+    public int getBalls(String side) throws DOPOSoccerException {
+        throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);
+    }
+
+    /**
+     * Tells whether a series goes on after a match. By default a match is the whole game.
+     *
+     * @param winner the winner of the match that ended, or null
+     * @return true if another match is played
+     */
+    public boolean continuesAfter(String winner) {
+        return false;
+    }
 }

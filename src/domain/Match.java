@@ -431,4 +431,15 @@ public class Match implements Serializable {
     public double[] getGoalBounds(String side) {
         return stadium.getGoalBounds(side);
     }
+
+    /**
+     * Returns the balls left of a player (survival).
+     *
+     * @param side "LEFT" or "RIGHT"
+     * @return the balls left
+     * @throws DOPOSoccerException INVALID_STATE if the match is not survival, UNKNOWN_SIDE
+     */
+    public int getBalls(String side) throws DOPOSoccerException {
+        return type.getBalls(side);
+    }
 }
