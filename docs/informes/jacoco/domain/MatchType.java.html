@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatchType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">MatchType.java</span></div><h1>MatchType.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+
+/**
+ * Rule that says when a match ends and who wins (Strategy pattern).
+ * The match is always the same; only this rule changes.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public abstract class MatchType implements Serializable {
+
+    /**
+     * Creates the rule. Subclasses call it with super().
+     */
+<span class="fc" id="L18">    public MatchType() {</span>
+        // No common state.
+<span class="fc" id="L20">    }</span>
+
+    /**
+     * Notice of a goal. By default nothing.
+     *
+     * @param scorer &quot;LEFT&quot; or &quot;RIGHT&quot;: the side that scored
+     * @param match  the match being played
+     */
+    public void onGoal(String scorer, Match match) {
+        // Most rules only look at the scoreboard.
+<span class="fc" id="L30">    }</span>
+
+    /**
+     * Tells whether the match ended.
+     *
+     * @param match the match being played
+     * @return true if it ended
+     */
+    public abstract boolean isMatchOver(Match match);
+
+    /**
+     * Returns the winner.
+     *
+     * @param match the match being played
+     * @return &quot;LEFT&quot;, &quot;RIGHT&quot; or null if nobody has won
+     */
+    public abstract String getWinner(Match match);
+
+    /**
+     * Returns the seconds left. By default there is no time.
+     *
+     * @param match the match being played
+     * @return seconds left, or -1 if the match has no time limit
+     */
+    public int getTimeLeft(Match match) {
+<span class="fc" id="L55">        return -1;</span>
+    }
+
+    /**
+     * Tells whether the match is in sudden death. By default false.
+     *
+     * @return true in sudden death
+     */
+    public boolean isSuddenDeath() {
+<span class="nc" id="L64">        return false;</span>
+    }
+
+    /**
+     * Leaves the rule ready for another match. By default nothing.
+     */
+    public void reset() {
+        // Rules without state have nothing to reset.
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Returns the name of the rule.
+     *
+     * @return &quot;TIME&quot; or &quot;GOALS&quot;
+     */
+    public abstract String getName();
+    
+        /**
+     * Returns the balls left of a player. Only survival has balls.
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return the balls left
+     * @throws DOPOSoccerException INVALID_STATE if the rule has no balls
+     */
+    public int getBalls(String side) throws DOPOSoccerException {
+<span class="nc" id="L89">        throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);</span>
+    }
+
+    /**
+     * Tells whether a series goes on after a match. By default a match is the whole game.
+     *
+     * @param winner the winner of the match that ended, or null
+     * @return true if another match is played
+     */
+    public boolean continuesAfter(String winner) {
+<span class="fc" id="L99">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

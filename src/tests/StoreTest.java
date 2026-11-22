@@ -29,16 +29,6 @@ public class StoreTest {
         profile = new PlayerProfile("J1", classic);
     }
 
-    private static void assertMessage(String message, Action action) {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, action::run);
-        assertEquals(message, e.getMessage());
-    }
-
-    /** An action that can throw. */
-    private interface Action {
-        void run() throws DOPOSoccerException;
-    }
-
     // wallet
 
     @Test
@@ -52,7 +42,12 @@ public class StoreTest {
     @Test
     public void shouldNotSpendMoreThanItHas() {
         Wallet wallet = new Wallet(100);
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> wallet.spend(101));
+        try {
+            wallet.spend(101);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
         assertEquals(100, wallet.getPoints());
     }
 
@@ -86,7 +81,12 @@ public class StoreTest {
     @Test
     public void shouldNotBuyACharacterWithoutPoints() {
         profile.addPoints(799);
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> profile.unlockCharacter(spain));
+        try {
+            profile.unlockCharacter(spain);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
         assertFalse(profile.isCharacterUnlocked(spain));
         assertEquals(799, profile.getPoints());
     }
@@ -95,13 +95,23 @@ public class StoreTest {
     public void shouldNotBuyTwice() throws DOPOSoccerException {
         profile.addPoints(2000);
         profile.unlockCharacter(spain);
-        assertMessage(DOPOSoccerException.ALREADY_OWNED, () -> profile.unlockCharacter(spain));
+        try {
+            profile.unlockCharacter(spain);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.ALREADY_OWNED, e.getMessage());
+        }
         assertEquals(1200, profile.getPoints());
     }
 
     @Test
     public void shouldBuyAndSelectABall() throws DOPOSoccerException {
-        assertMessage(DOPOSoccerException.BALL_LOCKED, () -> profile.selectBall(golden));
+        try {
+            profile.selectBall(golden);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.BALL_LOCKED, e.getMessage());
+        }
         profile.addPoints(500);
         profile.unlockBall(golden);
         profile.selectBall(golden);
@@ -116,7 +126,12 @@ public class StoreTest {
         profile.upgrade("SPEED");   // 1000
         assertEquals(3, profile.getStats().get("SPEED"));
         assertEquals(100, profile.getPoints());
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> profile.upgrade("SPEED"));
+        try {
+            profile.upgrade("SPEED");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
         assertEquals(3, profile.getStats().get("SPEED"));
     }
 
@@ -127,8 +142,18 @@ public class StoreTest {
             profile.upgrade("KICK");
         }
         int points = profile.getPoints();
-        assertMessage(DOPOSoccerException.STAT_AT_MAX, () -> profile.upgrade("KICK"));
-        assertMessage(DOPOSoccerException.STAT_AT_MAX, () -> profile.getUpgradeCost("KICK"));
+        try {
+            profile.upgrade("KICK");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.STAT_AT_MAX, e.getMessage());
+        }
+        try {
+            profile.getUpgradeCost("KICK");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.STAT_AT_MAX, e.getMessage());
+        }
         assertEquals(points, profile.getPoints());
     }
 }

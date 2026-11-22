@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Effect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Effect.java</span></div><h1>Effect.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+
+/**
+ * Something that changes what a player can do for some seconds.
+ * The player never asks which effect it has: it asks the effect whether it can act or jump
+ * and how fast it can run. A new effect is a new subclass.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public abstract class Effect implements Serializable {
+
+    /** Seconds left. */
+    private double remaining;
+
+    /**
+     * Creates the effect.
+     *
+     * @param duration seconds it lasts
+     */
+<span class="fc" id="L24">    public Effect(double duration) {</span>
+<span class="fc" id="L25">        this.remaining = duration;</span>
+<span class="fc" id="L26">    }</span>
+
+    /**
+     * Counts down its time.
+     *
+     * @param dt elapsed time, in seconds
+     */
+    public void update(double dt) {
+<span class="fc" id="L34">        remaining = Math.max(0, remaining - dt);</span>
+<span class="fc" id="L35">    }</span>
+
+    /**
+     * Tells whether its time is over.
+     *
+     * @return true if it must be removed
+     */
+    public boolean isExpired() {
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return remaining &lt;= 0;</span>
+    }
+
+    /**
+     * What happens when the player receives it, for example being pushed or thrown up.
+     * By default nothing.
+     *
+     * @param p the affected player
+     */
+    public void onApply(Player p) {
+        // Most effects only change what the player can do.
+<span class="fc" id="L54">    }</span>
+
+    /**
+     * Tells whether the player can move and kick. By default true.
+     *
+     * @return true if the player can act
+     */
+    public boolean canAct() {
+<span class="fc" id="L62">        return true;</span>
+    }
+
+    /**
+     * Tells whether the player can jump. By default true.
+     *
+     * @return true if the player can jump
+     */
+    public boolean canJump() {
+<span class="fc" id="L71">        return true;</span>
+    }
+
+    /**
+     * Returns the share of its running speed the player keeps. By default 1.
+     *
+     * @return speed factor, from 0 to 1
+     */
+    public double getSpeedFactor() {
+<span class="fc" id="L80">        return 1;</span>
+    }
+
+    /**
+     * Returns the seconds left.
+     *
+     * @return seconds left
+     */
+    public double getRemaining() {
+<span class="fc" id="L89">        return remaining;</span>
+    }
+
+    /**
+     * Returns the name shown on screen.
+     *
+     * @return name of the effect
+     */
+    public abstract String getName();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

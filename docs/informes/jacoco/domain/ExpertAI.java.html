@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExpertAI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">ExpertAI.java</span></div><h1>ExpertAI.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Machine that plays well: it reacts faster, clears the ball when it is in its half,
+ * attacks when it is closer to the ball than the rival and goes back to guard its goal
+ * when the rival has the ball in the other half.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class ExpertAI extends AIController {
+
+    /** Seconds between two decisions of the expert. */
+    public static final double EXPERT_REACTION_TIME = 0.1;
+
+    /**
+     * Creates the expert profile.
+     */
+    public ExpertAI() {
+<span class="fc" id="L24">        super();</span>
+<span class="fc" id="L25">    }</span>
+
+    @Override
+    protected Set&lt;String&gt; decide(Player self, Match match) {
+<span class="fc" id="L29">        Set&lt;String&gt; actions = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L30">        Ball ball = match.getBall();</span>
+<span class="fc" id="L31">        Player rival = match.getOpponent(self);</span>
+
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        if (isBallInOwnHalf(self, match) || isCloserToBall(self, rival, ball)) {</span>
+<span class="fc" id="L34">            playBall(self, ball, actions);             // clears it or attacks</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">            if (isNearRivalGoal(self, match)) {</span>
+<span class="nc" id="L36">                actions.add(&quot;KICK&quot;);                   // shoots as soon as it is in front of the goal</span>
+            }
+        } else {
+<span class="fc" id="L39">            DefensiveAI.guard(self, match, actions);   // the rival has the ball: goes back to its goal</span>
+        }
+<span class="fc" id="L41">        return actions;</span>
+    }
+
+    /**
+     * Tells whether the player is closer to the ball than the rival, measured on the field width.
+     *
+     * @param self  the player
+     * @param rival the other player
+     * @param ball  the ball
+     * @return true if it is closer or at the same distance
+     */
+    private static boolean isCloserToBall(Player self, Player rival, Ball ball) {
+<span class="fc" id="L53">        double ballX = ball.getX() + ball.getWidth() / 2;</span>
+<span class="fc" id="L54">        double mine = Math.abs(ballX - (self.getX() + self.getWidth() / 2));</span>
+<span class="fc" id="L55">        double theirs = Math.abs(ballX - (rival.getX() + rival.getWidth() / 2));</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        return mine &lt;= theirs;</span>
+    }
+
+    /**
+     * Tells whether the player is in the last quarter of the field, next to the rival goal.
+     *
+     * @param self  the player
+     * @param match the match
+     * @return true if it is in front of the rival goal
+     */
+    private static boolean isNearRivalGoal(Player self, Match match) {
+<span class="fc" id="L67">        double center = self.getX() + self.getWidth() / 2;</span>
+<span class="fc" id="L68">        double width = match.getFieldWidth();</span>
+<span class="pc bpc" id="L69" title="4 of 6 branches missed.">        return &quot;LEFT&quot;.equals(self.getSide()) ? center &gt; width * 0.75 : center &lt; width * 0.25;</span>
+    }
+
+    @Override
+    protected double getReactionTime() {
+<span class="fc" id="L74">        return EXPERT_REACTION_TIME;</span>
+    }
+
+    @Override
+    public String getProfile() {
+<span class="fc" id="L79">        return &quot;EXPERT&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Player.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Player.java</span></div><h1>Player.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * A player on the field: a character controlled by a person or by the machine, with the stats of its profile.
+ * It runs, jumps and kicks; it has life, a power bar that fills in 10 seconds and an aura when its power is active.
+ * It can have one effect of a power shot (a new one replaces the old one) and, apart from it, the stun.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class Player extends Entity {
+
+    /** Width of the player's box, in pixels. */
+    public static final double WIDTH = 105;
+    /** Height of the player's box, in pixels. */
+    public static final double HEIGHT = 90;
+    /** Running speed with Speed at 1, in pixels per second. */
+    public static final double BASE_SPEED = 250;
+    /** Jump speed with Jump at 1, in pixels per second. */
+    public static final double BASE_JUMP = 450;
+    /** Speed of the ball after a normal kick, in pixels per second; Kick does not change it. */
+    public static final double KICK_SPEED = 650;
+    /** Damage of a kick before the kick multiplier. */
+    public static final int KICK_DAMAGE = 10;
+    /** Reach of the foot beyond the player's box, in pixels. */
+    public static final double KICK_REACH = 40;
+    /** Seconds the power bar takes to fill. */
+    public static final double POWER_RATE = 10;
+    /** Share of the power bar gained when the player receives a goal. */
+    public static final double GOAL_AGAINST_BONUS = 0.25;
+    /** Seconds the leg stays stretched; a new kick cannot start before. */
+    public static final double KICK_WINDOW = 0.25;
+
+    /** Side it defends: &quot;LEFT&quot; or &quot;RIGHT&quot;. */
+    private final String side;
+    /** Character the player uses. */
+    private final GameCharacter character;
+    /** Stats of its profile. */
+    private final Stats stats;
+    /** Who decides its actions. */
+    private final PlayerController controller;
+    /** Maximum life, given by Survival. */
+    private final int maxLife;
+    /** Effect of a power shot, or null. */
+    private Effect effect;
+    /** Stun when the life reached 0, or null. */
+    private StunEffect stun;
+    /** Current life. */
+    private int life;
+    /** Power bar, from 0 to 1. */
+    private double powerCharge;
+    /** Whether the power is active, waiting to touch the ball. */
+    private boolean aura;
+    /** Whether it stands on the ground. */
+    private boolean onGround;
+    /** Seconds the leg stays stretched. */
+    private double kickTimer;
+
+    /**
+     * Creates a player with full life, an empty power bar and no effects.
+     *
+     * @param side       &quot;LEFT&quot; or &quot;RIGHT&quot;: the goal it defends
+     * @param character  character it plays with
+     * @param stats      stats of its profile
+     * @param controller who decides its actions
+     * @param x          left edge, in pixels
+     * @param y          top edge, in pixels
+     */
+    public Player(String side, GameCharacter character, Stats stats, PlayerController controller, double x, double y) {
+<span class="fc" id="L75">        super(x, y, WIDTH, HEIGHT);</span>
+<span class="fc" id="L76">        this.side = side;</span>
+<span class="fc" id="L77">        this.character = character;</span>
+<span class="fc" id="L78">        this.stats = stats;</span>
+<span class="fc" id="L79">        this.controller = controller;</span>
+<span class="fc" id="L80">        this.maxLife = stats.getMaxLife();</span>
+<span class="fc" id="L81">        this.life = maxLife;</span>
+<span class="fc" id="L82">        this.effect = null;</span>
+<span class="fc" id="L83">        this.stun = null;</span>
+<span class="fc" id="L84">        this.powerCharge = 0;</span>
+<span class="fc" id="L85">        this.aura = false;</span>
+<span class="fc" id="L86">        this.onGround = false;</span>
+<span class="fc" id="L87">        this.kickTimer = 0;</span>
+<span class="fc" id="L88">    }</span>
+
+    /**
+     * Asks the controller for this tick's actions and executes them.
+     * If the player cannot act (stunned, pushed, unconscious) it does nothing and the physics carries it.
+     *
+     * @param match the match being played
+     */
+    public void act(Match match) {
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (!canAct()) {</span>
+<span class="nc" id="L98">            return;</span>
+        }
+<span class="fc" id="L100">        Set&lt;String&gt; actions = controller.nextActions(this, match);</span>
+<span class="fc" id="L101">        boolean left = actions.contains(&quot;MOVE_LEFT&quot;);</span>
+<span class="fc" id="L102">        boolean right = actions.contains(&quot;MOVE_RIGHT&quot;);</span>
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">        if (left &amp;&amp; !right) {</span>
+<span class="fc" id="L104">            moveLeft();</span>
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">        } else if (right &amp;&amp; !left) {</span>
+<span class="fc" id="L106">            moveRight();</span>
+        } else {
+<span class="fc" id="L108">            stop();</span>
+        }
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (actions.contains(&quot;JUMP&quot;)) {</span>
+<span class="fc" id="L111">            jump();</span>
+        }
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (actions.contains(&quot;POWER&quot;)) {</span>
+<span class="fc" id="L114">            activatePower();</span>
+        }
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (actions.contains(&quot;KICK&quot;)) {</span>
+<span class="fc" id="L117">            kick(match);</span>
+        }
+<span class="fc" id="L119">    }</span>
+
+    /**
+     * Fills the power bar (also while the aura is on), counts down the kick, the effect and the stun.
+     * When the stun is over the life goes back to the maximum.
+     *
+     * @param dt elapsed time, in seconds
+     */
+    public void update(double dt) {
+<span class="fc" id="L128">        powerCharge = Math.min(1, powerCharge + dt / POWER_RATE);</span>
+<span class="fc" id="L129">        kickTimer = Math.max(0, kickTimer - dt);</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (effect != null) {</span>
+<span class="fc" id="L131">            effect.update(dt);</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">            if (effect.isExpired()) {</span>
+<span class="fc" id="L133">                effect = null;</span>
+            }
+        }
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (stun != null) {</span>
+<span class="fc" id="L137">            stun.update(dt);</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">            if (stun.isExpired()) {</span>
+<span class="fc" id="L139">                stun = null;</span>
+<span class="fc" id="L140">                life = maxLife;</span>
+            }
+        }
+<span class="fc" id="L143">    }</span>
+
+    /**
+     * Runs left.
+     */
+    public void moveLeft() {
+<span class="fc" id="L149">        vx = -runSpeed();</span>
+<span class="fc" id="L150">    }</span>
+
+    /**
+     * Runs right.
+     */
+    public void moveRight() {
+<span class="fc" id="L156">        vx = runSpeed();</span>
+<span class="fc" id="L157">    }</span>
+
+    /**
+     * Stops running; the vertical movement does not change.
+     */
+    public void stop() {
+<span class="fc" id="L163">        vx = 0;</span>
+<span class="fc" id="L164">    }</span>
+
+    /**
+     * Jumps. It only works on the ground and if the effect allows it.
+     */
+    public void jump() {
+<span class="pc bpc" id="L170" title="1 of 6 branches missed.">        if (onGround &amp;&amp; (effect == null || effect.canJump())) {</span>
+<span class="fc" id="L171">            vy = -BASE_JUMP * stats.getJumpMultiplier();</span>
+<span class="fc" id="L172">            onGround = false;</span>
+        }
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * Kicks. If the ball is within the reach of the foot it leaves towards the rival goal
+     * (or the power shot comes out, if the aura is on). If the rival is within reach it takes
+     * {@link #KICK_DAMAGE} times the kick multiplier.
+     *
+     * @param match the match being played
+     */
+    public void kick(Match match) {
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (kickTimer &gt; 0) {</span>
+<span class="fc" id="L185">            return;</span>
+        }
+<span class="fc" id="L187">        kickTimer = KICK_WINDOW;</span>
+<span class="fc" id="L188">        Ball ball = match.getBall();</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (reachesBall(ball)) {</span>
+<span class="fc" id="L190">            match.addEvent(&quot;KICK&quot;);</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">            if (aura) {</span>
+<span class="nc" id="L192">                match.onBallTouch(this);</span>
+            } else {
+<span class="fc" id="L194">                ball.applyImpulse(getDirection() * KICK_SPEED, -KICK_SPEED * 0.6);</span>
+            }
+        }
+<span class="fc" id="L197">        Player rival = match.getOpponent(this);</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">        if (reaches(rival)) {</span>
+<span class="fc" id="L199">            rival.takeDamage((int) Math.round(KICK_DAMAGE * stats.getKickMultiplier()));</span>
+        }
+<span class="fc" id="L201">    }</span>
+
+    /**
+     * Activates the power: with a full bar and no aura, the bar goes to 0 (and starts filling again)
+     * and the aura appears. It has no time limit.
+     */
+    public void activatePower() {
+<span class="fc bfc" id="L208" title="All 4 branches covered.">        if (!aura &amp;&amp; isPowerReady()) {</span>
+<span class="fc" id="L209">            powerCharge = 0;</span>
+<span class="fc" id="L210">            aura = true;</span>
+        }
+<span class="fc" id="L212">    }</span>
+
+    /**
+     * Removes the aura because the power shot was launched.
+     */
+    public void useAura() {
+<span class="fc" id="L218">        aura = false;</span>
+<span class="fc" id="L219">    }</span>
+
+    /**
+     * Tells whether the power is active, waiting to touch the ball.
+     *
+     * @return true if the player has the aura
+     */
+    public boolean hasAura() {
+<span class="fc" id="L227">        return aura;</span>
+    }
+
+    /**
+     * Tells whether the power bar is full.
+     *
+     * @return true if the power can be activated
+     */
+    public boolean isPowerReady() {
+<span class="fc bfc" id="L236" title="All 2 branches covered.">        return powerCharge &gt;= 1;</span>
+    }
+
+    /**
+     * Takes damage from a kick or a power shot. If the life reaches 0 the player is stunned.
+     * A stunned player takes no more damage.
+     *
+     * @param amount damage
+     */
+    public void takeDamage(int amount) {
+<span class="fc bfc" id="L246" title="All 4 branches covered.">        if (stun != null || amount &lt;= 0) {</span>
+<span class="fc" id="L247">            return;</span>
+        }
+<span class="fc" id="L249">        life = Math.max(0, life - amount);</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">        if (life == 0) {</span>
+<span class="fc" id="L251">            stun = new StunEffect();</span>
+        }
+<span class="fc" id="L253">    }</span>
+
+    /**
+     * Puts the effect of a power shot on the player. It replaces the current one.
+     *
+     * @param e the new effect
+     */
+    public void applyEffect(Effect e) {
+<span class="fc" id="L261">        effect = e;</span>
+<span class="fc" id="L262">        e.onApply(this);</span>
+<span class="fc" id="L263">    }</span>
+
+    /**
+     * The player received a goal: its power bar goes up a quarter.
+     */
+    public void onGoalAgainst() {
+<span class="fc" id="L269">        powerCharge = Math.min(1, powerCharge + GOAL_AGAINST_BONUS);</span>
+<span class="fc" id="L270">    }</span>
+
+    /**
+     * Tells whether the player can move and kick.
+     *
+     * @return false if it is stunned or its effect blocks it
+     */
+    public boolean canAct() {
+<span class="fc bfc" id="L278" title="All 6 branches covered.">        return stun == null &amp;&amp; (effect == null || effect.canAct());</span>
+    }
+
+    /**
+     * Tells whether the leg is stretched, to draw the kick.
+     *
+     * @return true during a kick
+     */
+    public boolean isKicking() {
+<span class="nc bnc" id="L287" title="All 2 branches missed.">        return kickTimer &gt; 0;</span>
+    }
+
+    /**
+     * Returns the names of the active effect and the stun, to show them on screen.
+     *
+     * @return names, empty if the player is normal
+     */
+    public List&lt;String&gt; getStates() {
+<span class="fc" id="L296">        List&lt;String&gt; names = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">        if (effect != null) {</span>
+<span class="fc" id="L298">            names.add(effect.getName());</span>
+        }
+<span class="fc bfc" id="L300" title="All 2 branches covered.">        if (stun != null) {</span>
+<span class="fc" id="L301">            names.add(stun.getName());</span>
+        }
+<span class="fc" id="L303">        return names;</span>
+    }
+
+    /**
+     * Returns the direction the player attacks.
+     *
+     * @return 1 for the left player (attacks to the right), -1 for the right one
+     */
+    public double getDirection() {
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        return &quot;LEFT&quot;.equals(side) ? 1 : -1;</span>
+    }
+
+    /**
+     * Returns the current life.
+     *
+     * @return life, from 0 to the maximum
+     */
+    public int getLife() {
+<span class="fc" id="L321">        return life;</span>
+    }
+
+    /**
+     * Returns the maximum life, given by Survival.
+     *
+     * @return maximum life
+     */
+    public int getMaxLife() {
+<span class="fc" id="L330">        return maxLife;</span>
+    }
+
+    /**
+     * Returns the progress of the power bar.
+     *
+     * @return a value from 0 to 1
+     */
+    public double getPowerCharge() {
+<span class="fc" id="L339">        return powerCharge;</span>
+    }
+
+    /**
+     * Tells the player whether it stands on the ground. The physics calls it.
+     *
+     * @param value true if it touches the ground
+     */
+    public void setOnGround(boolean value) {
+<span class="fc" id="L348">        onGround = value;</span>
+<span class="fc" id="L349">    }</span>
+
+    /**
+     * Tells whether the player stands on the ground.
+     *
+     * @return true if it touches the ground
+     */
+    public boolean isOnGround() {
+<span class="fc" id="L357">        return onGround;</span>
+    }
+
+    /**
+     * Returns the side the player defends.
+     *
+     * @return &quot;LEFT&quot; or &quot;RIGHT&quot;
+     */
+    public String getSide() {
+<span class="fc" id="L366">        return side;</span>
+    }
+
+    /**
+     * Returns the stats of the player.
+     *
+     * @return the stats of its profile
+     */
+    public Stats getStats() {
+<span class="nc" id="L375">        return stats;</span>
+    }
+
+    /**
+     * Returns the running speed with the Speed stat and the effect.
+     *
+     * @return speed, in pixels per second
+     */
+    private double runSpeed() {
+<span class="fc bfc" id="L384" title="All 2 branches covered.">        double factor = effect == null ? 1 : effect.getSpeedFactor();</span>
+<span class="fc" id="L385">        return BASE_SPEED * stats.getSpeedMultiplier() * factor;</span>
+    }
+
+    /**
+     * Tells whether the ball is within the reach of the foot.
+     *
+     * @param ball the real ball
+     * @return true if the foot can touch it
+     */
+    private boolean reachesBall(Ball ball) {
+<span class="pc bpc" id="L395" title="1 of 2 branches missed.">        double footX = getDirection() &gt; 0 ? x + width : x;</span>
+<span class="fc" id="L396">        double footY = y + height * 0.75;</span>
+<span class="fc" id="L397">        double dx = ball.getX() + ball.getRadius() - footX;</span>
+<span class="fc" id="L398">        double dy = ball.getY() + ball.getRadius() - footY;</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">        return Math.hypot(dx, dy) &lt;= KICK_REACH + ball.getRadius();</span>
+    }
+
+    /**
+     * Tells whether the rival is within the reach of the foot, in front of the player.
+     *
+     * @param rival the other player
+     * @return true if the kick hits it
+     */
+    private boolean reaches(Player rival) {
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">        double gap = getDirection() &gt; 0 ? rival.x - (x + width) : x - (rival.x + rival.width);</span>
+<span class="pc bpc" id="L410" title="1 of 4 branches missed.">        boolean sameHeight = y &lt; rival.y + rival.height &amp;&amp; rival.y &lt; y + height;</span>
+<span class="fc bfc" id="L411" title="All 6 branches covered.">        return sameHeight &amp;&amp; gap &lt;= KICK_REACH &amp;&amp; gap &gt;= -width / 2;</span>
+    }
+
+    /**
+     * Asks the physics for the body of a player.
+     *
+     * @param engine the physics adapter of the match
+     */
+    @Override
+    void addTo(PhysicsEngine engine) {
+<span class="fc" id="L421">        engine.addPlayer(this);</span>
+<span class="fc" id="L422">    }</span>
+
+    /**
+     * Tells its controller that an action key went down.
+     *
+     * @param action the action
+     */
+    public void press(String action) {
+<span class="fc" id="L430">        controller.press(action);</span>
+<span class="fc" id="L431">    }</span>
+
+    /**
+     * Tells its controller that an action key went up.
+     *
+     * @param action the action
+     */
+    public void release(String action) {
+<span class="fc" id="L439">        controller.release(action);</span>
+<span class="fc" id="L440">    }</span>
+
+    /**
+     * Launches the power shot of its character.
+     *
+     * @param match the match where it is launched
+     */
+    public void launchPowerShot(Match match) {
+<span class="fc" id="L448">        character.launchPowerShot(match, this);</span>
+<span class="fc" id="L449">    }</span>
+
+    /**
+     * Returns how much its kick stat multiplies the damage it does.
+     *
+     * @return the kick multiplier of its stats
+     */
+    public double getKickMultiplier() {
+<span class="nc" id="L457">        return stats.getKickMultiplier();</span>
+    }
+
+    /**
+     * Returns the country of its character.
+     *
+     * @return the country
+     */
+    public String getCountry() {
+<span class="fc" id="L466">        return character.getCountry();</span>
+    }
+
+    /**
+     * Returns the name of the power shot of its character.
+     *
+     * @return the name of the power
+     */
+    public String getPowerName() {
+<span class="nc" id="L475">        return character.getPowerName();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

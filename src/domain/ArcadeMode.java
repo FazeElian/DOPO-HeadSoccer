@@ -1,7 +1,8 @@
 package domain;
 
 /**
- * Arcade: one match between the two chosen characters. It is the mode of version one.
+ * Arcade: a match between the two chosen characters, by time or by goals. In survival it is a series
+ * against the machine: while the left player wins, a new match is played.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -44,13 +45,13 @@ public class ArcadeMode extends GameMode {
     }
 
     /**
-     * Tells whether the match ended.
+     * Tells whether the mode ended: the match ended and, in survival, the left player lost it.
      *
-     * @return true once the match is finished
+     * @return true once the match is finished and no other match of the series is played
      */
     @Override
     public boolean isOver() {
-                return match != null && match.isFinished() && !type.continuesAfter(match.getWinner());
+        return match != null && match.isFinished() && !type.continuesAfter(match.getWinner());
     }
 
     /**
@@ -63,7 +64,7 @@ public class ArcadeMode extends GameMode {
         return "ARCADE";
     }
 
-        /**
+    /**
      * Creates the next match of a survival series.
      *
      * @throws DOPOSoccerException INVALID_STATE if the match has not ended or the mode is over

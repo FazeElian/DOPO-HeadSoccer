@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameCharacter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">GameCharacter.java</span></div><h1>GameCharacter.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+
+/**
+ * A character: a country (a team) with a power shot. There are 8 teams sharing the 4 power shots of Annex 1;
+ * the 4 countries of the Annex use their own shot. A character has no stats: stats belong to the player.
+ * Some characters are locked and are bought in the store.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class GameCharacter implements Serializable {
+
+    /** Country of the character, also its name. */
+    private final String country;
+    /** Its power shot. */
+    private final PowerShot powerShot;
+    /** Price in points to unlock it; 0 if it is free. */
+    private final int price;
+
+    /**
+     * Creates a free character.
+     *
+     * @param country   country it represents; it is also its name
+     * @param powerShot its power shot
+     */
+    public GameCharacter(String country, PowerShot powerShot) {
+<span class="fc" id="L30">        this(country, powerShot, 0);</span>
+<span class="fc" id="L31">    }</span>
+
+    /**
+     * Creates a character that may have to be bought.
+     *
+     * @param country   country it represents; it is also its name
+     * @param powerShot its power shot
+     * @param price     price in points to unlock it; 0 if it is free
+     */
+<span class="fc" id="L40">    public GameCharacter(String country, PowerShot powerShot, int price) {</span>
+<span class="fc" id="L41">        this.country = country;</span>
+<span class="fc" id="L42">        this.powerShot = powerShot;</span>
+<span class="fc" id="L43">        this.price = Math.max(0, price);</span>
+<span class="fc" id="L44">    }</span>
+
+    /**
+     * Returns the country of the character.
+     *
+     * @return the country, used as its name
+     */
+    public String getCountry() {
+<span class="fc" id="L52">        return country;</span>
+    }
+
+    /**
+     * Returns the name of its power shot.
+     *
+     * @return the name of the shot
+     */
+    public String getPowerName() {
+<span class="fc" id="L61">        return powerShot.getName();</span>
+    }
+
+    /**
+     * Returns the price to unlock the character.
+     *
+     * @return price in points; 0 if it is free
+     */
+    public int getPrice() {
+<span class="fc" id="L70">        return price;</span>
+    }
+
+    /**
+     * Tells whether the character is free for everybody.
+     *
+     * @return true if its price is 0
+     */
+    public boolean isFree() {
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        return price == 0;</span>
+    }
+
+    /**
+     * Launches the power shot of this character.
+     *
+     * @param match   the match where it is launched
+     * @param shooter the player that launches it
+     */
+    public void launchPowerShot(Match match, Player shooter) {
+<span class="fc" id="L89">        powerShot.launch(match, shooter);</span>
+<span class="fc" id="L90">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

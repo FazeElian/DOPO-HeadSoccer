@@ -100,11 +100,10 @@ public class AIControllerTest {
         for (PlayerController machine : new PlayerController[]{
                 new ClumsyAI(), new OffensiveAI(), new DefensiveAI(), new ExpertAI()}) {
             Match match = newMatch(machine);
-            assertDoesNotThrow(() -> {
-                for (int i = 0; i < 60 * 20; i++) {
-                    match.update(1 / 60.0);
-                }
-            });
+            // if an update throws, the test fails
+            for (int i = 0; i < 60 * 20; i++) {
+                match.update(1 / 60.0);
+            }
         }
     }
 }

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerProfile.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">PlayerProfile.java</span></div><h1>PlayerProfile.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+import java.util.HashSet;
+
+/**
+ * Progress of a player: its points, its stats and what it bought in the store.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class PlayerProfile implements Serializable {
+
+    /** Name of the player. */
+    private final String name;
+    /** Points of the player. */
+    private final Wallet wallet;
+    /** Stats of the player. */
+    private final Stats stats;
+    /** Names of the balls it bought. */
+    private final HashSet&lt;String&gt; unlockedBalls;
+    /** Countries of the characters it bought. */
+    private final HashSet&lt;String&gt; unlockedCharacters;
+    /** Ball it plays with. */
+    private BallSkin selectedBall;
+
+    /**
+     * Creates a profile without points, with the stats at the minimum.
+     *
+     * @param name        name of the player
+     * @param defaultBall ball it starts with
+     */
+<span class="fc" id="L34">    public PlayerProfile(String name, BallSkin defaultBall) {</span>
+<span class="fc" id="L35">        this.name = name;</span>
+<span class="fc" id="L36">        this.wallet = new Wallet(0);</span>
+<span class="fc" id="L37">        this.stats = new Stats();</span>
+<span class="fc" id="L38">        this.unlockedBalls = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L39">        this.unlockedBalls.add(defaultBall.getName());</span>
+<span class="fc" id="L40">        this.unlockedCharacters = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L41">        this.selectedBall = defaultBall;</span>
+<span class="fc" id="L42">    }</span>
+
+    /**
+     * Adds points to the wallet.
+     *
+     * @param amount points won
+     */
+    public void addPoints(int amount) {
+<span class="fc" id="L50">        wallet.add(amount);</span>
+<span class="fc" id="L51">    }</span>
+
+    /**
+     * Returns the points.
+     *
+     * @return points of the player
+     */
+    public int getPoints() {
+<span class="fc" id="L59">        return wallet.getPoints();</span>
+    }
+
+    /**
+     * Pays and upgrades a stat one level.
+     *
+     * @param stat &quot;SPEED&quot;, &quot;JUMP&quot;, &quot;KICK&quot; or &quot;SURVIVAL&quot;
+     * @throws DOPOSoccerException UNKNOWN_STAT, STAT_AT_MAX or NOT_ENOUGH_POINTS
+     */
+    public void upgrade(String stat) throws DOPOSoccerException {
+<span class="fc" id="L69">        wallet.spend(getUpgradeCost(stat));</span>
+<span class="fc" id="L70">        stats.upgrade(stat);</span>
+<span class="fc" id="L71">    }</span>
+
+    /**
+     * Tells whether the player has a ball (the free balls are of everyone).
+     *
+     * @param ball the ball
+     * @return true if it is free or the player bought it
+     */
+    public boolean isBallUnlocked(BallSkin ball) {
+<span class="fc bfc" id="L80" title="All 4 branches covered.">        return ball.getPrice() == 0 || unlockedBalls.contains(ball.getName());</span>
+    }
+
+    /**
+     * Buys a ball.
+     *
+     * @param ball the ball
+     * @throws DOPOSoccerException ALREADY_OWNED or NOT_ENOUGH_POINTS
+     */
+    public void unlockBall(BallSkin ball) throws DOPOSoccerException {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (isBallUnlocked(ball)) {</span>
+<span class="fc" id="L91">            throw new DOPOSoccerException(DOPOSoccerException.ALREADY_OWNED);</span>
+        }
+<span class="fc" id="L93">        wallet.spend(ball.getPrice());</span>
+<span class="fc" id="L94">        unlockedBalls.add(ball.getName());</span>
+<span class="fc" id="L95">    }</span>
+
+    /**
+     * Chooses the ball the player plays with.
+     *
+     * @param ball the ball
+     * @throws DOPOSoccerException BALL_LOCKED if the player doesn't have it
+     */
+    public void selectBall(BallSkin ball) throws DOPOSoccerException {
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (!isBallUnlocked(ball)) {</span>
+<span class="fc" id="L105">            throw new DOPOSoccerException(DOPOSoccerException.BALL_LOCKED);</span>
+        }
+<span class="fc" id="L107">        selectedBall = ball;</span>
+<span class="fc" id="L108">    }</span>
+
+    /**
+     * Tells whether the player has a character (the free characters are of everyone).
+     *
+     * @param character the character
+     * @return true if it is free or the player bought it
+     */
+    public boolean isCharacterUnlocked(GameCharacter character) {
+<span class="fc bfc" id="L117" title="All 4 branches covered.">        return character.isFree() || unlockedCharacters.contains(character.getCountry());</span>
+    }
+
+    /**
+     * Buys a character.
+     *
+     * @param character the character
+     * @throws DOPOSoccerException ALREADY_OWNED or NOT_ENOUGH_POINTS
+     */
+    public void unlockCharacter(GameCharacter character) throws DOPOSoccerException {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (isCharacterUnlocked(character)) {</span>
+<span class="fc" id="L128">            throw new DOPOSoccerException(DOPOSoccerException.ALREADY_OWNED);</span>
+        }
+<span class="fc" id="L130">        wallet.spend(character.getPrice());</span>
+<span class="fc" id="L131">        unlockedCharacters.add(character.getCountry());</span>
+<span class="fc" id="L132">    }</span>
+
+    /**
+     * Returns the ball the player plays with.
+     *
+     * @return the selected ball
+     */
+    public BallSkin getSelectedBall() {
+<span class="fc" id="L140">        return selectedBall;</span>
+    }
+
+    /**
+     * Returns the stats of the player.
+     *
+     * @return the stats
+     */
+    public Stats getStats() {
+<span class="fc" id="L149">        return stats;</span>
+    }
+
+    /**
+     * Returns the name of the player.
+     *
+     * @return the name
+     */
+    public String getName() {
+<span class="nc" id="L158">        return name;</span>
+    }
+
+    /**
+     * Returns the level of one of its stats.
+     *
+     * @param stat &quot;SPEED&quot;, &quot;JUMP&quot;, &quot;KICK&quot; or &quot;SURVIVAL&quot;
+     * @return level from 1 to 10
+     * @throws DOPOSoccerException UNKNOWN_STAT
+     */
+    public int getStat(String stat) throws DOPOSoccerException {
+<span class="fc" id="L169">        return stats.get(stat);</span>
+    }
+
+    /**
+     * Returns what the next level of one of its stats costs.
+     *
+     * @param stat &quot;SPEED&quot;, &quot;JUMP&quot;, &quot;KICK&quot; or &quot;SURVIVAL&quot;
+     * @return cost in points
+     * @throws DOPOSoccerException UNKNOWN_STAT or STAT_AT_MAX
+     */
+    public int getUpgradeCost(String stat) throws DOPOSoccerException {
+<span class="fc bfc" id="L180" title="All 2 branches covered.">        if (stats.get(stat) &gt;= Stats.MAX_STAT) {</span>
+<span class="fc" id="L181">            throw new DOPOSoccerException(DOPOSoccerException.STAT_AT_MAX);</span>
+        }
+<span class="fc" id="L183">        return stats.getUpgradeCost(stat);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

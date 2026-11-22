@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BlueAuraShot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">BlueAuraShot.java</span></div><h1>BlueAuraShot.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Blue Aura, the shot of South Korea: straight and horizontal, at high speed.
+ * If it hits the rival, it pushes it towards its own goal.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class BlueAuraShot implements PowerShot {
+
+    /** Name of the shot. */
+    public static final String NAME = &quot;Aura Azul&quot;;
+    /** Damage before the kick multiplier. */
+    public static final int BASE_DAMAGE = 40;
+    /** Speed of the ball, in pixels per second. */
+    public static final double SPEED = 1400;
+
+    /**
+     * Creates the shot.
+     */
+<span class="fc" id="L23">    public BlueAuraShot() {</span>
+        // No state: every value is a constant.
+<span class="fc" id="L25">    }</span>
+
+    /**
+     * Returns the name of the shot.
+     *
+     * @return &quot;Aura Azul&quot;
+     */
+    @Override
+    public String getName() {
+<span class="nc" id="L34">        return NAME;</span>
+    }
+
+    /**
+     * Returns the base damage.
+     *
+     * @return 40
+     */
+    @Override
+    public int getBaseDamage() {
+<span class="nc" id="L44">        return BASE_DAMAGE;</span>
+    }
+
+    /**
+     * Creates the effect for the rival.
+     *
+     * @return a new {@link PushEffect}
+     */
+    @Override
+    public Effect createEffect() {
+<span class="nc" id="L54">        return new PushEffect();</span>
+    }
+
+    /**
+     * Shoots the ball straight towards the rival goal.
+     *
+     * @param match   the match being played
+     * @param shooter player who shoots
+     */
+    @Override
+    public void launch(Match match, Player shooter) {
+<span class="nc" id="L65">        match.getBall().launchPowerShot(this, shooter.getSide(), shooter.getDirection() * SPEED, 0);</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * The shot flies straight.
+     *
+     * @return true
+     */
+    @Override
+    public boolean ignoresGravity() {
+<span class="nc" id="L75">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

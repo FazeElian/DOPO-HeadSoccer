@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FakeBall.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">FakeBall.java</span></div><h1>FakeBall.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Fake ball of the Illusion shot. It looks and bounces like the real one,
+ * but it does not score or hit anybody, and it disappears when its time is over.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class FakeBall extends Entity {
+
+    /** Radius, in pixels. */
+    private final double radius;
+    /** Seconds left before it disappears. */
+    private double remaining;
+
+    /**
+     * Creates a fake ball.
+     *
+     * @param x        left edge of its box, in pixels
+     * @param y        top edge of its box, in pixels
+     * @param radius   radius, the same as the real ball
+     * @param duration seconds it lasts
+     */
+    public FakeBall(double x, double y, double radius, double duration) {
+<span class="nc" id="L27">        super(x, y, 2 * radius, 2 * radius);</span>
+<span class="nc" id="L28">        this.radius = radius;</span>
+<span class="nc" id="L29">        this.remaining = duration;</span>
+<span class="nc" id="L30">    }</span>
+
+    /**
+     * Counts down its time.
+     *
+     * @param dt elapsed time, in seconds
+     */
+    public void update(double dt) {
+<span class="nc" id="L38">        remaining = Math.max(0, remaining - dt);</span>
+<span class="nc" id="L39">    }</span>
+
+    /**
+     * Tells whether its time is over.
+     *
+     * @return true if it must disappear
+     */
+    public boolean isExpired() {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        return remaining &lt;= 0;</span>
+    }
+
+    /**
+     * Returns the radius.
+     *
+     * @return radius, in pixels
+     */
+    public double getRadius() {
+<span class="nc" id="L56">        return radius;</span>
+    }
+
+    /**
+     * Asks the physics for the body of a fake ball.
+     *
+     * @param engine the physics adapter of the match
+     */
+    @Override
+    void addTo(PhysicsEngine engine) {
+<span class="nc" id="L66">        engine.addFakeBall(this);</span>
+<span class="nc" id="L67">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

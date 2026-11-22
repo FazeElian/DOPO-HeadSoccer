@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnconsciousEffect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">UnconsciousEffect.java</span></div><h1>UnconsciousEffect.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Unconscious, from Tornado (Nigeria): the rival is thrown up in the air and for 3 seconds
+ * cannot move, jump or kick.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class UnconsciousEffect extends Effect {
+
+    /** Name shown on screen. */
+    public static final String NAME = &quot;Inconsciente&quot;;
+    /** Seconds it lasts. */
+    public static final double DURATION = 3;
+    /** Upward speed it is thrown with, in pixels per second. */
+    public static final double LAUNCH_SPEED = 750;
+
+    /**
+     * Creates the effect.
+     */
+    public UnconsciousEffect() {
+<span class="fc" id="L24">        super(DURATION);</span>
+<span class="fc" id="L25">    }</span>
+
+    /**
+     * Throws the player up in the air.
+     *
+     * @param p the affected player
+     */
+    @Override
+    public void onApply(Player p) {
+<span class="fc" id="L34">        p.setVelocity(p.getVx(), -LAUNCH_SPEED);</span>
+<span class="fc" id="L35">        p.setOnGround(false);</span>
+<span class="fc" id="L36">    }</span>
+
+    /**
+     * An unconscious player cannot move or kick.
+     *
+     * @return false
+     */
+    @Override
+    public boolean canAct() {
+<span class="fc" id="L45">        return false;</span>
+    }
+
+    /**
+     * An unconscious player cannot jump.
+     *
+     * @return false
+     */
+    @Override
+    public boolean canJump() {
+<span class="fc" id="L55">        return false;</span>
+    }
+
+    /**
+     * Returns the name shown on screen.
+     *
+     * @return &quot;Inconsciente&quot;
+     */
+    @Override
+    public String getName() {
+<span class="nc" id="L65">        return NAME;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

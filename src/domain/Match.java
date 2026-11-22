@@ -79,7 +79,7 @@ public class Match implements Serializable {
         placeForKickOff();
     }
 
-        /**
+    /**
      * Advances the match one tick: players act and update, fake balls count down,
      * the physics library moves everything and the goals are checked.
      * It does nothing once the match is finished.

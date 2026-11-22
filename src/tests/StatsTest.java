@@ -32,13 +32,22 @@ public class StatsTest {
 
     @Test
     public void shouldNotKnowAnUnknownStat() {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, () -> stats.get("MAGIC"));
-        assertEquals(DOPOSoccerException.UNKNOWN_STAT, e.getMessage());
+        try {
+            stats.get("MAGIC");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_STAT, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotKnowANullStat() {
-        assertThrows(DOPOSoccerException.class, () -> stats.get(null));
+        try {
+            stats.get(null);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_STAT, e.getMessage());
+        }
     }
 
     @Test
@@ -95,13 +104,22 @@ public class StatsTest {
             stats.upgrade("SPEED");
         }
         assertEquals(Stats.MAX_STAT, stats.get("SPEED"));
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, () -> stats.upgrade("SPEED"));
-        assertEquals(DOPOSoccerException.STAT_AT_MAX, e.getMessage());
+        try {
+            stats.upgrade("SPEED");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.STAT_AT_MAX, e.getMessage());
+        }
         assertEquals(Stats.MAX_STAT, stats.get("SPEED"));
     }
 
     @Test
     public void shouldNotUpgradeAnUnknownStat() {
-        assertThrows(DOPOSoccerException.class, () -> stats.upgrade("MAGIC"));
+        try {
+            stats.upgrade("MAGIC");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_STAT, e.getMessage());
+        }
     }
 }
