@@ -1,6 +1,7 @@
 package domain;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Game mode: how many matches are played. It keeps the configuration chosen by the users
@@ -32,6 +33,11 @@ public abstract class GameMode implements Serializable {
     protected final String resolution;
     /** Ball chosen to play. */
     protected final BallSkin skin;
+    /** Stadium of every match of the mode ("default", "rain"...). */
+    protected final String stadium;
+    /** The stadiums: the field is the same, only the weather, the time and the crowd change. */
+    public static final List<String> STADIUMS = List.of(
+            "default", "day", "sunset", "rain", "snow", "fog", "storm", "albiceleste", "empty");
 
     /**
      * Keeps the configuration of the game.
@@ -45,10 +51,11 @@ public abstract class GameMode implements Serializable {
      * @param type            rule to end each match
      * @param resolution      "SMALL", "MEDIUM" or "LARGE"
      * @param skin            ball chosen to play
+     * @param stadium         stadium of the matches ("default", "rain"...)
      */
     public GameMode(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                     GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
-                    MatchType type, String resolution, BallSkin skin) {
+                    MatchType type, String resolution, BallSkin skin, String stadium) {
         this.leftCharacter = leftCharacter;
         this.leftStats = leftStats;
         this.leftController = leftController;
@@ -58,6 +65,7 @@ public abstract class GameMode implements Serializable {
         this.type = type;
         this.resolution = resolution;
         this.skin = skin;
+        this.stadium = stadium;
         this.match = null;
     }
 
@@ -76,9 +84,21 @@ public abstract class GameMode implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
      */
     protected Match createMatch(GameCharacter rival) throws DOPOSoccerException {
+        return createMatch(rival, stadium);
+    }
+
+    /**
+     * Creates a match like {@link #createMatch(GameCharacter)}, but in another stadium.
+     *
+     * @param rival   character of the right player
+     * @param stadium stadium of this match ("default", "rain"...)
+     * @return the new match
+     * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
+     */
+    protected Match createMatch(GameCharacter rival, String stadium) throws DOPOSoccerException {
         type.reset();
         return new Match(leftCharacter, leftStats, leftController, rival, rightStats, rightController,
-                type, resolution, skin);
+                type, resolution, skin, stadium);
     }
 
     /**

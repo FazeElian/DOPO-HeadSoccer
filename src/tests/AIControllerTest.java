@@ -21,7 +21,7 @@ public class AIControllerTest {
     private static Match newMatch(PlayerController machine) throws DOPOSoccerException {
         return new Match(new GameCharacter("Colombia", new IllusionShot()), new Stats(), new HumanController(),
                 new GameCharacter("Argentina", new LightningShot()), new Stats(), machine,
-                new GoalsMatch(3), "MEDIUM", new BallSkin("Clásico", 0));
+                new GoalsMatch(3), "MEDIUM", new BallSkin("Clásico", 0), "default");
     }
 
     @Test

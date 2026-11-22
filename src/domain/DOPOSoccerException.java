@@ -57,6 +57,8 @@ public class DOPOSoccerException extends Exception {
     public static final String SURVIVAL_ONLY_PVM = "Supervivencia solo se juega contra la máquina.";
     /** The tournament is only played by time or by goals, not in survival. */
     public static final String INVALID_TOURNAMENT_TYPE = "El torneo solo se juega por tiempo o por goles.";
+    /** The stadium does not exist. */
+    public static final String UNKNOWN_STADIUM = "El estadio no existe.";
     /**
      * Creates the exception with one of the message constants.
      *
