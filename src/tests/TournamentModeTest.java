@@ -104,6 +104,27 @@ public class TournamentModeTest {
     }
 
     @Test
+    public void shouldPlayEachMatchInARandomStadium() throws DOPOSoccerException {
+        HashSet<String> stadiums = new HashSet<>();
+        for (int seed = 0; seed < 20; seed++) {
+            TournamentMode t = new TournamentMode(PLAYER, new Stats(), new HumanController(), new Stats(),
+                    new HumanController(), new GoalsMatch(1), "MEDIUM", new BallSkin("Clásico", 0), rivals(7),
+                    new Random(seed));
+            t.start();
+            for (int round = 1; round <= 3; round++) {
+                String stadium = t.getMatch().getStadiumName();
+                assertTrue(GameMode.STADIUMS.contains(stadium));
+                stadiums.add(stadium);
+                if (round < 3) {
+                    win(t);
+                    t.nextMatch();
+                }
+            }
+        }
+        assertTrue(stadiums.size() > 1); // not always the same one
+    }
+
+    @Test
     public void shouldEndWhenThePlayerLoses() throws DOPOSoccerException {
         TournamentMode t = newTournament();
         lose(t);

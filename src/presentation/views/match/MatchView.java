@@ -20,7 +20,7 @@ import static presentation.DOPOSoccerGUI.*;
 public abstract class MatchView extends View {
     private DOPOSoccer game;
     private static final boolean DEBUG_HITBOX = false;
-    public static final String STADIUM_BACKGROUND = "assets/img/stadiumBackground.png";
+    public static final String STADIUM_BACKGROUND = "assets/img/stadiums/stadium-default.png";
 
     protected static final int HUD_WIDTH = 320;
 

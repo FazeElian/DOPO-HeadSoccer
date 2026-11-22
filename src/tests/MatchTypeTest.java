@@ -18,7 +18,7 @@ public class MatchTypeTest {
     private static Match newMatch(MatchType type) throws DOPOSoccerException {
         return new Match(new GameCharacter("Colombia", new IllusionShot()), new Stats(), new HumanController(),
                 new GameCharacter("Argentina", new LightningShot()), new Stats(), new HumanController(),
-                type, "MEDIUM", new BallSkin("Clásico", 0));
+                type, "MEDIUM", new BallSkin("Clásico", 0), "default");
     }
 
     // Advances a match the given seconds, 60 ticks per second

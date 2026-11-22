@@ -25,6 +25,12 @@ public abstract class View extends JPanel {
     // Each view builds its own components (call it from the subclass constructor)
     protected abstract void prepareView();
 
+    // Changes the background image (the match views use the stadium chosen by the player)
+    public void setBackgroundImage(String imageUrl) {
+        background = new ImageIcon(imageUrl).getImage();
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

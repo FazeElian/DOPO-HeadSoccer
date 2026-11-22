@@ -14,6 +14,7 @@ import presentation.views.arcade.SelectArcadeModeView;
 import presentation.views.arcade.SelectArcadeResolutionView;
 import presentation.views.arcade.SelectArcadeMatchTypeView;
 import presentation.views.arcade.SelectArcadeCharacterView;
+import presentation.views.arcade.SelectStadiumView;
 import presentation.views.arcade.SelectArcadeBallView;
 
 // Match Views classes
@@ -52,6 +53,7 @@ public class DOPOSoccerGUI extends JFrame {
     private SelectArcadeCharacterView selectArcadeCharacterView;
     private SelectArcadeCharacterView selectArcadeRivalView;
     private SelectArcadeBallView selectArcadeBallView;
+    private SelectStadiumView selectStadiumView;
 
     // Tournament Views components
     private NewTournamentView newTournamentView;
@@ -116,6 +118,7 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeMatchTypeView = new SelectArcadeMatchTypeView(luckiest);
         selectArcadeCharacterView = new SelectArcadeCharacterView(luckiest, false);
         selectArcadeRivalView = new SelectArcadeCharacterView(luckiest, true);
+        selectStadiumView = new SelectStadiumView(luckiest);
         selectArcadeBallView = new SelectArcadeBallView(luckiest);
 
         // Tournament Views
@@ -158,6 +161,7 @@ public class DOPOSoccerGUI extends JFrame {
         prepareSelectArcadeMatchTypeController();
         prepareSelectArcadeCharacterController();
         prepareSelectArcadeRivalController();
+        prepareSelectStadiumController();
         prepareSelectArcadeBallController();
         prepareLockedController();
 
@@ -486,6 +490,7 @@ public class DOPOSoccerGUI extends JFrame {
                 String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
                 boolean byTime = newTournamentView.isByTime();
                 game.selectBall("LEFT", toDomainBall(tournamentBallView.getSelectedBall()));
+                game.selectStadium(selectStadiumView.getSelectedStadium());
                 game.newGame("PVM", toDomainProfile("EXPERTA"),
                     toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), "TOURNAMENT",
                     team, team, byTime ? "TIME" : "GOALS",
@@ -553,6 +558,7 @@ public class DOPOSoccerGUI extends JFrame {
     private void startTournamentMatch() {
         try {
             matchView = tournamentMatchView;
+            matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium()));
             String me = game.getCharacter("LEFT");
             String rival = game.getCharacter("RIGHT");
             matchView.setPlayer1("JUGADOR 1", me.toUpperCase(), game.getPowerName("LEFT").toUpperCase(),
@@ -573,14 +579,20 @@ public class DOPOSoccerGUI extends JFrame {
     
     private void prepareSelectArcadeRivalController() {
         selectArcadeRivalView.backBtn.addActionListener(e -> showView(selectArcadeCharacterView, "Personaje (Arcade)"));
-        selectArcadeRivalView.continueBtn.addActionListener(e -> {
+        selectArcadeRivalView.continueBtn.addActionListener(e -> showView(selectStadiumView, "Estadio (Arcade)"));
+    }
+
+    // Stadium: back to the rival, or go on to the ball (the stadium is used when the match starts)
+    private void prepareSelectStadiumController() {
+        selectStadiumView.backBtn.addActionListener(e -> showView(selectArcadeRivalView, "Rival (Arcade)"));
+        selectStadiumView.continueBtn.addActionListener(e -> {
             loadBallAvailability(selectArcadeBallView);
             showView(selectArcadeBallView, "Balón (Arcade)");
         });
     }
 
     private void prepareSelectArcadeBallController() {
-        selectArcadeBallView.backBtn.addActionListener(e -> showView(selectArcadeRivalView, "Rival (Arcade)"));
+        selectArcadeBallView.backBtn.addActionListener(e -> showView(selectStadiumView, "Estadio (Arcade)"));
         selectArcadeBallView.continueBtn.addActionListener(e -> startGame());
     }
 
@@ -684,13 +696,16 @@ public class DOPOSoccerGUI extends JFrame {
                 ? selectArcadeMatchTypeView.getMinutes()
                 : selectArcadeMatchTypeView.getGoalTarget();
 
-            // The ball chosen in "Elige tu balón" (before newGame: the match is created with it)
+            // The ball and the stadium chosen (before newGame: the match is created with them)
             game.selectBall("LEFT", toDomainBall(selectArcadeBallView.getSelectedBall()));
+            game.selectStadium(selectStadiumView.getSelectedStadium());
             game.newGame(modality, AIProfile, resolution, "ARCADE", j1Country, j2Country, matchType, amount);
 
             // Only if the domain accepted it: the view of the match type, with the players data of the domain
             boolean survival = "SURVIVAL".equals(game.getMatchType());
             matchView = survival ? survivalMatchView : arcadeMatchView;
+            // The stadium of the match (domain) is the background
+            matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium()));
             boolean vsMachine = "PVM".equals(game.getModality());
             matchView.setPlayer1(
                 "JUGADOR 1",

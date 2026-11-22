@@ -37,15 +37,19 @@ public class Stadium implements Serializable {
     private final Goal leftGoal;
     /** Goal of the right side. */
     private final Goal rightGoal;
+    /** Name of the stadium ("default", "rain"...): only its picture changes, the field is the same. */
+    private final String name;
 
     /**
      * Creates the field and its two goals.
      *
      * @param resolution "SMALL", "MEDIUM" or "LARGE"
+     * @param name       name of the stadium ("default", "rain"...)
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not one of the three
      */
-    public Stadium(String resolution) throws DOPOSoccerException {
+    public Stadium(String resolution, String name) throws DOPOSoccerException {
         int[] size = sizeOf(resolution);
+        this.name = name;
         this.resolution = resolution;
         this.width = size[0];
         this.height = size[1];
@@ -149,5 +153,14 @@ public class Stadium implements Serializable {
      */
     public boolean isInGoal(String side, Ball ball) {
         return getGoal(side).contains(ball);
+    }
+
+    /**
+     * Returns the name of the stadium.
+     *
+     * @return "default", "rain"...
+     */
+    public String getName() {
+        return name;
     }
 }
