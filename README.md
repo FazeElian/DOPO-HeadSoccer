@@ -18,7 +18,7 @@ Project for the **DOPO** course (Object-Oriented Development), Escuela Colombian
 | Mode | Description | Modalities | Match types |
 |------|-------------|------------|-------------|
 | **Arcade** | A match between the two chosen characters (or a series of matches, in survival). | PVP and PVM | By goals, by time, survival (PVM only) |
-| **Tournament** | 8 teams: quarterfinals, semifinal and final against the machine. 500-point prize for the champion. | PVM only | By goals or by time |
+| **Tournament** | 8 teams: quarterfinals, semifinal and final against the Expert machine. 500-point prize for the champion. | PVM only | By goals or by time |
 
 ### Match types
 | Type | Rule |
@@ -36,9 +36,15 @@ Survival is a **series** of matches against the machine:
 
 ### Tournament
 - You choose your team, the ball, the resolution and the match type (by goals or by time). The 7 rivals are the other teams, drawn into a random bracket.
-- You play your match on screen against the machine. The other matches of each round are simulated.
+- You play your match on screen against the machine, always with the **Expert** profile. The other matches of each round are simulated.
+- Each of your matches is played in a stadium drawn at random.
 - After each round the bracket screen shows who goes on. If you lose a match, or end it by hand, you are out.
 - Winning the final makes you the **champion** and gives you the **500-point** prize on top of the match points.
+
+### Stadiums
+There are 9 stadiums: *default*, *day*, *sunset*, *rain*, *snow*, *fog*, *storm*, *albiceleste* and *empty*. Only the picture changes (weather, time of day and crowd); the field and its physics are the same in all of them.
+- **Arcade:** you choose the stadium after choosing the rival, before the ball.
+- **Tournament:** every match is played in a random stadium.
 
 ### Controls
 | Action | Player 1 (left) | Player 2 (right) |
@@ -62,7 +68,7 @@ There are 8 national teams sharing 4 power shots. Spain and Japan must be unlock
 The power bar fills over time (10 s to charge fully) and gets a bonus when you concede a goal. Kicks and power shots deal damage: when a player's life reaches 0, they are stunned for 3 s.
 
 ### Artificial intelligence
-In PVM mode you choose the machine's profile:
+In Arcade PVM you choose the machine's profile (the tournament always uses *Expert*):
 
 | Profile | Behavior |
 |---------|----------|
@@ -77,10 +83,19 @@ In PVM mode you choose the machine's profile:
 - Points are spent in the **store**: unlock characters, buy balls and upgrade stats (Speed, Jump, Kick, Survival, from 1 to 10; each level adds 10 %).
 - **Settings** let you change the music and sound-effects volume.
 - The field can be played in three resolutions: 960×540, 1280×720 and 1600×900.
-- Points and purchases last while the game is open.
+- Points, purchases and upgrades are **saved automatically** (see *Saving*).
 
-### Under construction
-Saving and loading (**save game**, **open game**, and saving the progress) are in the design but not built yet: those buttons show *"Opción en construcción."*
+### Saving
+**Progress (automatic).** The profiles of both players (points, purchases, upgrades and selected ball) are saved in `DOPOSoccer.progress`, in the folder the game is run from (the project root). You never choose this file.
+- It is loaded when the game opens. If it does not exist, a new one is created with both players from zero. If it is damaged, the game warns you and starts from zero.
+- It is written again every time a profile changes: when you buy a character or a ball, upgrade a stat, or earn points at the end of a match.
+- The volumes of *Settings* are not saved: they start at their default values every time.
+
+**Saved games (manual).** A match in progress can be saved and played later:
+- **Save:** pause the match and press *GUARDAR PARTIDA*. Choose where to save it; the file gets the **`.ds`** extension (DOPO Soccer) if you don't write it. Arcade, survival and tournament matches can be saved, but not a match that already ended.
+- **Open:** on the home screen press *ABRIR PARTIDA* and choose a `.ds` file. The match opens **paused**, as it was (score, time, players, ball, stadium, tournament bracket or survival series); press *REANUDAR* to go on.
+- An opened game uses your **current** progress (the one in `DOPOSoccer.progress`), not the one you had when you saved it, so opening an old game never takes back points or purchases.
+- If the file is not a saved game or is damaged, the game shows an error and the current game is not touched.
 
 ---
 
@@ -89,6 +104,7 @@ Saving and loading (**save game**, **open game**, and saving the progress) are i
 - The libraries are already included in [`lib/`](lib/):
   - `dyn4j-5.0.2.jar`: 2D physics engine.
   - `junit-platform-console-standalone-1.11.4.jar`: to compile and run the tests.
+- **Maven 3.9+** only to generate the reports and the Javadoc (see below). It is not needed to play.
 
 ## Build and run
 
@@ -121,13 +137,14 @@ java -jar lib/junit-platform-console-standalone-1.11.4.jar execute -cp "bin;lib/
 ```
 (On Linux/macOS, use `:` instead of `;`.)
 
-### Coverage and code quality reports (JaCoCo and PMD)
-The [`pom.xml`](pom.xml) runs the tests and writes two reports into [`docs/informes/`](docs/informes/):
+### Reports and documentation (JaCoCo, PMD and Javadoc)
+The [`pom.xml`](pom.xml) runs the tests and writes two reports into [`docs/informes/`](docs/informes/), and the code documentation into [`docs/apidocs/`](docs/apidocs/):
 
-| Report | Tool | What it measures | Open |
-|--------|------|------------------|------|
+| Output | Tool | What it has | Open |
+|--------|------|-------------|------|
 | **Tests** | JaCoCo | Test coverage (instructions and branches) of the `domain` package only | `docs/informes/jacoco/index.html` |
 | **Good practices** | PMD | Static analysis of `domain` and `presentation` (tests are not analyzed) | `docs/informes/pmd/pmd.html` |
+| **Documentation** | Javadoc | Every class of `domain` and `presentation`, with their attributes and methods (also the private ones), authors and version | `docs/apidocs/index.html` |
 
 **Requirement:** [Maven 3.9+](https://maven.apache.org/download.cgi) (`mvn -v` must work). The first run downloads dyn4j, JUnit and the plugins from Maven Central, so it needs internet.
 
@@ -136,29 +153,38 @@ From the project root:
 mvn clean verify
 ```
 
-This compiles the code, runs all the tests (JUnit 5), and generates both reports. When it finishes, open the HTML files in a browser:
+This compiles the code, runs all the tests (JUnit 5), and generates the two reports and the Javadoc. When it finishes, open the HTML files in a browser:
 ```powershell
 # Windows (PowerShell)
 start docs/informes/jacoco/index.html
 start docs/informes/pmd/pmd.html
+start docs/apidocs/index.html
 ```
 ```bash
 # Linux / macOS
 xdg-open docs/informes/jacoco/index.html   # macOS: open
 xdg-open docs/informes/pmd/pmd.html
+xdg-open docs/apidocs/index.html
 ```
+
+To generate only the Javadoc, without Maven, use the `javadoc` tool of the JDK (from the project root):
+```bash
+javadoc -encoding UTF-8 -docencoding UTF-8 -charset UTF-8 -cp "lib/dyn4j-5.0.2.jar" -sourcepath src -subpackages domain:presentation -private -author -version -d docs/apidocs
+```
+(If `javadoc` is not found, call it with its full path, for example `"C:\Program Files\Java\jdk-21\bin\javadoc.exe"`.)
 
 How to read them:
 - **JaCoCo:** the main page shows the total coverage of `domain`. Click the package, then a class, to see its code colored line by line: green means covered by the tests, yellow means a partly covered branch, and red means not covered.
 - **PMD:** lists each rule violation with its file, line and rule name. Click the rule name to read why it is a bad practice. `pmd.xml` has the same data for other tools.
 
 Notes:
+- The reports in `docs/informes/` and the Javadoc in `docs/apidocs/` are files in the repository: they show the code as it was the last time `mvn clean verify` was run. **Run it again after changing the code or the tests** to update them.
 - A failing test is shown in the console (`Tests run: ..., Failures: ...`) but does not stop the build, so the reports are always generated. The detail of each test is in `target/surefire-reports/`.
 - To run only the tests, without the reports: `mvn test`.
 - Maven compiles into `target/`, which can be deleted at any time (`mvn clean`).
 
 ### From an IDE
-- **VS Code / IntelliJ:** add both `.jar` files from `lib/` as project libraries, mark `src` as the source folder and run `presentation.DOPOSoccerGUI` with the project root as the working directory.
+- **VS Code / IntelliJ:** add both `.jar` files from `lib/` as project libraries, mark `src` as the source folder and run `presentation.DOPOSoccerGUI` with the project root as the working directory. Because of the `pom.xml`, the IDE may offer to import the project as Maven: both ways work (Maven compiles into `target/` instead of `bin/`).
 - **BlueJ:** *Tools → Preferences → Libraries → Add File…*, add `lib/dyn4j-5.0.2.jar` and restart BlueJ.
 
 ---
@@ -174,8 +200,11 @@ DOPO-HeadSoccer/
 ├── lib/                External libraries (dyn4j, JUnit)
 ├── design/             UML model in Astah (DOPOSoccer.asta)
 ├── docs/               Documentation and retrospectives
-│   └── informes/       JaCoCo and PMD reports (generated by mvn verify)
-└── pom.xml             Maven build: tests, JaCoCo and PMD
+│   ├── informes/       JaCoCo and PMD reports (generated by mvn verify)
+│   └── apidocs/        Javadoc of the code (generated by mvn verify)
+├── pom.xml             Maven build: tests, JaCoCo, PMD and Javadoc
+├── DOPOSoccer.progress Saved progress of both players (created when the game runs)
+└── DOPOSoccer.log      Error log (created when an error happens)
 ```
 
 ### Design
@@ -185,3 +214,8 @@ DOPO-HeadSoccer/
 - **Modes:** `GameMode` has `ArcadeMode` (one match, or a survival series) and `TournamentMode` (the bracket, with a `BracketMatch` per match).
 - Effects (`Effect`) and modes (`GameMode`) are extended with new subclasses without touching the rest of the code.
 - Physics (collisions, bounces, gravity) is delegated to **dyn4j**, and only `PhysicsEngine` uses it.
+- **Persistence** uses Java serialization:
+  - `saveProgress` / `loadProgress` write and read the `PlayerProfile[]` of both players in the fixed progress file.
+  - `saveGame` writes the whole `DOPOSoccer`, and the static `openGame` reads it back as a **new** `DOPOSoccer` that the GUI uses from then on.
+  - `profiles` and `settings` are `transient` (they are not part of a saved game), and so are the dyn4j objects of `PhysicsEngine`: the physics world is rebuilt from the saved players and ball on the first step after opening.
+  - Errors reading or writing a file become a `DOPOSoccerException` (`SAVE_FAILED`, `LOAD_FAILED`, `GAME_SAVE_FAILED`, `GAME_OPEN_FAILED`), which the GUI logs in `DOPOSoccer.log` and shows.

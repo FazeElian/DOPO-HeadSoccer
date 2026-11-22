@@ -37,24 +37,28 @@ public class Stadium implements Serializable {
     private final Goal leftGoal;
     /** Goal of the right side. */
     private final Goal rightGoal;
+    /** Name of the stadium (&quot;default&quot;, &quot;rain&quot;...): only its picture changes, the field is the same. */
+    private final String name;
 
     /**
      * Creates the field and its two goals.
      *
      * @param resolution &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
+     * @param name       name of the stadium (&quot;default&quot;, &quot;rain&quot;...)
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not one of the three
      */
-<span class="fc" id="L47">    public Stadium(String resolution) throws DOPOSoccerException {</span>
-<span class="fc" id="L48">        int[] size = sizeOf(resolution);</span>
-<span class="fc" id="L49">        this.resolution = resolution;</span>
-<span class="fc" id="L50">        this.width = size[0];</span>
-<span class="fc" id="L51">        this.height = size[1];</span>
-<span class="fc" id="L52">        this.groundY = height * GROUND_SHARE;</span>
-<span class="fc" id="L53">        double goalWidth = width * GOAL_WIDTH_SHARE;</span>
-<span class="fc" id="L54">        double goalHeight = height * GOAL_HEIGHT_SHARE;</span>
-<span class="fc" id="L55">        this.leftGoal = new Goal(&quot;LEFT&quot;, 0, groundY - goalHeight, goalWidth, goalHeight);</span>
-<span class="fc" id="L56">        this.rightGoal = new Goal(&quot;RIGHT&quot;, width - goalWidth, groundY - goalHeight, goalWidth, goalHeight);</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L50">    public Stadium(String resolution, String name) throws DOPOSoccerException {</span>
+<span class="fc" id="L51">        int[] size = sizeOf(resolution);</span>
+<span class="fc" id="L52">        this.name = name;</span>
+<span class="fc" id="L53">        this.resolution = resolution;</span>
+<span class="fc" id="L54">        this.width = size[0];</span>
+<span class="fc" id="L55">        this.height = size[1];</span>
+<span class="fc" id="L56">        this.groundY = height * GROUND_SHARE;</span>
+<span class="fc" id="L57">        double goalWidth = width * GOAL_WIDTH_SHARE;</span>
+<span class="fc" id="L58">        double goalHeight = height * GOAL_HEIGHT_SHARE;</span>
+<span class="fc" id="L59">        this.leftGoal = new Goal(&quot;LEFT&quot;, 0, groundY - goalHeight, goalWidth, goalHeight);</span>
+<span class="fc" id="L60">        this.rightGoal = new Goal(&quot;RIGHT&quot;, width - goalWidth, groundY - goalHeight, goalWidth, goalHeight);</span>
+<span class="fc" id="L61">    }</span>
 
     /**
      * Returns the size of a resolution.
@@ -64,19 +68,19 @@ public class Stadium implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if it is not one of the three
      */
     private static int[] sizeOf(String resolution) throws DOPOSoccerException {
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (resolution == null) </span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (resolution == null) </span>
         {
-<span class="nc" id="L69">            resolution = &quot;&quot;;</span>
+<span class="nc" id="L73">            resolution = &quot;&quot;;</span>
         }
-<span class="pc bpc" id="L71" title="1 of 4 branches missed.">        switch (resolution) {</span>
+<span class="pc bpc" id="L75" title="1 of 4 branches missed.">        switch (resolution) {</span>
             case &quot;SMALL&quot;:
-<span class="fc" id="L73">                return SMALL;</span>
+<span class="fc" id="L77">                return SMALL;</span>
             case &quot;MEDIUM&quot;:
-<span class="fc" id="L75">                return MEDIUM;</span>
+<span class="fc" id="L79">                return MEDIUM;</span>
             case &quot;LARGE&quot;:
-<span class="nc" id="L77">                return LARGE;</span>
+<span class="nc" id="L81">                return LARGE;</span>
             default:
-<span class="fc" id="L79">                throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_RESOLUTION);</span>
+<span class="fc" id="L83">                throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_RESOLUTION);</span>
         }
     }
 
@@ -87,10 +91,10 @@ public class Stadium implements Serializable {
      * @return its goal, or null for an unknown side
      */
     public Goal getGoal(String side) {
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
-<span class="fc" id="L91">            return leftGoal;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="fc" id="L95">            return leftGoal;</span>
         }
-<span class="fc" id="L93">        return rightGoal;</span>
+<span class="fc" id="L97">        return rightGoal;</span>
     }
 
     /**
@@ -99,7 +103,7 @@ public class Stadium implements Serializable {
      * @return width, in pixels
      */
     public double getWidth() {
-<span class="fc" id="L102">        return width;</span>
+<span class="fc" id="L106">        return width;</span>
     }
 
     /**
@@ -108,7 +112,7 @@ public class Stadium implements Serializable {
      * @return height, in pixels
      */
     public double getHeight() {
-<span class="fc" id="L111">        return height;</span>
+<span class="fc" id="L115">        return height;</span>
     }
 
     /**
@@ -117,7 +121,7 @@ public class Stadium implements Serializable {
      * @return y of the ground, in pixels
      */
     public double getGroundY() {
-<span class="fc" id="L120">        return groundY;</span>
+<span class="fc" id="L124">        return groundY;</span>
     }
 
     /**
@@ -126,7 +130,7 @@ public class Stadium implements Serializable {
      * @return &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
      */
     public String getResolution() {
-<span class="nc" id="L129">        return resolution;</span>
+<span class="nc" id="L133">        return resolution;</span>
     }
 
     /**
@@ -136,8 +140,8 @@ public class Stadium implements Serializable {
      * @return {x, y, width, height}, in pixels
      */
     public double[] getGoalBounds(String side) {
-<span class="fc" id="L139">        Goal goal = getGoal(side);</span>
-<span class="fc" id="L140">        return new double[]{goal.getX(), goal.getY(), goal.getWidth(), goal.getHeight()};</span>
+<span class="fc" id="L143">        Goal goal = getGoal(side);</span>
+<span class="fc" id="L144">        return new double[]{goal.getX(), goal.getY(), goal.getWidth(), goal.getHeight()};</span>
     }
 
     /**
@@ -148,7 +152,16 @@ public class Stadium implements Serializable {
      * @return true if the ball crossed into that goal
      */
     public boolean isInGoal(String side, Ball ball) {
-<span class="fc" id="L151">        return getGoal(side).contains(ball);</span>
+<span class="fc" id="L155">        return getGoal(side).contains(ball);</span>
+    }
+
+    /**
+     * Returns the name of the stadium.
+     *
+     * @return &quot;default&quot;, &quot;rain&quot;...
+     */
+    public String getName() {
+<span class="fc" id="L164">        return name;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

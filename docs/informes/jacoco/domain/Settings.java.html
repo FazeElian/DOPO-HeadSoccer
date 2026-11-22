@@ -11,6 +11,9 @@ import java.io.Serializable;
  */
 public class Settings implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Volume of the music when the game starts or the settings are reset. */
     public static final int DEFAULT_MUSIC_VOLUME = 70;
     /** Volume of the sound effects when the game starts or the settings are reset. */
@@ -28,10 +31,10 @@ public class Settings implements Serializable {
     /**
      * Creates the settings with the default volumes.
      */
-<span class="fc" id="L31">    public Settings() {</span>
-<span class="fc" id="L32">        this.musicVolume = DEFAULT_MUSIC_VOLUME;</span>
-<span class="fc" id="L33">        this.effectsVolume = DEFAULT_EFFECTS_VOLUME;</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L34">    public Settings() {</span>
+<span class="fc" id="L35">        this.musicVolume = DEFAULT_MUSIC_VOLUME;</span>
+<span class="fc" id="L36">        this.effectsVolume = DEFAULT_EFFECTS_VOLUME;</span>
+<span class="fc" id="L37">    }</span>
 
     /**
      * Returns the volume of the music.
@@ -39,7 +42,7 @@ public class Settings implements Serializable {
      * @return the volume, from 0 to 100
      */
     public int getMusicVolume() {
-<span class="fc" id="L42">        return musicVolume;</span>
+<span class="fc" id="L45">        return musicVolume;</span>
     }
 
     /**
@@ -49,8 +52,8 @@ public class Settings implements Serializable {
      * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setMusicVolume(int volume) throws DOPOSoccerException {
-<span class="fc" id="L52">        musicVolume = checked(volume);</span>
-<span class="fc" id="L53">    }</span>
+<span class="fc" id="L55">        musicVolume = checked(volume);</span>
+<span class="fc" id="L56">    }</span>
 
     /**
      * Returns the volume of the sound effects.
@@ -58,7 +61,7 @@ public class Settings implements Serializable {
      * @return the volume, from 0 to 100
      */
     public int getEffectsVolume() {
-<span class="fc" id="L61">        return effectsVolume;</span>
+<span class="fc" id="L64">        return effectsVolume;</span>
     }
 
     /**
@@ -68,16 +71,16 @@ public class Settings implements Serializable {
      * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setEffectsVolume(int volume) throws DOPOSoccerException {
-<span class="fc" id="L71">        effectsVolume = checked(volume);</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L74">        effectsVolume = checked(volume);</span>
+<span class="fc" id="L75">    }</span>
 
     /**
      * Puts both volumes back to their default values.
      */
     public void reset() {
-<span class="fc" id="L78">        musicVolume = DEFAULT_MUSIC_VOLUME;</span>
-<span class="fc" id="L79">        effectsVolume = DEFAULT_EFFECTS_VOLUME;</span>
-<span class="fc" id="L80">    }</span>
+<span class="fc" id="L81">        musicVolume = DEFAULT_MUSIC_VOLUME;</span>
+<span class="fc" id="L82">        effectsVolume = DEFAULT_EFFECTS_VOLUME;</span>
+<span class="fc" id="L83">    }</span>
 
     /**
      * Checks that a volume is between 0 and 100.
@@ -87,10 +90,10 @@ public class Settings implements Serializable {
      * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     private static int checked(int volume) throws DOPOSoccerException {
-<span class="fc bfc" id="L90" title="All 4 branches covered.">        if (volume &lt; MIN_VOLUME || volume &gt; MAX_VOLUME) {</span>
-<span class="fc" id="L91">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_VOLUME);</span>
+<span class="fc bfc" id="L93" title="All 4 branches covered.">        if (volume &lt; MIN_VOLUME || volume &gt; MAX_VOLUME) {</span>
+<span class="fc" id="L94">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_VOLUME);</span>
         }
-<span class="fc" id="L93">        return volume;</span>
+<span class="fc" id="L96">        return volume;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

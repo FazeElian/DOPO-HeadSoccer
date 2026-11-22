@@ -74,11 +74,11 @@ public abstract class MatchType implements Serializable {
     /**
      * Returns the name of the rule.
      *
-     * @return &quot;TIME&quot; or &quot;GOALS&quot;
+     * @return &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
      */
     public abstract String getName();
-    
-        /**
+
+    /**
      * Returns the balls left of a player. Only survival has balls.
      *
      * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
@@ -90,13 +90,22 @@ public abstract class MatchType implements Serializable {
     }
 
     /**
+     * Returns the goals needed to win. Only the match by goals has a target.
+     *
+     * @return the goal target, or -1 if the rule has none
+     */
+    public int getTarget() {
+<span class="nc" id="L98">        return -1;</span>
+    }
+
+    /**
      * Tells whether a series goes on after a match. By default a match is the whole game.
      *
      * @param winner the winner of the match that ended, or null
      * @return true if another match is played
      */
     public boolean continuesAfter(String winner) {
-<span class="fc" id="L99">        return false;</span>
+<span class="fc" id="L108">        return false;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

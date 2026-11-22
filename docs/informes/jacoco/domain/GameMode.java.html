@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameMode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">GameMode.java</span></div><h1>GameMode.java</h1><pre class="source lang-java linenums">package domain;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Game mode: how many matches are played. It keeps the configuration chosen by the users
@@ -32,6 +33,11 @@ public abstract class GameMode implements Serializable {
     protected final String resolution;
     /** Ball chosen to play. */
     protected final BallSkin skin;
+    /** Stadium of every match of the mode (&quot;default&quot;, &quot;rain&quot;...). */
+    protected final String stadium;
+    /** The stadiums: the field is the same, only the weather, the time and the crowd change. */
+<span class="fc" id="L39">    public static final List&lt;String&gt; STADIUMS = List.of(</span>
+            &quot;default&quot;, &quot;day&quot;, &quot;sunset&quot;, &quot;rain&quot;, &quot;snow&quot;, &quot;fog&quot;, &quot;storm&quot;, &quot;albiceleste&quot;, &quot;empty&quot;);
 
     /**
      * Keeps the configuration of the game.
@@ -45,21 +51,23 @@ public abstract class GameMode implements Serializable {
      * @param type            rule to end each match
      * @param resolution      &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
      * @param skin            ball chosen to play
+     * @param stadium         stadium of the matches (&quot;default&quot;, &quot;rain&quot;...)
      */
     public GameMode(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                     GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
-<span class="fc" id="L51">                    MatchType type, String resolution, BallSkin skin) {</span>
-<span class="fc" id="L52">        this.leftCharacter = leftCharacter;</span>
-<span class="fc" id="L53">        this.leftStats = leftStats;</span>
-<span class="fc" id="L54">        this.leftController = leftController;</span>
-<span class="fc" id="L55">        this.rightCharacter = rightCharacter;</span>
-<span class="fc" id="L56">        this.rightStats = rightStats;</span>
-<span class="fc" id="L57">        this.rightController = rightController;</span>
-<span class="fc" id="L58">        this.type = type;</span>
-<span class="fc" id="L59">        this.resolution = resolution;</span>
-<span class="fc" id="L60">        this.skin = skin;</span>
-<span class="fc" id="L61">        this.match = null;</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L58">                    MatchType type, String resolution, BallSkin skin, String stadium) {</span>
+<span class="fc" id="L59">        this.leftCharacter = leftCharacter;</span>
+<span class="fc" id="L60">        this.leftStats = leftStats;</span>
+<span class="fc" id="L61">        this.leftController = leftController;</span>
+<span class="fc" id="L62">        this.rightCharacter = rightCharacter;</span>
+<span class="fc" id="L63">        this.rightStats = rightStats;</span>
+<span class="fc" id="L64">        this.rightController = rightController;</span>
+<span class="fc" id="L65">        this.type = type;</span>
+<span class="fc" id="L66">        this.resolution = resolution;</span>
+<span class="fc" id="L67">        this.skin = skin;</span>
+<span class="fc" id="L68">        this.stadium = stadium;</span>
+<span class="fc" id="L69">        this.match = null;</span>
+<span class="fc" id="L70">    }</span>
 
     /**
      * Creates the first match.
@@ -76,9 +84,21 @@ public abstract class GameMode implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
      */
     protected Match createMatch(GameCharacter rival) throws DOPOSoccerException {
-<span class="fc" id="L79">        type.reset();</span>
-<span class="fc" id="L80">        return new Match(leftCharacter, leftStats, leftController, rival, rightStats, rightController,</span>
-                type, resolution, skin);
+<span class="fc" id="L87">        return createMatch(rival, stadium);</span>
+    }
+
+    /**
+     * Creates a match like {@link #createMatch(GameCharacter)}, but in another stadium.
+     *
+     * @param rival   character of the right player
+     * @param stadium stadium of this match (&quot;default&quot;, &quot;rain&quot;...)
+     * @return the new match
+     * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
+     */
+    protected Match createMatch(GameCharacter rival, String stadium) throws DOPOSoccerException {
+<span class="fc" id="L99">        type.reset();</span>
+<span class="fc" id="L100">        return new Match(leftCharacter, leftStats, leftController, rival, rightStats, rightController,</span>
+                type, resolution, skin, stadium);
     }
 
     /**
@@ -87,10 +107,10 @@ public abstract class GameMode implements Serializable {
      * @param dt elapsed time, in seconds
      */
     public void update(double dt) {
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (match != null) {</span>
-<span class="fc" id="L91">            match.update(dt);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (match != null) {</span>
+<span class="fc" id="L111">            match.update(dt);</span>
         }
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L113">    }</span>
 
     /**
      * Goes to the next match. By default a mode has only one.
@@ -98,7 +118,7 @@ public abstract class GameMode implements Serializable {
      * @throws DOPOSoccerException INVALID_STATE always, unless a subclass has more matches
      */
     public void nextMatch() throws DOPOSoccerException {
-<span class="nc" id="L101">        throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);</span>
+<span class="nc" id="L121">        throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);</span>
     }
 
     /**
@@ -107,14 +127,13 @@ public abstract class GameMode implements Serializable {
      * @return true if no more matches will be played
      */
     public abstract boolean isOver();
-
     /**
      * Returns the current match.
      *
      * @return the match, or null before {@link #start()}
      */
     public Match getMatch() {
-<span class="fc" id="L117">        return match;</span>
+<span class="fc" id="L136">        return match;</span>
     }
 
     /**
@@ -123,7 +142,7 @@ public abstract class GameMode implements Serializable {
      * @return 1 by default
      */
     public int getRound() {
-<span class="nc" id="L126">        return 1;</span>
+<span class="nc" id="L145">        return 1;</span>
     }
 
     /**
@@ -139,7 +158,7 @@ public abstract class GameMode implements Serializable {
      * @return true if the match is over or was ended
      */
     public boolean isMatchFinished() {
-<span class="fc" id="L142">        return match.isFinished();</span>
+<span class="fc" id="L161">        return match.isFinished();</span>
     }
 
     /**
@@ -148,7 +167,7 @@ public abstract class GameMode implements Serializable {
      * @return &quot;LEFT&quot;, &quot;RIGHT&quot; or null
      */
     public String getMatchWinner() {
-<span class="nc" id="L151">        return match.getWinner();</span>
+<span class="nc" id="L170">        return match.getWinner();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
