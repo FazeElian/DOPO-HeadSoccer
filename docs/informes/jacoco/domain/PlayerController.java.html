@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">PlayerController.java</span></div><h1>PlayerController.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+import java.util.Set;
+
+/**
+ * Who decides the actions of a player: a person with the keyboard or the machine (Strategy pattern).
+ * The player does not know which one it has.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public interface PlayerController extends Serializable {
+
+    /**
+     * Returns the actions of this tick.
+     *
+     * @param self  the player being controlled
+     * @param match the match being played
+     * @return a set with &quot;MOVE_LEFT&quot;, &quot;MOVE_RIGHT&quot;, &quot;JUMP&quot;, &quot;KICK&quot; and/or &quot;POWER&quot;
+     */
+    Set&lt;String&gt; nextActions(Player self, Match match);
+
+    /**
+     * An action key was pressed. By default it is ignored (the machine does not use the keyboard).
+     *
+     * @param action &quot;MOVE_LEFT&quot;, &quot;MOVE_RIGHT&quot;, &quot;JUMP&quot;, &quot;KICK&quot; or &quot;POWER&quot;
+     */
+    default void press(String action) {
+        // Only a person reacts to the keyboard.
+<span class="nc" id="L32">    }</span>
+
+    /**
+     * An action key was released. By default it is ignored.
+     *
+     * @param action the released action
+     */
+    default void release(String action) {
+        // Only a person reacts to the keyboard.
+<span class="nc" id="L41">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

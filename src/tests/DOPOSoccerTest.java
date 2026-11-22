@@ -4,6 +4,7 @@ import domain.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,16 +29,6 @@ public class DOPOSoccerTest {
 
     private void newGoalsGame(int goals) throws DOPOSoccerException {
         game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", goals);
-    }
-
-    private static void assertMessage(String message, Executable action) {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, action::run);
-        assertEquals(message, e.getMessage());
-    }
-
-    /** An action of the facade that can throw. */
-    private interface Executable {
-        void run() throws DOPOSoccerException;
     }
 
     // new game
@@ -86,73 +77,140 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldNotAcceptAnUnknownModality() {
-        assertMessage(DOPOSoccerException.UNKNOWN_MODALITY,
-                () -> game.newGame("XYZ", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3));
+        try {
+            game.newGame("XYZ", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_MODALITY, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptAnUnknownMode() {
-        assertMessage(DOPOSoccerException.UNKNOWN_MODE,
-                () -> game.newGame("PVP", null, "MEDIUM", "XYZ", "Colombia", "Argentina", "GOALS", 3));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "XYZ", "Colombia", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_MODE, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptAnUnknownCharacter() {
-        assertMessage(DOPOSoccerException.UNKNOWN_CHARACTER,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Brasil", "Argentina", "GOALS", 3));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Brasil", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_CHARACTER, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptAnUnknownMatchType() {
-        assertMessage(DOPOSoccerException.UNKNOWN_MATCH_TYPE,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "XYZ", 3));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "XYZ", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_MATCH_TYPE, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptAnUnknownResolution() {
-        assertMessage(DOPOSoccerException.UNKNOWN_RESOLUTION,
-                () -> game.newGame("PVP", null, "HUGE", "ARCADE", "Colombia", "Argentina", "GOALS", 3));
+        try {
+            game.newGame("PVP", null, "HUGE", "ARCADE", "Colombia", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_RESOLUTION, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptZeroMinutes() {
-        assertMessage(DOPOSoccerException.INVALID_MINUTES,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "TIME", 0));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "TIME", 0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_MINUTES, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptZeroGoals() {
-        assertMessage(DOPOSoccerException.INVALID_GOAL_TARGET,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 0));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_GOAL_TARGET, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotStartAGameWhenTheChoiceFails() {
-        assertThrows(DOPOSoccerException.class,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Brasil", "Argentina", "GOALS", 3));
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getGoals("LEFT"));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Brasil", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_CHARACTER, e.getMessage());
+        }
+        try {
+            game.getGoals("LEFT");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
     }
 
     // without a game
 
     @Test
     public void shouldNotGiveTheStateWithoutAGame() {
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.isMatchOver());
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getLife("LEFT"));
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.pause());
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.press("LEFT", "JUMP"));
+        try {
+            game.isMatchOver();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
+        try {
+            game.getLife("LEFT");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
+        try {
+            game.pause();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
+        try {
+            game.press("LEFT", "JUMP");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
     }
 
     @Test
     public void shouldDoNothingOnUpdateWithoutAGame() {
-        assertDoesNotThrow(() -> game.update(1 / 60.0));
+        game.update(1 / 60.0);
     }
 
     @Test
     public void shouldNotAcceptAnUnknownSide() throws DOPOSoccerException {
         newGoalsGame(3);
-        assertMessage(DOPOSoccerException.UNKNOWN_SIDE, () -> game.getGoals("CENTER"));
-        assertMessage(DOPOSoccerException.UNKNOWN_SIDE, () -> game.press("UP", "JUMP"));
+        try {
+            game.getGoals("CENTER");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_SIDE, e.getMessage());
+        }
+        try {
+            game.press("UP", "JUMP");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_SIDE, e.getMessage());
+        }
     }
 
     // match
@@ -218,8 +276,18 @@ public class DOPOSoccerTest {
     public void shouldNotEndOrPauseAFinishedGame() throws DOPOSoccerException {
         newGoalsGame(3);
         game.endGame();
-        assertMessage(DOPOSoccerException.GAME_OVER, () -> game.endGame());
-        assertMessage(DOPOSoccerException.GAME_OVER, () -> game.pause());
+        try {
+            game.endGame();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_OVER, e.getMessage());
+        }
+        try {
+            game.pause();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_OVER, e.getMessage());
+        }
     }
 
     @Test
@@ -269,7 +337,12 @@ public class DOPOSoccerTest {
         assertEquals(1200, game.getCharacterPrice("Japón"));
         assertTrue(game.isCharacterUnlocked("LEFT", "Colombia"));
         assertFalse(game.isCharacterUnlocked("RIGHT", "España"));
-        assertMessage(DOPOSoccerException.UNKNOWN_CHARACTER, () -> game.getCharacterPrice("Brasil"));
+        try {
+            game.getCharacterPrice("Brasil");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_CHARACTER, e.getMessage());
+        }
     }
 
     @Test
@@ -283,7 +356,12 @@ public class DOPOSoccerTest {
         assertEquals(6, game.getBallNames().size());
         assertEquals(0, game.getBallPrice("Clásico"));
         assertEquals(1000, game.getBallPrice("Galaxia"));
-        assertMessage(DOPOSoccerException.UNKNOWN_BALL, () -> game.getBallPrice("Playa"));
+        try {
+            game.getBallPrice("Playa");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_BALL, e.getMessage());
+        }
     }
 
     @Test
@@ -307,7 +385,12 @@ public class DOPOSoccerTest {
     public void shouldGiveTheStatsOfEachPlayer() throws DOPOSoccerException {
         assertEquals(Stats.MIN_STAT, game.getStat("LEFT", "SPEED"));
         assertEquals(500, game.getUpgradeCost("RIGHT", "KICK"));
-        assertMessage(DOPOSoccerException.UNKNOWN_STAT, () -> game.getStat("LEFT", "MAGIC"));
+        try {
+            game.getStat("LEFT", "MAGIC");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_STAT, e.getMessage());
+        }
     }
 
     @Test
@@ -316,7 +399,12 @@ public class DOPOSoccerTest {
         game.setEffectsVolume(70);
         assertEquals(30, game.getMusicVolume());
         assertEquals(70, game.getEffectsVolume());
-        assertMessage(DOPOSoccerException.INVALID_VOLUME, () -> game.setMusicVolume(150));
+        try {
+            game.setMusicVolume(150);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_VOLUME, e.getMessage());
+        }
         game.resetSettings();
         assertEquals(Settings.DEFAULT_MUSIC_VOLUME, game.getMusicVolume());
     }
@@ -330,13 +418,22 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldSayThatTheUnfinishedOptionsAreUnderConstruction() {
-        assertMessage(DOPOSoccerException.UNDER_CONSTRUCTION, () -> game.saveProgress());
+        try {
+            game.saveProgress();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNDER_CONSTRUCTION, e.getMessage());
+        }
     }
 
     @Test
     public void shouldPlaySurvivalOnlyAgainstTheMachine() {
-        assertMessage(DOPOSoccerException.SURVIVAL_ONLY_PVM,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "SURVIVAL", 0));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Argentina", "SURVIVAL", 0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.SURVIVAL_ONLY_PVM, e.getMessage());
+        }
     }
 
     // tournament
@@ -346,7 +443,7 @@ public class DOPOSoccerTest {
         game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "GOALS", 3);
         List<String> teams = game.getTournamentTeams();
         assertEquals(8, teams.size());
-        assertEquals(8, teams.stream().distinct().count());
+        assertEquals(8, new HashSet<String>(teams).size()); // no team is repeated
         assertEquals("Colombia", teams.get(0));
         assertEquals("CUARTOS", game.getTournamentRound());
         assertEquals("PVM", game.getModality());
@@ -355,28 +452,51 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldNotPlayATournamentInSurvival() {
-        assertMessage(DOPOSoccerException.INVALID_TOURNAMENT_TYPE,
-                () -> game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "SURVIVAL", 0));
+        try {
+            game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "Colombia", "Colombia", "SURVIVAL", 0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_TOURNAMENT_TYPE, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotPlayATournamentWithALockedCharacter() {
-        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
-                () -> game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "España", "España", "GOALS", 3));
+        try {
+            game.newGame("PVM", "CLUMSY", "MEDIUM", "TOURNAMENT", "España", "España", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.CHARACTER_LOCKED, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotGoToTheNextMatchInArcade() throws DOPOSoccerException {
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.nextMatch());
+        try {
+            game.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
         newGoalsGame(3);
         game.endGame();
-        assertMessage(DOPOSoccerException.INVALID_STATE, () -> game.nextMatch());
+        try {
+            game.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAskForTheTournamentInArcade() throws DOPOSoccerException {
         newGoalsGame(3);
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getTournamentTeams());
+        try {
+            game.getTournamentTeams();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
     }
 
     private void newTournament() throws DOPOSoccerException {
@@ -397,7 +517,12 @@ public class DOPOSoccerTest {
     @Test
     public void shouldNotGoToTheNextRoundBeforeTheMatchEnds() throws DOPOSoccerException {
         newTournament();
-        assertMessage(DOPOSoccerException.INVALID_STATE, () -> game.nextMatch());
+        try {
+            game.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        }
     }
 
     @Test
@@ -407,7 +532,12 @@ public class DOPOSoccerTest {
         assertTrue(game.isModeOver());
         assertFalse(game.isTournamentChampion());
         assertEquals(0, game.getPointsEarned("LEFT"));
-        assertMessage(DOPOSoccerException.GAME_OVER, () -> game.nextMatch());
+        try {
+            game.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_OVER, e.getMessage());
+        }
     }
 
     @Test
@@ -415,7 +545,12 @@ public class DOPOSoccerTest {
         newTournament();
         newGoalsGame(3);
         assertEquals("ARCADE", game.getMode());
-        assertMessage(DOPOSoccerException.GAME_NOT_STARTED, () -> game.getTournamentTeams());
+        try {
+            game.getTournamentTeams();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+        }
     }
 
     // player vs machine
@@ -429,8 +564,12 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldNotAcceptAnUnknownMachineProfile() {
-        assertMessage(DOPOSoccerException.UNKNOWN_AI_PROFILE,
-                () -> game.newGame("PVM", "GENIUS", "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3));
+        try {
+            game.newGame("PVM", "GENIUS", "MEDIUM", "ARCADE", "Colombia", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_AI_PROFILE, e.getMessage());
+        }
     }
 
     @Test
@@ -453,29 +592,67 @@ public class DOPOSoccerTest {
 
     @Test
     public void shouldNotBuyWithoutPoints() {
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.buyCharacter("LEFT", "España"));
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.buyBall("LEFT", "Dorado"));
-        assertMessage(DOPOSoccerException.NOT_ENOUGH_POINTS, () -> game.upgrade("LEFT", "SPEED"));
+        try {
+            game.buyCharacter("LEFT", "España");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
+        try {
+            game.buyBall("LEFT", "Dorado");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
+        try {
+            game.upgrade("LEFT", "SPEED");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.NOT_ENOUGH_POINTS, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotBuyWhatIsAlreadyOwned() {
-        assertMessage(DOPOSoccerException.ALREADY_OWNED, () -> game.buyCharacter("LEFT", "Colombia"));
-        assertMessage(DOPOSoccerException.ALREADY_OWNED, () -> game.buyBall("LEFT", "Tricolor"));
+        try {
+            game.buyCharacter("LEFT", "Colombia");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.ALREADY_OWNED, e.getMessage());
+        }
+        try {
+            game.buyBall("LEFT", "Tricolor");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.ALREADY_OWNED, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotPlayWithALockedCharacter() {
-        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "España", "Argentina", "GOALS", 3));
-        assertMessage(DOPOSoccerException.CHARACTER_LOCKED,
-                () -> game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Japón", "GOALS", 3));
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "España", "Argentina", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.CHARACTER_LOCKED, e.getMessage());
+        }
+        try {
+            game.newGame("PVP", null, "MEDIUM", "ARCADE", "Colombia", "Japón", "GOALS", 3);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.CHARACTER_LOCKED, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotSelectALockedBall() throws DOPOSoccerException {
         assertFalse(game.isBallUnlocked("LEFT", "Dorado"));
         assertTrue(game.isBallUnlocked("LEFT", "Tricolor"));
-        assertMessage(DOPOSoccerException.BALL_LOCKED, () -> game.selectBall("LEFT", "Dorado"));
+        try {
+            game.selectBall("LEFT", "Dorado");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.BALL_LOCKED, e.getMessage());
+        }
     }
 }

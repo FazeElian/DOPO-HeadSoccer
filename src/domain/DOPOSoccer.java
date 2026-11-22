@@ -8,9 +8,10 @@ import java.util.Random;
 
 /**
  * Facade of the domain: the only class the interface talks to (Facade pattern).
- * Arcade works player vs player and player vs machine, by time or by goals, and the store
- * (points, characters, balls and stats) works while the game is open.
- * Every other option of the design throws a {@link DOPOSoccerException} with
+ * Arcade works player vs player and player vs machine, by time, by goals or in survival (only
+ * against the machine); the tournament (8 teams against the machine) works by time or by goals;
+ * and the store (points, characters, balls and stats) works while the game is open.
+ * Saving and loading (progress and games) throws a {@link DOPOSoccerException} with
  * {@link DOPOSoccerException#UNDER_CONSTRUCTION}, which the interface catches and shows.
  * The public methods keep the signatures of the full version.
  *
@@ -82,7 +83,7 @@ public class DOPOSoccer {
     /**
      * Validates the choices and prepares the game. Arcade is played player vs player or against
      * the machine; the tournament is played against the machine, with 7 rivals drawn at random.
-     * Both are played by time or by goals; survival is under construction.
+     * Both are played by time or by goals; survival is played only in Arcade against the machine.
      *
      * @param modality       "PVP" or "PVM"
      * @param aiProfile      "CLUMSY", "OFFENSIVE", "DEFENSIVE" or "EXPERT"; not used in player vs player
@@ -90,11 +91,11 @@ public class DOPOSoccer {
      * @param modeName       "ARCADE" or "TOURNAMENT"
      * @param leftCharacter  country of the left player
      * @param rightCharacter country of the right player (not used in the tournament)
-     * @param matchType      "TIME" or "GOALS" ("SURVIVAL" is under construction)
-     * @param amount         minutes of the match or goals to win
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER,
-     *                             CHARACTER_LOCKED, UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION,
-     *                             INVALID_MINUTES, INVALID_GOAL_TARGET or INVALID_TOURNAMENT_TYPE
+     * @param matchType      "TIME", "GOALS" or "SURVIVAL"
+     * @param amount         minutes of the match or goals to win (not used in survival)
+     * @throws DOPOSoccerException UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER, CHARACTER_LOCKED,
+     *                             UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION, INVALID_MINUTES,
+     *                             INVALID_GOAL_TARGET, INVALID_TOURNAMENT_TYPE or SURVIVAL_ONLY_PVM
      */
     public void newGame(String modality, String aiProfile, String resolution, String modeName,
                         String leftCharacter, String rightCharacter, String matchType, int amount)
@@ -107,7 +108,6 @@ public class DOPOSoccer {
         if (!isTournament && !"ARCADE".equals(modeName)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);
         }
-        // Checked before createType, which throws UNDER_CONSTRUCTION for survival
         if (isTournament && "SURVIVAL".equals(matchType)) {
             throw new DOPOSoccerException(DOPOSoccerException.INVALID_TOURNAMENT_TYPE);
         }
@@ -127,24 +127,25 @@ public class DOPOSoccer {
         MatchType type = createType(matchType, amount);
 
         GameMode newMode;
+        TournamentMode newTournament = null;
         if (isTournament) {
             // Always against the machine: the 7 rivals are the other teams
             List<GameCharacter> others = new ArrayList<>(characters.values());
             others.remove(left);
-            tournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),
+            newTournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),
                     new Stats(), createAI(aiProfile), type, resolution, ball, others, new Random());
-            newMode = tournament;
+            newMode = newTournament;
             this.modality = "PVM";
         } else {
             PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
             Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
-            tournament = null;
             newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
                     right, rivalStats, rival, type, resolution, ball);
             this.modality = modality;
         }
         newMode.start();
         mode = newMode;
+        tournament = newTournament;
         paused = false;
         pointsGiven = false;
         lastPoints[0] = 0;
@@ -237,9 +238,10 @@ public class DOPOSoccer {
     }
 
     /**
-     * Goes to the next match of the mode: in the tournament, the next round. The new match gives points again.
+     * Goes to the next match of the mode: in the tournament, the next round; in survival, the next
+     * match of the series. The new match gives points again.
      *
-     * @throws DOPOSoccerException GAME_NOT_STARTED; INVALID_STATE in Arcade (it has only one match)
+     * @throws DOPOSoccerException GAME_NOT_STARTED; INVALID_STATE in a single Arcade match (by time or by goals)
      *                             or if the current match is not over; GAME_OVER if the mode already ended
      */
     public void nextMatch() throws DOPOSoccerException {
@@ -262,8 +264,9 @@ public class DOPOSoccer {
     }
 
     /**
-     * Tells whether the mode ended. In Arcade it is the same as the match; the tournament ends
-     * when the player loses a match or wins the final.
+     * Tells whether the mode ended. In a single Arcade match it is the same as the match; a survival
+     * series ends when the left player loses a match; the tournament ends when the player loses a
+     * match or wins the final.
      *
      * @return true if it ended
      * @throws DOPOSoccerException GAME_NOT_STARTED
@@ -297,7 +300,7 @@ public class DOPOSoccer {
     /**
      * Returns the name of the mode being played.
      *
-     * @return "ARCADE"
+     * @return "ARCADE" or "TOURNAMENT"
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getMode() throws DOPOSoccerException {
@@ -308,7 +311,7 @@ public class DOPOSoccer {
     /**
      * Returns the current round of the mode.
      *
-     * @return 1 in Arcade
+     * @return 1 in a single Arcade match; 1, 2, 3... in a survival series; 1 to 3 in the tournament
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public int getRound() throws DOPOSoccerException {
@@ -319,7 +322,7 @@ public class DOPOSoccer {
     /**
      * Returns the modality being played.
      *
-     * @return "PVP"
+     * @return "PVP" or "PVM" (the tournament is always "PVM")
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getModality() throws DOPOSoccerException {
@@ -330,7 +333,7 @@ public class DOPOSoccer {
     /**
      * Returns the name of the match type being played.
      *
-     * @return "TIME" or "GOALS"
+     * @return "TIME", "GOALS" or "SURVIVAL"
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getMatchType() throws DOPOSoccerException {
@@ -667,28 +670,31 @@ public class DOPOSoccer {
         return List.of("CLUMSY", "OFFENSIVE", "DEFENSIVE", "EXPERT");
     }
 
-    // under construction
+    // survival and tournament
 
     /**
-     * Returns the balls left in Survival. Under construction.
+     * Returns the balls left of a player in survival. The left player keeps its balls for the
+     * whole series; the rival starts every match with 3.
      *
      * @param side "LEFT" or "RIGHT"
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the balls left, from 0 to 3
+     * @throws DOPOSoccerException UNKNOWN_SIDE, GAME_NOT_STARTED, or INVALID_STATE if the match is not survival
      */
     public int getBalls(String side) throws DOPOSoccerException {
         index(side);
-        return match().getBalls(side);    }
+        return match().getBalls(side);
+    }
 
     /**
      * Returns the tournament being played.
      *
      * @return the tournament
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     private TournamentMode tournament() throws DOPOSoccerException {
-        if(tournament == null) {
-            throw new DOPOSoccerException(DOPOSoccerException.GAME_NOT_STARTED);
+        match();
+        if (tournament == null) {
+            throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE); // a game, but not a tournament
         }
         return tournament;
     }
@@ -711,7 +717,7 @@ public class DOPOSoccer {
      * Returns the 8 teams of the quarterfinals, in bracket order: each 2 consecutive teams play each other.
      *
      * @return the countries of the teams
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List<String> getTournamentTeams() throws DOPOSoccerException {
         return countries(tournament().getTeams(1));
@@ -721,7 +727,7 @@ public class DOPOSoccer {
      * Returns the 4 teams of the semifinal, in bracket order.
      *
      * @return the countries of the teams, empty if the semifinal was not reached yet
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List<String> getTournamentSemifinalists() throws DOPOSoccerException {
         return countries(tournament().getTeams(2));
@@ -731,7 +737,7 @@ public class DOPOSoccer {
      * Returns the 2 teams of the final.
      *
      * @return the countries of the teams, empty if the final was not reached yet
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List<String> getTournamentFinalists() throws DOPOSoccerException {
         return countries(tournament().getTeams(3));
@@ -741,7 +747,7 @@ public class DOPOSoccer {
      * Returns the name of the current round of the tournament.
      *
      * @return "CUARTOS", "SEMIFINAL" or "FINAL"
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public String getTournamentRound() throws DOPOSoccerException {
         return tournament().getRoundName();
@@ -760,7 +766,7 @@ public class DOPOSoccer {
      * Returns the rival of the player in the current round.
      *
      * @return the country of the rival
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public String getTournamentRival() throws DOPOSoccerException {
         return tournament().getRival().getCountry();
@@ -770,7 +776,7 @@ public class DOPOSoccer {
      * Tells whether the player won the tournament.
      *
      * @return true if the player won the final
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public boolean isTournamentChampion() throws DOPOSoccerException {
         return tournament().isChampion();
@@ -780,7 +786,7 @@ public class DOPOSoccer {
      * Returns how many matches of the tournament the player won.
      *
      * @return wins of the player, from 0 to 3
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public int getTournamentWins() throws DOPOSoccerException {
         return tournament().getWins();
@@ -1046,9 +1052,10 @@ public class DOPOSoccer {
         if ("PVP".equals(modality)) {
             profiles[1].addPoints(lastPoints[1]); // the machine has no wallet
         }
-        if (tournament != null && tournament.isChampion()) {
-            lastPoints[0] += TournamentMode.PRIZE;
-            profiles[0].addPoints(TournamentMode.PRIZE);
+        if (tournament != null) {
+            int prize = tournament.getPrize();
+            lastPoints[0] += prize;
+            profiles[0].addPoints(prize);
         }
     }
 
@@ -1078,10 +1085,10 @@ public class DOPOSoccer {
     /**
      * Creates the rule of the match.
      *
-     * @param matchType "TIME" or "GOALS" ("SURVIVAL" is under construction)
-     * @param amount    minutes or goals
+     * @param matchType "TIME", "GOALS" or "SURVIVAL"
+     * @param amount    minutes or goals (not used in survival)
      * @return the rule
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MATCH_TYPE, INVALID_MINUTES or INVALID_GOAL_TARGET
+     * @throws DOPOSoccerException UNKNOWN_MATCH_TYPE, INVALID_MINUTES or INVALID_GOAL_TARGET
      */
     private static MatchType createType(String matchType, int amount) throws DOPOSoccerException {
         if ("TIME".equals(matchType)) {
@@ -1091,7 +1098,7 @@ public class DOPOSoccer {
             return new GoalsMatch(amount);
         }
         if ("SURVIVAL".equals(matchType)) {
-            return new SurvivalMatch(); // under construction: it throws
+            return new SurvivalMatch(); // 3 balls for each player
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MATCH_TYPE);
     }

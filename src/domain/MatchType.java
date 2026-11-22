@@ -74,11 +74,11 @@ public abstract class MatchType implements Serializable {
     /**
      * Returns the name of the rule.
      *
-     * @return "TIME" or "GOALS"
+     * @return "TIME", "GOALS" or "SURVIVAL"
      */
     public abstract String getName();
-    
-        /**
+
+    /**
      * Returns the balls left of a player. Only survival has balls.
      *
      * @param side "LEFT" or "RIGHT"

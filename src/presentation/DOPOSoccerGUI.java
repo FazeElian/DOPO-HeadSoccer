@@ -168,9 +168,9 @@ public class DOPOSoccerGUI extends JFrame {
         prepareTournamentRoundController();
 
         // Match Views ("REVANCHA" / "OTRA SERIE" play again; "NUEVO TORNEO" goes to a new tournament)
-        prepareMatchController(arcadeMatchView, this::startGame);
-        prepareMatchController(survivalMatchView, this::startGame);
-        prepareMatchController(tournamentMatchView, this::showNewTournament);
+        prepareMatchController(arcadeMatchView);
+        prepareMatchController(survivalMatchView);
+        prepareMatchController(tournamentMatchView);
 
         // Key movement
         prepareKeysController();
@@ -487,7 +487,6 @@ public class DOPOSoccerGUI extends JFrame {
                 boolean byTime = newTournamentView.isByTime();
                 game.selectBall("LEFT", toDomainBall(tournamentBallView.getSelectedBall()));
                 game.newGame("PVM", toDomainProfile("EXPERTA"),
-                // game.newGame("PVM", toDomainProfile(selectArcadeModeView.getAIProfile()),
                     toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), "TOURNAMENT",
                     team, team, byTime ? "TIME" : "GOALS",
                     byTime ? newTournamentView.getMinutes() : newTournamentView.getGoalTarget());
@@ -585,9 +584,8 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeBallView.continueBtn.addActionListener(e -> startGame());
     }
 
-    // Pause menu and result card of a match view (arcade, survival or tournament);
-    // again: what the first button of the result card does
-    private void prepareMatchController(MatchView view, Runnable again) {
+    // Pause menu and result card of a match view (arcade, survival or tournament)
+    private void prepareMatchController(MatchView view) {
         // Pause: stops the game loop and the domain, and shows the pause card over the match (window glass pane)
         view.pauseBtn.addActionListener(e -> {
             try {
@@ -640,8 +638,10 @@ public class DOPOSoccerGUI extends JFrame {
             getGlassPane().setVisible(false);
             if (view == tournamentMatchView) {
                 sounds.startMusic("music");
+                showNewTournament();
+            } else {
+                startGame();
             }
-            again.run();
         });
 
         view.menuBtn.addActionListener(e -> {

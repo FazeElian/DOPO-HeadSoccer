@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Log.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Log.java</span></div><h1>Log.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+/**
+ * Registry of the unexpected errors of the game. Each error is added at the end of the
+ * file {@value #NAME}.log (next to the project), with the date, the class and the stack trace,
+ * so the user only sees a short message and the developers can read what happened.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public final class Log {
+
+    /** Name of the logger and of the file. */
+    public static final String NAME = &quot;DOPOSoccer&quot;;
+
+    private Log() {
+    }
+
+    /**
+     * Writes an unexpected error at the end of the log file. If the file can't be written,
+     * the error goes to the console, so it is never lost.
+     *
+     * @param e the error
+     */
+    public static void record(Throwable e) {
+<span class="nc" id="L33">        Logger logger = Logger.getLogger(NAME);</span>
+<span class="nc" id="L34">        logger.setUseParentHandlers(false); // only to the file, not to the console</span>
+<span class="nc" id="L35">        FileHandler file = null;</span>
+        try {
+<span class="nc" id="L37">            file = new FileHandler(NAME + &quot;.log&quot;, true); // true: keep the old errors</span>
+<span class="nc" id="L38">            file.setFormatter(new SimpleFormatter());</span>
+<span class="nc" id="L39">            logger.addHandler(file);</span>
+<span class="nc" id="L40">            logger.log(Level.SEVERE, e.toString(), e);</span>
+<span class="nc" id="L41">        } catch (IOException | SecurityException ioe) {</span>
+<span class="nc" id="L42">            e.printStackTrace();</span>
+        } finally {
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            if (file != null) {</span>
+<span class="nc" id="L45">                logger.removeHandler(file);</span>
+<span class="nc" id="L46">                file.close();</span>
+            }
+        }
+<span class="nc" id="L49">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

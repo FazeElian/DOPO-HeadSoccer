@@ -107,7 +107,6 @@ public abstract class GameMode implements Serializable {
      * @return true if no more matches will be played
      */
     public abstract boolean isOver();
-
     /**
      * Returns the current match.
      *

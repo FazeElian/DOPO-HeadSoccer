@@ -144,6 +144,10 @@ public class TournamentMode extends GameMode {
         for (BracketMatch b : bracket) {
             if (b.includes(leftCharacter) && b.getWinner() == leftCharacter) wins++;
         }
+
+        if (isChampion()) {
+            wins++;
+        }
         return wins;
     }
 
@@ -234,12 +238,12 @@ public class TournamentMode extends GameMode {
     }
 
     /**
-     * Returns the points the champion wins.
+     * Returns the extra points the player wins in this tournament: the prize, only for the champion.
      *
-     * @return {@link #PRIZE}
+     * @return {@link #PRIZE} if the player is the champion, 0 if not
      */
     public int getPrize() {
-        return PRIZE;
+        return isChampion() ? PRIZE : 0;
     }
 
     /**

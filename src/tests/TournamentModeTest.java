@@ -51,11 +51,12 @@ public class TournamentModeTest {
 
     @Test
     public void shouldNeedSevenRivals() {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class,
-                () -> new TournamentMode(PLAYER, new Stats(), new HumanController(), new Stats(),
-                        new HumanController(), new GoalsMatch(1), "MEDIUM", new BallSkin("Clásico", 0), rivals(6),
-                        new Random(42)));
-        assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        try {
+            new TournamentMode(PLAYER, new Stats(), new HumanController(), new Stats(), new HumanController(), new GoalsMatch(1), "MEDIUM", new BallSkin("Clásico", 0), rivals(6), new Random(42));
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        }
     }
 
     @Test
@@ -75,8 +76,12 @@ public class TournamentModeTest {
     @Test
     public void shouldNotGoOnBeforeTheMatchEnds() throws DOPOSoccerException {
         TournamentMode t = newTournament();
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, t::nextMatch);
-        assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        try {
+            t.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        }
     }
 
     @Test
@@ -104,8 +109,14 @@ public class TournamentModeTest {
         lose(t);
         assertTrue(t.isOver());
         assertFalse(t.isChampion());
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, t::nextMatch);
-        assertEquals(DOPOSoccerException.GAME_OVER, e.getMessage());
+        assertEquals(0, t.getPrize());
+        assertEquals(0, t.getWins());
+        try {
+            t.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.GAME_OVER, e.getMessage());
+        }
     }
 
     @Test
@@ -125,6 +136,7 @@ public class TournamentModeTest {
         assertTrue(t.isOver());
         assertTrue(t.isChampion());
         assertEquals(TournamentMode.PRIZE, t.getPrize());
+        assertEquals(3, t.getWins());
     }
 
     @Test

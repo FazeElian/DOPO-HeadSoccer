@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PhysicsEngine.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">PhysicsEngine.java</span></div><h1>PhysicsEngine.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.dyn4j.collision.CategoryFilter;
+import org.dyn4j.dynamics.Body;
+import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.contact.Contact;
+import org.dyn4j.geometry.Convex;
+import org.dyn4j.geometry.Geometry;
+import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.ContactCollisionData;
+import org.dyn4j.world.World;
+import org.dyn4j.world.listener.ContactListenerAdapter;
+
+/**
+ * Adapter of the physics library dyn4j (Adapter pattern). It is the only class that imports it:
+ * the rest of the domain works in pixels with {@link Entity}, and this class copies the entities
+ * to bodies of the library, advances the world and copies the result back.
+ * Each entity asks for its own kind of body ({@link Entity#addTo}), so no type checks are needed.
+ * The ground, the walls, the ceiling and the crossbars are static bodies.
+ * The library is not serializable, so its world is rebuilt after opening a saved game.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class PhysicsEngine implements Serializable {
+
+    /** Pixels in one meter of the library. */
+    public static final double PIXELS_PER_METER = 100;
+    /** Gravity, in meters per second squared (y grows downwards, as on the screen). */
+    public static final double GRAVITY = 9.8;
+
+    /** Collision category of the field. */
+    private static final long STATIC = 1;
+    /** Collision category of the players. */
+    private static final long PLAYER = 2;
+    /** Collision category of the real ball. */
+    private static final long BALL = 4;
+    /** Collision category of the fake balls. */
+    private static final long FAKE = 8;
+    /** Collision category of the goal areas: they stop the players, but the balls go in. */
+    private static final long GOAL_AREA = 16;
+    /** Thickness of the walls, the ground and the ceiling, in pixels. */
+    private static final double WALL = 200;
+    /** Height of the crossbar on the wall side, in pixels; on the post side it is 0 (a triangle). */
+    private static final double CROSSBAR_HEIGHT = 25;
+
+    /** Field whose limits become static bodies. */
+    private final Stadium stadium;
+    /** World of the library; rebuilt after opening a game. */
+    private World&lt;Body&gt; world;
+    /** Body of each entity on the field. */
+    private Map&lt;Entity, Body&gt; bodies;
+    /** Player of each player body, to report touches and the ground. */
+    private Map&lt;Body, Player&gt; players;
+    /** Body of the real ball. */
+    private Body ballBody;
+    /** Bodies of the walls, the ceiling and the crossbars: they end a power shot. */
+    private Set&lt;Body&gt; borders;
+    /** Pairs of bodies that started touching in the last step. */
+    private LinkedHashSet&lt;List&lt;Body&gt;&gt; contacts;
+
+    /** Bodies of the crossbars, to tell the presentation the ball hit the post. */
+    private Set&lt;Body&gt; crossbars;
+
+    /**
+     * Creates the adapter for a field. The world of the library is built on the first step.
+     *
+     * @param stadium the field of the match
+     */
+<span class="fc" id="L82">    public PhysicsEngine(Stadium stadium) {</span>
+<span class="fc" id="L83">        this.stadium = stadium;</span>
+<span class="fc" id="L84">    }</span>
+
+    /**
+     * Advances the physics dt seconds: sends the entities to the library, steps its world,
+     * copies positions and velocities back and reports the touches to the match.
+     *
+     * @param match the match being played
+     * @param dt    elapsed time, in seconds
+     */
+    public void step(Match match, double dt) {
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (world == null) {</span>
+<span class="fc" id="L95">            createWorld();</span>
+        }
+<span class="fc" id="L97">        syncToBodies(match);</span>
+<span class="fc" id="L98">        contacts.clear();</span>
+<span class="fc" id="L99">        world.step(1, dt);</span>
+<span class="fc" id="L100">        syncFromBodies();</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        for (List&lt;Body&gt; pair : new ArrayList&lt;&gt;(contacts)) {</span>
+<span class="fc" id="L102">            onContact(pair.get(0), pair.get(1), match);</span>
+<span class="fc" id="L103">        }</span>
+<span class="fc" id="L104">    }</span>
+
+    /**
+     * Creates the body of a player: a box that does not rotate and collides with the field,
+     * the other player and the real ball. {@link Player#addTo} calls it.
+     *
+     * @param p the player
+     */
+    void addPlayer(Player p) {
+<span class="fc" id="L113">        CategoryFilter filter = new CategoryFilter(PLAYER, STATIC | PLAYER | BALL | GOAL_AREA);</span>
+
+<span class="fc" id="L115">        Body body = new Body();</span>
+        // To create a circle we set a radius centered in the body
+<span class="fc" id="L117">        Convex head = Geometry.createCircle(33 / PIXELS_PER_METER);</span>
+        
+        // The head is on the center of the body (x = 0) and is elevated 8px
+<span class="fc" id="L120">        head.translate(0, -8 / PIXELS_PER_METER);</span>
+
+        // With add fixture we add physics properties to a shape
+        // 1.0 -&gt; density (allow to calculate the mass)
+        // 0.0 -&gt; friction (so the player doesn't stick to the walls or to the other player)
+        // 0.0 -&gt; restitution (how much it bounces)
+<span class="fc" id="L126">        body.addFixture(head, 1.0, 0.0, 0.0).setFilter(filter);</span>
+
+        // To create the feet we create a capsule (a rectangle with rounded edges) of 45 x 20 px,
+        // 35px below the center and moved 7px towards the side the player faces
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        double foot = &quot;LEFT&quot;.equals(p.getSide()) ? 7 : -7;</span>
+<span class="fc" id="L131">        Convex feet = Geometry.createCapsule(45 / PIXELS_PER_METER, 20 / PIXELS_PER_METER);</span>
+<span class="fc" id="L132">        feet.translate(foot / PIXELS_PER_METER, 35 / PIXELS_PER_METER);</span>
+<span class="fc" id="L133">        body.addFixture(feet, 1.0, 0.0, 0.0).setFilter(filter);</span>
+
+<span class="fc" id="L135">        body.setMass(MassType.FIXED_ANGULAR_VELOCITY);</span>
+<span class="fc" id="L136">        register(p, body);</span>
+<span class="fc" id="L137">        players.put(body, p);</span>
+<span class="fc" id="L138">    }</span>
+
+    /**
+     * Creates the body of the real ball: a bouncing circle that collides with the field and the players.
+     * {@link Ball#addTo} calls it.
+     *
+     * @param b the real ball
+     */
+    void addBall(Ball b) {
+<span class="fc" id="L147">        ballBody = circle(b, BALL, STATIC | PLAYER);</span>
+<span class="fc" id="L148">    }</span>
+
+    /**
+     * Creates the body of a fake ball: a bouncing circle that only collides with the field,
+     * so it goes through the players. {@link FakeBall#addTo} calls it.
+     *
+     * @param f the fake ball
+     */
+    void addFakeBall(FakeBall f) {
+<span class="nc" id="L157">        circle(f, FAKE, STATIC);</span>
+<span class="nc" id="L158">    }</span>
+
+    /**
+     * Creates the world, its gravity, the static bodies of the field and the contact listener.
+     */
+    private void createWorld() {
+<span class="fc" id="L164">        world = new World&lt;&gt;();</span>
+<span class="fc" id="L165">        world.setGravity(0, GRAVITY);</span>
+<span class="fc" id="L166">        world.getSettings().setAtRestDetectionEnabled(false);</span>
+<span class="fc" id="L167">        bodies = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L168">        players = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L169">        borders = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L170">        crossbars = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L171">        contacts = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L172">        ballBody = null;</span>
+<span class="fc" id="L173">        double w = stadium.getWidth();</span>
+<span class="fc" id="L174">        double h = stadium.getHeight();</span>
+<span class="fc" id="L175">        addStatic(-WALL, stadium.getGroundY(), w + 2 * WALL, WALL);</span>
+<span class="fc" id="L176">        borders.add(addStatic(-WALL, -WALL, WALL, h + 2 * WALL));</span>
+<span class="fc" id="L177">        borders.add(addStatic(w, -WALL, WALL, h + 2 * WALL));</span>
+<span class="fc" id="L178">        borders.add(addStatic(-WALL, -WALL, w + 2 * WALL, WALL));</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        for (String side : new String[]{&quot;LEFT&quot;, &quot;RIGHT&quot;}) {</span>
+<span class="fc" id="L180">            Goal goal = stadium.getGoal(side);</span>
+            // Body bar = addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10);
+<span class="fc" id="L182">            Body bar = addCrossbar(goal, side);</span>
+
+<span class="fc" id="L184">            borders.add(bar);   // it ends a power shot</span>
+<span class="fc" id="L185">            crossbars.add(bar); // and it is the post, for the sound</span>
+<span class="fc" id="L186">            addGoalArea(goal); // the players can't walk into the goal</span>
+        }
+<span class="fc" id="L188">        world.addContactListener(new ContactListenerAdapter&lt;Body&gt;() {</span>
+            @Override
+            public void begin(ContactCollisionData&lt;Body&gt; collision, Contact contact) {
+<span class="fc" id="L191">                contacts.add(List.of(collision.getBody1(), collision.getBody2()));</span>
+<span class="fc" id="L192">            }</span>
+        });
+<span class="fc" id="L194">    }</span>
+
+    /**
+    * Adds the crossbar of a goal: a still triangle over the goal mouth, high on the wall side and
+    * thin on the post side, so a ball that falls on top rolls back to the field.
+    *
+    * @param goal the goal
+    * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+    * @return the new body
+    */
+    private Body addCrossbar(Goal goal, String side) {
+<span class="fc" id="L205">        double bottom = goal.getY();   // arriba de la boca del arco</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        double wallX = &quot;LEFT&quot;.equals(side) ? goal.getX() : goal.getX() + goal.getWidth();</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        double postX = &quot;LEFT&quot;.equals(side) ? goal.getX() + goal.getWidth() : goal.getX();</span>
+
+<span class="fc" id="L209">        Vector2[] points = Geometry.cleanse(</span>
+            new Vector2(wallX / PIXELS_PER_METER, (bottom - CROSSBAR_HEIGHT) / PIXELS_PER_METER),
+            new Vector2(wallX / PIXELS_PER_METER, bottom / PIXELS_PER_METER),
+            new Vector2(postX / PIXELS_PER_METER, bottom / PIXELS_PER_METER)
+        );
+<span class="fc" id="L214">        Convex bar = Geometry.createTriangle(points[0], points[1], points[2]);</span>
+
+<span class="fc" id="L216">        Body body = new Body();</span>
+<span class="fc" id="L217">        BodyFixture fixture = body.addFixture(bar);</span>
+<span class="fc" id="L218">        fixture.setFriction(0.5);</span>
+<span class="fc" id="L219">        fixture.setFilter(new CategoryFilter(STATIC, PLAYER | BALL | FAKE));</span>
+<span class="fc" id="L220">        body.setMass(MassType.INFINITE);</span>
+<span class="fc" id="L221">        world.addBody(body);</span>
+<span class="fc" id="L222">        return body;</span>
+    }
+
+    /**
+     * Adds a still rectangle to the world.
+     *
+     * @param x      left edge, in pixels
+     * @param y      top edge, in pixels
+     * @param width  width, in pixels
+     * @param height height, in pixels
+     * @return the new body
+     */
+    private Body addStatic(double x, double y, double width, double height) {
+<span class="fc" id="L235">        Body body = new Body();</span>
+<span class="fc" id="L236">        BodyFixture fixture = body.addFixture(Geometry.createRectangle(width / PIXELS_PER_METER, height / PIXELS_PER_METER));</span>
+<span class="fc" id="L237">        fixture.setFriction(0.6);</span>
+<span class="fc" id="L238">        fixture.setFilter(new CategoryFilter(STATIC, PLAYER | BALL | FAKE));</span>
+<span class="fc" id="L239">        body.translate((x + width / 2) / PIXELS_PER_METER, (y + height / 2) / PIXELS_PER_METER);</span>
+<span class="fc" id="L240">        body.setMass(MassType.INFINITE);</span>
+<span class="fc" id="L241">        world.addBody(body);</span>
+<span class="fc" id="L242">        return body;</span>
+    }
+
+    /**
+     * Adds a still box over a goal area that only the players hit, so they can't walk into the goal;
+     * the balls go through it and can score. It is not a border: it doesn't end a power shot.
+     *
+     * @param goal the goal
+     */
+    private void addGoalArea(Goal goal) {
+<span class="fc" id="L252">        Body body = new Body();</span>
+<span class="fc" id="L253">        BodyFixture fixture = body.addFixture(Geometry.createRectangle(</span>
+<span class="fc" id="L254">                goal.getWidth() / PIXELS_PER_METER, goal.getHeight() / PIXELS_PER_METER));</span>
+<span class="fc" id="L255">        fixture.setFriction(0); // the player slides down its front instead of sticking to it</span>
+<span class="fc" id="L256">        fixture.setFilter(new CategoryFilter(GOAL_AREA, PLAYER));</span>
+<span class="fc" id="L257">        body.translate((goal.getX() + goal.getWidth() / 2) / PIXELS_PER_METER,</span>
+<span class="fc" id="L258">                (goal.getY() + goal.getHeight() / 2) / PIXELS_PER_METER);</span>
+<span class="fc" id="L259">        body.setMass(MassType.INFINITE);</span>
+<span class="fc" id="L260">        world.addBody(body);</span>
+<span class="fc" id="L261">    }</span>
+
+    /**
+     * Creates and registers a bouncing circle for a ball.
+     *
+     * @param e        the ball, real or fake
+     * @param category its collision category
+     * @param mask     the categories it collides with
+     * @return the new body
+     */
+    private Body circle(Entity e, long category, long mask) {
+<span class="fc" id="L272">        Body body = new Body();</span>
+<span class="fc" id="L273">        BodyFixture fixture = body.addFixture(Geometry.createCircle(e.getWidth() / 2 / PIXELS_PER_METER), 0.5, 0.3, Ball.RESTITUTION);</span>
+<span class="fc" id="L274">        fixture.setFilter(new CategoryFilter(category, mask));</span>
+<span class="fc" id="L275">        body.setMass(MassType.NORMAL);</span>
+<span class="fc" id="L276">        body.setBullet(true);</span>
+<span class="fc" id="L277">        body.setLinearDamping(0.05);</span>
+<span class="fc" id="L278">        register(e, body);</span>
+<span class="fc" id="L279">        return body;</span>
+    }
+
+    /**
+     * Keeps the body of an entity and adds it to the world.
+     *
+     * @param e    the entity
+     * @param body its body
+     */
+    private void register(Entity e, Body body) {
+<span class="fc" id="L289">        bodies.put(e, body);</span>
+<span class="fc" id="L290">        world.addBody(body);</span>
+<span class="fc" id="L291">    }</span>
+
+    /**
+     * Sends the entities to the library: creates the bodies that are missing, removes the ones whose entity
+     * left the field (fake balls) and copies positions, velocities and gravity, which the domain may have
+     * changed (running, jumping, kicks, kick-off, straight power shots).
+     *
+     * @param match the match being played
+     */
+    private void syncToBodies(Match match) {
+<span class="fc" id="L301">        List&lt;Entity&gt; entities = entitiesOf(match);</span>
+<span class="fc" id="L302">        Iterator&lt;Map.Entry&lt;Entity, Body&gt;&gt; it = bodies.entrySet().iterator();</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">        while (it.hasNext()) {</span>
+<span class="fc" id="L304">            Map.Entry&lt;Entity, Body&gt; entry = it.next();</span>
+<span class="pc bpc" id="L305" title="1 of 2 branches missed.">            if (!entities.contains(entry.getKey())) {</span>
+<span class="nc" id="L306">                world.removeBody(entry.getValue());</span>
+<span class="nc" id="L307">                it.remove();</span>
+            }
+<span class="fc" id="L309">        }</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        for (Entity e : entities) {</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">            if (!bodies.containsKey(e)) {</span>
+<span class="fc" id="L312">                e.addTo(this);</span>
+            }
+<span class="fc" id="L314">            Body body = bodies.get(e);</span>
+<span class="fc" id="L315">            body.getTransform().setTranslation(centerX(e) / PIXELS_PER_METER, centerY(e) / PIXELS_PER_METER);</span>
+<span class="fc" id="L316">            body.setLinearVelocity(e.getVx() / PIXELS_PER_METER, e.getVy() / PIXELS_PER_METER);</span>
+<span class="fc" id="L317">            body.setGravityScale(e.getGravityScale());</span>
+<span class="fc" id="L318">        }</span>
+<span class="fc" id="L319">    }</span>
+
+    /**
+     * Copies positions and velocities from the library to the entities and tells the players
+     * whether they stand on the ground.
+     */
+    private void syncFromBodies() {
+<span class="fc bfc" id="L326" title="All 2 branches covered.">        for (Map.Entry&lt;Entity, Body&gt; entry : bodies.entrySet()) {</span>
+<span class="fc" id="L327">            Entity e = entry.getKey();</span>
+<span class="fc" id="L328">            Vector2 center = entry.getValue().getTransform().getTranslation();</span>
+<span class="fc" id="L329">            Vector2 velocity = entry.getValue().getLinearVelocity();</span>
+<span class="fc" id="L330">            e.setPosition(center.x * PIXELS_PER_METER - e.getWidth() / 2, center.y * PIXELS_PER_METER - e.getHeight() / 2);</span>
+<span class="fc" id="L331">            e.setVelocity(velocity.x * PIXELS_PER_METER, velocity.y * PIXELS_PER_METER);</span>
+<span class="fc" id="L332">        }</span>
+<span class="fc bfc" id="L333" title="All 2 branches covered.">        for (Player p : players.values()) {</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">            p.setOnGround(p.getY() + p.getHeight() &gt;= stadium.getGroundY() - 2);</span>
+<span class="fc" id="L335">        }</span>
+<span class="fc" id="L336">    }</span>
+
+    /**
+     * Reports a touch found by the library: when the real ball touches a player, the match decides
+     * whether a power shot comes out or hits; when it hits a wall, the ceiling or a crossbar, the shot is over.
+     * Other touches (players on the ground, fake balls) do not matter to the rules.
+     *
+     * @param a     one body of the touch
+     * @param b     the other body
+     * @param match the match being played
+     */
+    private void onContact(Body a, Body b, Match match) {
+<span class="fc bfc" id="L348" title="All 4 branches covered.">        Body other = a == ballBody ? b : b == ballBody ? a : null;</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">        if (other == null) {</span>
+<span class="fc" id="L350">            return;</span>
+        }
+<span class="fc" id="L352">        Player p = players.get(other);</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">        if (p != null) {</span>
+<span class="fc" id="L354">            match.onBallTouch(p);</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">        } else if (borders.contains(other)) {</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">            if (crossbars.contains(other)) match.addEvent(&quot;POST&quot;);</span>
+<span class="fc" id="L357">            match.onBallHitsBorder();</span>
+        }
+<span class="fc" id="L359">    }</span>
+
+    /**
+     * Returns the entities that must have a body: the two players, the ball and the fake balls.
+     *
+     * @param match the match being played
+     * @return the entities on the field
+     */
+    private static List&lt;Entity&gt; entitiesOf(Match match) {
+<span class="fc" id="L368">        List&lt;Entity&gt; entities = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L369">        entities.add(match.getPlayer(&quot;LEFT&quot;));</span>
+<span class="fc" id="L370">        entities.add(match.getPlayer(&quot;RIGHT&quot;));</span>
+<span class="fc" id="L371">        entities.add(match.getBall());</span>
+<span class="fc" id="L372">        entities.addAll(match.getFakeBalls());</span>
+<span class="fc" id="L373">        return entities;</span>
+    }
+
+    /**
+     * Returns the horizontal center of an entity.
+     *
+     * @param e the entity
+     * @return x of its center, in pixels
+     */
+    private static double centerX(Entity e) {
+<span class="fc" id="L383">        return e.getX() + e.getWidth() / 2;</span>
+    }
+
+    /**
+     * Returns the vertical center of an entity.
+     *
+     * @param e the entity
+     * @return y of its center, in pixels
+     */
+    private static double centerY(Entity e) {
+<span class="fc" id="L393">        return e.getY() + e.getHeight() / 2;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

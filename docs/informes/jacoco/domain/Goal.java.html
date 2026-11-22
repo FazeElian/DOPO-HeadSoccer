@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Goal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Goal.java</span></div><h1>Goal.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+
+/**
+ * Goal area of one side. The posts and the crossbar are static bodies in the physics library;
+ * this class only knows when the ball is inside.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class Goal implements Serializable {
+
+    /** Side that defends the goal. */
+    private final String side;
+    /** Left edge, in pixels. */
+    private final double x;
+    /** Top edge, under the crossbar, in pixels. */
+    private final double y;
+    /** Width, in pixels. */
+    private final double width;
+    /** Height, in pixels. */
+    private final double height;
+
+    /**
+     * Creates a goal area.
+     *
+     * @param side   &quot;LEFT&quot; or &quot;RIGHT&quot;: side that defends it
+     * @param x      left edge, in pixels
+     * @param y      top edge (under the crossbar), in pixels
+     * @param width  width, in pixels
+     * @param height height, in pixels
+     */
+<span class="fc" id="L35">    public Goal(String side, double x, double y, double width, double height) {</span>
+<span class="fc" id="L36">        this.side = side;</span>
+<span class="fc" id="L37">        this.x = x;</span>
+<span class="fc" id="L38">        this.y = y;</span>
+<span class="fc" id="L39">        this.width = width;</span>
+<span class="fc" id="L40">        this.height = height;</span>
+<span class="fc" id="L41">    }</span>
+
+    /**
+     * Tells whether the ball crossed the line: it is under the crossbar
+     * and completely past the front of the goal.
+     *
+     * @param ball the real ball
+     * @return true if it is a goal
+     */
+    public boolean contains(Ball ball) {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (ball.getY() &lt; y) {</span>
+<span class="fc" id="L52">            return false;</span>
+        }
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            return ball.getX() + ball.getWidth() &lt;= x + width;</span>
+        }
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        return ball.getX() &gt;= x;</span>
+    }
+
+    /**
+     * Returns the side that defends this goal.
+     *
+     * @return &quot;LEFT&quot; or &quot;RIGHT&quot;
+     */
+    public String getSide() {
+<span class="nc" id="L66">        return side;</span>
+    }
+
+    /**
+     * Returns the left edge.
+     *
+     * @return left edge, in pixels
+     */
+    public double getX() {
+<span class="fc" id="L75">        return x;</span>
+    }
+
+    /**
+     * Returns the top edge, under the crossbar.
+     *
+     * @return top edge, in pixels
+     */
+    public double getY() {
+<span class="fc" id="L84">        return y;</span>
+    }
+
+    /**
+     * Returns the width.
+     *
+     * @return width, in pixels
+     */
+    public double getWidth() {
+<span class="fc" id="L93">        return width;</span>
+    }
+
+    /**
+     * Returns the height.
+     *
+     * @return height, in pixels
+     */
+    public double getHeight() {
+<span class="fc" id="L102">        return height;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

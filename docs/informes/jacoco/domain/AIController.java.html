@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AIController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">AIController.java</span></div><h1>AIController.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Controller of a player moved by the machine (Template Method): {@link #nextActions} is the fixed
+ * part (it decides again only after its reaction time) and {@link #decide} is what each profile does.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public abstract class AIController implements PlayerController {
+
+    /** Seconds between two decisions. */
+    public static final double REACTION_TIME = 0.2;
+    /** Distance to the ball, in pixels, from which it kicks. */
+    public static final double KICK_DISTANCE = 75;
+    /** How close to a point, in pixels, counts as being there. */
+    private static final double ARRIVAL = 25;
+
+    /** Seconds left until the next decision. */
+    private double cooldown;
+    /** Time of the match in the last tick. */
+    private double lastElapsed;
+    /** Actions of the last decision. */
+    private HashSet&lt;String&gt; lastActions;
+
+    /**
+     * Creates the controller, ready to decide in its first tick.
+     */
+<span class="fc" id="L33">    public AIController() {</span>
+<span class="fc" id="L34">        cooldown = 0;</span>
+<span class="fc" id="L35">        lastElapsed = 0;</span>
+<span class="fc" id="L36">        lastActions = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L37">    }</span>
+
+    @Override
+    public Set&lt;String&gt; nextActions(Player self, Match match) {
+<span class="fc" id="L41">        double now = match.getElapsed();</span>
+<span class="fc" id="L42">        cooldown -= Math.max(0, now - lastElapsed); // a new match starts again in 0</span>
+<span class="fc" id="L43">        lastElapsed = now;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (cooldown &lt;= 0) {</span>
+<span class="fc" id="L45">            lastActions = new HashSet&lt;&gt;(decide(self, match));</span>
+<span class="fc" id="L46">            cooldown = getReactionTime();</span>
+        }
+<span class="fc" id="L48">        return new HashSet&lt;&gt;(lastActions);</span>
+    }
+
+    /**
+     * Decides the actions of this moment. Each profile implements it.
+     *
+     * @param self  the player it controls
+     * @param match the match
+     * @return actions to do
+     */
+    protected abstract Set&lt;String&gt; decide(Player self, Match match);
+
+    /**
+     * Returns the seconds between two decisions.
+     *
+     * @return reaction time, in seconds
+     */
+    protected double getReactionTime() {
+<span class="fc" id="L66">        return REACTION_TIME;</span>
+    }
+
+    /**
+     * Returns the name of the profile.
+     *
+     * @return &quot;CLUMSY&quot;, &quot;OFFENSIVE&quot;, &quot;DEFENSIVE&quot; or &quot;EXPERT&quot;
+     */
+    public abstract String getProfile();
+
+    /**
+     * Moves the player towards a point.
+     *
+     * @param self    the player
+     * @param targetX x to reach with its center
+     * @param actions where the movement is added
+     */
+    protected static void moveTo(Player self, double targetX, Set&lt;String&gt; actions) {
+<span class="fc" id="L84">        double center = self.getX() + self.getWidth() / 2;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (targetX &gt; center + ARRIVAL) {</span>
+<span class="fc" id="L86">            actions.add(&quot;MOVE_RIGHT&quot;);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        } else if (targetX &lt; center - ARRIVAL) {</span>
+<span class="fc" id="L88">            actions.add(&quot;MOVE_LEFT&quot;);</span>
+        }
+<span class="fc" id="L90">    }</span>
+
+    /**
+     * Goes for the ball: gets behind it, kicks when near, jumps when it is above
+     * and turns on its power when the bar is full.
+     *
+     * @param self    the player
+     * @param ball    the real ball
+     * @param actions where the actions are added
+     */
+    protected static void playBall(Player self, Ball ball, Set&lt;String&gt; actions) {
+<span class="fc" id="L101">        double ballCenter = ball.getX() + ball.getWidth() / 2;</span>
+        // Behind the ball: on the side of its own goal, to push it to the rival goal
+<span class="fc" id="L103">        moveTo(self, ballCenter - self.getDirection() * self.getWidth() / 2, actions);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (isBallNear(self, ball, KICK_DISTANCE)) {</span>
+<span class="fc" id="L105">            actions.add(&quot;KICK&quot;);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (self.isPowerReady()) {</span>
+<span class="fc" id="L107">                actions.add(&quot;POWER&quot;);</span>
+            }
+        }
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        boolean above = ball.getY() + ball.getHeight() &lt; self.getY();</span>
+<span class="fc bfc" id="L111" title="All 4 branches covered.">        if (above &amp;&amp; isBallNear(self, ball, 2 * KICK_DISTANCE)) {</span>
+<span class="fc" id="L112">            actions.add(&quot;JUMP&quot;);</span>
+        }
+<span class="fc" id="L114">    }</span>
+
+    /**
+     * Tells whether the ball is near the player.
+     *
+     * @param self     the player
+     * @param ball     the real ball
+     * @param distance distance in pixels, from the edge of the player
+     * @return true if the ball is at that distance or less
+     */
+    protected static boolean isBallNear(Player self, Ball ball, double distance) {
+<span class="fc" id="L125">        double dx = (ball.getX() + ball.getWidth() / 2) - (self.getX() + self.getWidth() / 2);</span>
+<span class="fc" id="L126">        double dy = (ball.getY() + ball.getHeight() / 2) - (self.getY() + self.getHeight() / 2);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        return Math.hypot(dx, dy) &lt;= distance + self.getWidth() / 2;</span>
+    }
+
+    /**
+     * Tells whether the ball is in the half of the player.
+     *
+     * @param self  the player
+     * @param match the match
+     * @return true if the ball is on its side of the field
+     */
+    protected static boolean isBallInOwnHalf(Player self, Match match) {
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        boolean ballOnLeft = match.getBallX() &lt; match.getFieldWidth() / 2;</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        return &quot;LEFT&quot;.equals(self.getSide()) == ballOnLeft;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
