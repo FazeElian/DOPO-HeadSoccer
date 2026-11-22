@@ -90,6 +90,15 @@ public abstract class MatchType implements Serializable {
     }
 
     /**
+     * Returns the goals needed to win. Only the match by goals has a target.
+     *
+     * @return the goal target, or -1 if the rule has none
+     */
+    public int getTarget() {
+        return -1;
+    }
+
+    /**
      * Tells whether a series goes on after a match. By default a match is the whole game.
      *
      * @param winner the winner of the match that ended, or null

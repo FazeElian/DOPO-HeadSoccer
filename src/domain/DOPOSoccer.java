@@ -1,6 +1,12 @@
 package domain;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,16 +16,20 @@ import java.util.Random;
  * Facade of the domain: the only class the interface talks to (Facade pattern).
  * Arcade works player vs player and player vs machine, by time, by goals or in survival (only
  * against the machine); the tournament (8 teams against the machine) works by time or by goals;
- * and the store (points, characters, balls and stats) works while the game is open.
- * Saving and loading (progress and games) throws a {@link DOPOSoccerException} with
- * {@link DOPOSoccerException#UNDER_CONSTRUCTION}, which the interface catches and shows.
+ * and the store (points, characters, balls and stats). The profiles of both players are saved in a
+ * fixed progress file every time they change, and loaded when the game opens. A game being played is
+ * saved whole in a file chosen by the user ({@link #saveGame}) and opened again as a new object
+ * ({@link #openGame}); the profiles and the settings are not part of it.
  * The public methods keep the signatures of the full version.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
  * @version 1.0
  */
-public class DOPOSoccer {
+public class DOPOSoccer implements Serializable {
+
+    /** Version of the saved data, so a saved game of this version can be opened again. */
+    private static final long serialVersionUID = 1L;
 
     /** Points for the winner of a match. */
     public static final int WIN_POINTS = 100;
@@ -27,6 +37,10 @@ public class DOPOSoccer {
     public static final int LOSE_POINTS = 25;
     /** Name of the ball used until another one is chosen. */
     public static final String DEFAULT_BALL = "Clásico";
+    /** Name of the file where the progress is saved, next to the project. */
+    public static final String PROGRESS_FILE = "DOPOSoccer.progress";
+    /** Extension of the files of the saved games ("ds", of DOPO Soccer), without the dot. */
+    public static final String GAME_EXTENSION = "ds";
 
     /** The 8 teams, by country. */
     private final LinkedHashMap<String, GameCharacter> characters;
@@ -44,22 +58,38 @@ public class DOPOSoccer {
     private boolean pointsGiven;
     /** Points earned by each side in the last match. */
     private final int[] lastPoints;
-    /** Profiles of the left and right players: their stats are used in every match. */
-    private final PlayerProfile[] profiles;
-    /** Settings of the game. */
-    private final Settings settings;
+    /**
+     * Profiles of the left and right players: their stats are used in every match. They are not saved
+     * with a game (transient): they live in the progress file, so opening a game never takes them back.
+     */
+    private transient PlayerProfile[] profiles;
+    /** Settings of the game. They are not saved with a game (transient). */
+    private transient Settings settings;
     /** Tournament being played, or null in Arcade. */
     private TournamentMode tournament;
     /** Stadium used until another one is chosen. */
     public static final String DEFAULT_STADIUM = "default";
     /** Stadium of the next matches (the last one chosen). */
     private String stadium = DEFAULT_STADIUM;
+    /** Fixed file where the profiles of both players are saved and loaded. */
+    private final File progressFile;
+
+    /**
+     * Creates the game that saves its progress in {@link #PROGRESS_FILE}.
+     */
+    public DOPOSoccer() {
+        this(new File(PROGRESS_FILE));
+    }
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
      * España and Japón are locked) and the 6 balls of the catalog (Dorado, Fuego, Hielo and Galaxia are locked).
+     * The progress is not loaded here: {@link #loadProgress()} does it.
+     *
+     * @param progressFile file where the progress is saved and loaded
      */
-    public DOPOSoccer() {
+    public DOPOSoccer(File progressFile) {
+        this.progressFile = progressFile;
         characters = new LinkedHashMap<>();
         characters.put("Corea del Sur", new GameCharacter("Corea del Sur", new BlueAuraShot()));
         characters.put("Camerún", new GameCharacter("Camerún", new LightningShot()));
@@ -366,6 +396,16 @@ public class DOPOSoccer {
      */
     public int getTimeLeft() throws DOPOSoccerException {
         return match().getTimeLeft();
+    }
+
+    /**
+     * Returns the goals needed to win a match by goals.
+     *
+     * @return the goal target, or -1 in a match by time or in survival
+     * @throws DOPOSoccerException GAME_NOT_STARTED
+     */
+    public int getGoalTarget() throws DOPOSoccerException {
+        return match().getGoalTarget();
     }
 
     /**
@@ -989,51 +1029,101 @@ public class DOPOSoccer {
     }
 
     /**
-     * Tells whether there is saved progress. Under construction (persistence).
+     * Tells whether there is saved progress.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return true if the progress file exists
      */
-    public boolean hasSavedProgress() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    public boolean hasSavedProgress() {
+        return progressFile.exists();
     }
 
     /**
-     * Saves the progress. Under construction (persistence).
+     * Saves the progress in the progress file, which is always the same (the player doesn't choose it):
+     * the profiles of both players (points, purchases, upgrades and selected ball). The file is
+     * written again every time it is called.
      *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException SAVE_FAILED if the file cannot be written
      */
     public void saveProgress() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        // The file is its own resource, so it is closed even if the object stream cannot be created
+        try (FileOutputStream file = new FileOutputStream(progressFile);
+             ObjectOutputStream out = new ObjectOutputStream(file)) {
+            out.writeObject(profiles);
+        } catch (IOException e) {
+            throw new DOPOSoccerException(DOPOSoccerException.SAVE_FAILED, e);
+        }
     }
 
     /**
-     * Loads the progress. Under construction (persistence).
+     * Loads the profiles saved in the progress file. If the file cannot be read, the current
+     * profiles are kept as they were.
      *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException LOAD_FAILED if the file cannot be read or is damaged
      */
     public void loadProgress() throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        // The file is its own resource, so it is closed even if it is damaged and the object stream fails
+        try (FileInputStream file = new FileInputStream(progressFile);
+             ObjectInputStream in = new ObjectInputStream(file)) {
+            PlayerProfile[] loadedProfiles = (PlayerProfile[]) in.readObject();
+            profiles = loadedProfiles;
+            ball = profiles[0].getSelectedBall();
+        } catch (IOException | ClassNotFoundException | ClassCastException e) {
+            throw new DOPOSoccerException(DOPOSoccerException.LOAD_FAILED, e);
+        }
     }
 
     /**
-     * Saves the game being played. Under construction (persistence, version two).
+     * Saves the whole game in a file chosen by the user: the catalogs, the mode with its match (players,
+     * ball, score, time, effects, stadium), the tournament, the modality and the points of the last match.
+     * Not saved (transient): the physics world of the library, rebuilt from the entities on the first step;
+     * the profiles, which are in the progress file; and the settings.
      *
      * @param file file chosen by the user
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException GAME_NOT_STARTED, GAME_OVER if the mode already ended,
+     *                             or GAME_SAVE_FAILED if the file cannot be written
      */
     public void saveGame(File file) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+        match();
+        if (mode.isOver()) {
+            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);
+        }
+        // The file is its own resource, so it is closed even if the object stream cannot be created
+        try (FileOutputStream stream = new FileOutputStream(file);
+             ObjectOutputStream out = new ObjectOutputStream(stream)) {
+            out.writeObject(this);
+        } catch (IOException e) {
+            throw new DOPOSoccerException(DOPOSoccerException.GAME_SAVE_FAILED, e);
+        }
     }
 
     /**
-     * Opens a saved game. Under construction (persistence, version two).
+     * Opens a game saved with {@link #saveGame(File)} as a new object, paused, so the player resumes it.
+     * Its profiles are loaded from its progress file (the newest ones, not the ones of the moment it was
+     * saved) and its settings are the default ones. The interface replaces its game with the returned one.
      *
      * @param file file chosen by the user
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the opened game
+     * @throws DOPOSoccerException GAME_OPEN_FAILED if the file is not a saved game or is damaged;
+     *                             LOAD_FAILED if the progress file is damaged
      */
-    public void openGame(File file) throws DOPOSoccerException {
-        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);
+    public static DOPOSoccer openGame(File file) throws DOPOSoccerException {
+        DOPOSoccer opened;
+        // The file is its own resource, so it is closed even if it is damaged and the object stream fails
+        try (FileInputStream stream = new FileInputStream(file);
+             ObjectInputStream in = new ObjectInputStream(stream)) {
+            opened = (DOPOSoccer) in.readObject();
+        } catch (IOException | ClassNotFoundException | ClassCastException e) {
+            throw new DOPOSoccerException(DOPOSoccerException.GAME_OPEN_FAILED, e);
+        }
+        // What was not saved (transient): settings by default, profiles from the progress file
+        opened.settings = new Settings();
+        opened.ball = opened.balls.get(DEFAULT_BALL);
+        opened.profiles = new PlayerProfile[]{new PlayerProfile("J1", opened.ball), new PlayerProfile("J2", opened.ball)};
+        if (opened.hasSavedProgress()) {
+            opened.loadProgress();
+        }
+        opened.paused = true;
+        return opened;
     }
 
     //  helpers

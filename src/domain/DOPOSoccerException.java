@@ -59,6 +59,15 @@ public class DOPOSoccerException extends Exception {
     public static final String INVALID_TOURNAMENT_TYPE = "El torneo solo se juega por tiempo o por goles.";
     /** The stadium does not exist. */
     public static final String UNKNOWN_STADIUM = "El estadio no existe.";
+    /** Message: the progress file could not be written. */
+    public static final String SAVE_FAILED = "No se pudo guardar el progreso.";
+    /** Message: the progress file could not be read, so the game starts from zero. */
+    public static final String LOAD_FAILED = "No se pudo abrir el progreso guardado: se empieza de cero.";
+    /** Message: the game being played could not be written to the chosen file. */
+    public static final String GAME_SAVE_FAILED = "No se pudo guardar la partida.";
+    /** Message: the chosen file is not a saved game or it is damaged. */
+    public static final String GAME_OPEN_FAILED = "No se pudo abrir la partida: el archivo no es una partida guardada o está dañado.";
+
     /**
      * Creates the exception with one of the message constants.
      *

@@ -33,6 +33,8 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import domain.*;
 
 public class DOPOSoccerGUI extends JFrame {
@@ -86,12 +88,15 @@ public class DOPOSoccerGUI extends JFrame {
 
     // Balls of each player at the start of a survival series (domain)
     private int maxBalls = 0;
+    // Balls of each player at the start of a survival series (to draw an opened game)
+    private static final int SURVIVAL_BALLS = 3;
 
     // Sound player (music, sound effects, etc)
     private SoundPlayer sounds = new SoundPlayer();
 
     public DOPOSoccerGUI() {
         game = new DOPOSoccer();
+        loadSavedProgress(); // before the volumes are given to the sound player
         // Fixed window: the inside is exactly 1280 x 900 (the proportion of the stadium image), so nothing stretches
         getContentPane().setPreferredSize(new Dimension(1280, 900));
         pack();
@@ -195,17 +200,82 @@ public class DOPOSoccerGUI extends JFrame {
             showView(storeView, "Tienda");
         });
 
-        // Open a saved game (under construction in the domain)
+        // Open a game saved from the pause menu: it opens paused, with the pause card over the match
         mainMenuView.openGameBtn.addActionListener(e -> {
             try {
-                JFileChooser chooser = new JFileChooser();
+                JFileChooser chooser = createGameChooser();
                 if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                    game.openGame(chooser.getSelectedFile());
+                    DOPOSoccer opened = DOPOSoccer.openGame(chooser.getSelectedFile());
+                    // The volumes are not part of a saved game: the ones of the player are kept
+                    opened.setMusicVolume(game.getMusicVolume());
+                    opened.setEffectsVolume(game.getEffectsVolume());
+                    useGame(opened);
+                    showOpenedGame();
                 }
             } catch (DOPOSoccerException ex) {
+                Log.record(ex);
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
+    }
+
+    // File chooser of the saved games: it only shows the .ds files
+    private JFileChooser createGameChooser() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileNameExtensionFilter(
+            "Partidas de DOPOSoccer (*." + DOPOSoccer.GAME_EXTENSION + ")", DOPOSoccer.GAME_EXTENSION));
+        return chooser;
+    }
+
+    // The file with the .ds extension: "partida" -> "partida.ds" ("partida.ds" stays the same)
+    private File withGameExtension(File file) {
+        String extension = "." + DOPOSoccer.GAME_EXTENSION;
+        if (file.getName().toLowerCase().endsWith(extension)) {
+            return file;
+        }
+        return new File(file.getParentFile(), file.getName() + extension);
+    }
+
+    // From now on the GUI and the match views work with this game (an opened game is a new object)
+    private void useGame(DOPOSoccer newGame) {
+        game = newGame;
+        arcadeMatchView.setGame(newGame);
+        survivalMatchView.setGame(newGame);
+        tournamentMatchView.setGame(newGame);
+    }
+
+    // Shows the game just opened: the view of its mode and match type, with the data of the domain
+    // (not of the selection screens, which the player didn't go through)
+    private void showOpenedGame() throws DOPOSoccerException {
+        boolean tournamentGame = "TOURNAMENT".equals(game.getMode());
+        boolean survival = "SURVIVAL".equals(game.getMatchType());
+        boolean vsMachine = "PVM".equals(game.getModality());
+        matchView = tournamentGame ? tournamentMatchView : survival ? survivalMatchView : arcadeMatchView;
+        matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium())); // the stadium of the saved match
+
+        String me = game.getCharacter("LEFT");
+        String rival = game.getCharacter("RIGHT");
+        matchView.setPlayer1("JUGADOR 1", me.toUpperCase(), game.getPowerName("LEFT").toUpperCase(),
+            selectArcadeCharacterView.getCodeOf(me));
+        matchView.setPlayer2(vsMachine ? "IA" : "J2", vsMachine ? "IA" : "JUGADOR 2", rival.toUpperCase(),
+            game.getPowerName("RIGHT").toUpperCase(), selectArcadeCharacterView.getCodeOf(rival));
+        matchView.setSuddenDeath(game.isSuddenDeath());
+        if (survival) {
+            maxBalls = SURVIVAL_BALLS;
+        }
+        if (tournamentGame) {
+            int target = game.getGoalTarget();
+            tournamentTypeText = target < 0 ? "POR TIEMPO" : "POR GOLES · META " + target;
+        }
+
+        String title = tournamentGame ? "Partido (Torneo · " + game.getTournamentRound() + ")"
+            : survival ? "Supervivencia" : "Partido (Arcade)";
+        showView(matchView, title);
+        refreshMatchView();
+        sounds.startMusic("match");
+        // Paused: "REANUDAR" starts the game loop
+        setGlassPane(matchView.pauseOverlay);
+        getGlassPane().setVisible(true);
     }
 
     private void prepareTutorialController() {
@@ -238,6 +308,31 @@ public class DOPOSoccerGUI extends JFrame {
             game.resetSettings();
             settingsView.setVolumes(game.getMusicVolume(), game.getEffectsVolume());
         });
+    }
+
+    // Opens the profiles saved in the progress file; if there is no file, it creates a new one
+    // with the profiles from zero. If the file is damaged, the game starts from zero.
+    private void loadSavedProgress() {
+        if (game.hasSavedProgress()) {
+            try {
+                game.loadProgress();
+            } catch (DOPOSoccerException ex) {
+                Log.record(ex);
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        } else {
+            saveProgress();
+        }
+    }
+
+    // Saves the progress in the file; if it fails, the player is told and the game goes on
+    private void saveProgress() {
+        try {
+            game.saveProgress();
+        } catch (DOPOSoccerException ex) {
+            Log.record(ex);
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
     }
 
     private void prepareSelectModeController()  {
@@ -348,6 +443,7 @@ public class DOPOSoccerGUI extends JFrame {
         try {
             price = game.getCharacterPrice(country);
             game.buyCharacter(side, country);
+            saveProgress();
         } catch (DOPOSoccerException ex) {
             showPurchaseError(ex, item, price, side);
         }
@@ -360,6 +456,7 @@ public class DOPOSoccerGUI extends JFrame {
         try {
             price = game.getBallPrice(ball);
             game.buyBall(side, ball);
+            saveProgress();
         } catch (DOPOSoccerException ex) {
             showPurchaseError(ex, "BALÓN " + item, price, side);
         }
@@ -371,6 +468,7 @@ public class DOPOSoccerGUI extends JFrame {
         try {
             price = game.getUpgradeCost(side, stat);
             game.upgrade(side, stat);
+            saveProgress();
         } catch (DOPOSoccerException ex) {
             showPurchaseError(ex, "LA MEJORA", price, side);
         }
@@ -621,14 +719,16 @@ public class DOPOSoccerGUI extends JFrame {
             }
         });
 
-        // Under construction in the domain: it shows "Opción en construcción."
+        // Save the game being played (it is paused) in a file chosen by the player; then the pause card stays
         view.saveGameBtn.addActionListener(e -> {
             try {
-                JFileChooser chooser = new JFileChooser();
+                JFileChooser chooser = createGameChooser();
                 if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                    game.saveGame(chooser.getSelectedFile());
+                    game.saveGame(withGameExtension(chooser.getSelectedFile()));
+                    JOptionPane.showMessageDialog(this, "Partida guardada.");
                 }
             } catch (DOPOSoccerException ex) {
+                Log.record(ex);
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
@@ -731,7 +831,7 @@ public class DOPOSoccerGUI extends JFrame {
             sounds.startMusic("match");
             gameLoop.start();
         } catch (DOPOSoccerException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage()); // e.g. "Opción en construcción."
+            JOptionPane.showMessageDialog(this, ex.getMessage());
         }
     }
 
@@ -857,11 +957,12 @@ public class DOPOSoccerGUI extends JFrame {
         } else if (timeLeft >= 0) {
             arcadeMatchView.setTime(timeLeft);
         } else {
-            arcadeMatchView.setTimeText("A " + selectArcadeMatchTypeView.getGoalTarget() + " GOLES");
+            arcadeMatchView.setTimeText("A " + game.getGoalTarget() + " GOLES");
         }
 
         if (game.isMatchOver()) {
             gameLoop.stop();
+            saveProgress(); // the points of the match
             String winner = game.getWinner(); // "LEFT", "RIGHT" or null
             boolean vsMachine = "PVM".equals(game.getModality());
             String title;
@@ -902,13 +1003,14 @@ public class DOPOSoccerGUI extends JFrame {
         } else if (timeLeft >= 0) {
             tournamentMatchView.setTime(timeLeft);
         } else {
-            tournamentMatchView.setTimeText("A " + newTournamentView.getGoalTarget() + " GOLES");
+            tournamentMatchView.setTimeText("A " + game.getGoalTarget() + " GOLES");
         }
 
         if (!game.isMatchOver()) {
             return;
         }
         gameLoop.stop();
+        saveProgress(); // the points of the match (and the prize, if it was the final)
         String me = game.getCharacter("LEFT");
         String rival = game.getCharacter("RIGHT");
         int goals = game.getGoals("LEFT");
@@ -938,11 +1040,13 @@ public class DOPOSoccerGUI extends JFrame {
 
         if (game.isModeOver()) {
             gameLoop.stop();
+            saveProgress(); // the points of the last match of the series
             int round = game.getRound();
             int wins = "LEFT".equals(game.getWinner()) ? round : round - 1; // the last match was lost (or won)
             survivalMatchView.showSeriesResult(round, wins, game.getCharacter("LEFT"), game.getPointsEarned("LEFT"));
             showResultCard();
         } else if (game.isMatchOver()) {
+            saveProgress(); // the points of this match, before the next one starts
             game.nextMatch();
         }
     }

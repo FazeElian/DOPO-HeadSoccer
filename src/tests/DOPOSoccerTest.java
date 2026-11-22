@@ -4,6 +4,7 @@ import domain.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests of the facade {@link DOPOSoccer}: a new game in Arcade (player vs player and vs the machine), the match,
- * the catalogs, the stats, the settings and the options that are under construction.
+ * the catalogs, the stats, the settings, the tournament, survival and the store.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
@@ -414,16 +415,17 @@ public class DOPOSoccerTest {
         assertEquals(TournamentMode.PRIZE, game.getTournamentPrize());
     }
 
-    // under construction
+    // saving a game
 
     @Test
-    public void shouldSayThatTheUnfinishedOptionsAreUnderConstruction() {
+    public void shouldNotSaveAGameWithoutAGame() {
         try {
-            game.saveProgress();
+            game.saveGame(new File("partida.dat"));
             fail("Debió lanzar DOPOSoccerException");
         } catch (DOPOSoccerException e) {
-            assertEquals(DOPOSoccerException.UNDER_CONSTRUCTION, e.getMessage());
+            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
         }
+        assertFalse(new File("partida.dat").exists()); // nothing was written
     }
 
     @Test
