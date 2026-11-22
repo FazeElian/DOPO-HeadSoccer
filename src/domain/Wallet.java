@@ -11,6 +11,9 @@ import java.io.Serializable;
  */
 public class Wallet implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Points the player has. */
     private int points;
 

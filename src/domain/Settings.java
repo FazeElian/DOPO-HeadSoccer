@@ -11,6 +11,9 @@ import java.io.Serializable;
  */
 public class Settings implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Volume of the music when the game starts or the settings are reset. */
     public static final int DEFAULT_MUSIC_VOLUME = 70;
     /** Volume of the sound effects when the game starts or the settings are reset. */

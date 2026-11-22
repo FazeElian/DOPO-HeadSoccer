@@ -1,5 +1,6 @@
 package domain;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /**
@@ -11,7 +12,10 @@ import java.util.Random;
  * @author Oscar Poveda
  * @version 1.0
  */
-public class BracketMatch {
+public class BracketMatch implements Serializable {
+    /** Version of the saved data, so a saved game of this version can be opened again. */
+    private static final long serialVersionUID = 1L;
+
     /** Round of the tournament it belongs to, from 1 (quarterfinals). */
     private final int currentRound;
     /** Team on the left (the player, in the matches of the player). */

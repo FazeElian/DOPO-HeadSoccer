@@ -333,6 +333,15 @@ public class Match implements Serializable {
     }
 
     /**
+     * Returns the goals needed to win.
+     *
+     * @return the goal target, or -1 if it is not a match by goals
+     */
+    public int getGoalTarget() {
+        return type.getTarget();
+    }
+
+    /**
      * Returns the time left.
      *
      * @return seconds left, or -1 if the match has no time limit
