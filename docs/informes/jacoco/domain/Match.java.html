@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Match.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Match.java</span></div><h1>Match.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A match between two players. It creates everything on the field and coordinates each tick:
+ * the players act, the physics library moves everything and the goals are checked.
+ * When it ends is decided by its {@link MatchType}.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class Match implements Serializable {
+
+    /** Version of the serialized form. */
+    private static final long serialVersionUID = 1L;
+
+    /** Radius of the ball, in pixels. */
+    public static final double BALL_RADIUS = 22;
+
+    /** Player that defends the left goal. */
+    private final Player leftPlayer;
+    /** Player that defends the right goal. */
+    private final Player rightPlayer;
+    /** The real ball. */
+    private final Ball ball;
+    /** Fake balls of the Illusion shot. */
+    private final ArrayList&lt;FakeBall&gt; fakeBalls;
+    /** The field. */
+    private final Stadium stadium;
+    /** Goals of each side. */
+    private final ScoreBoard scoreBoard;
+    /** Adapter of the physics library. */
+    private final PhysicsEngine physics;
+    /** Rule that ends the match. */
+    private final MatchType type;
+    /** Seconds played. */
+    private double elapsed;
+    /** Whether the match was ended by hand. */
+    private boolean ended;
+
+    /**
+     * Creates a match ready to start: 0 - 0, empty power bars, full life and the ball over the center.
+     *
+     * @param leftCharacter   character of the left player
+     * @param leftStats       stats of the left player
+     * @param leftController  who controls the left player
+     * @param rightCharacter  character of the right player
+     * @param rightStats      stats of the right player
+     * @param rightController who controls the right player
+     * @param type            rule to end the match
+     * @param resolution      &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
+     * @param skin            ball chosen to play
+     * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
+     */
+    public Match(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
+                 GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
+<span class="fc" id="L61">                 MatchType type, String resolution, BallSkin skin) throws DOPOSoccerException {</span>
+<span class="fc" id="L62">        this.stadium = new Stadium(resolution);</span>
+<span class="fc" id="L63">        this.ball = new Ball(0, 0, BALL_RADIUS, skin);</span>
+<span class="fc" id="L64">        this.fakeBalls = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L65">        this.leftPlayer = new Player(&quot;LEFT&quot;, leftCharacter, leftStats, leftController, 0, 0);</span>
+<span class="fc" id="L66">        this.rightPlayer = new Player(&quot;RIGHT&quot;, rightCharacter, rightStats, rightController, 0, 0);</span>
+<span class="fc" id="L67">        this.scoreBoard = new ScoreBoard();</span>
+<span class="fc" id="L68">        this.physics = new PhysicsEngine(stadium);</span>
+<span class="fc" id="L69">        this.type = type;</span>
+<span class="fc" id="L70">        this.elapsed = 0;</span>
+<span class="fc" id="L71">        this.ended = false;</span>
+<span class="fc" id="L72">        placeForKickOff();</span>
+<span class="fc" id="L73">    }</span>
+
+    /**
+     * Puts the players at their places and drops the ball from the center.
+     */
+    public void kickOff() {
+<span class="nc" id="L79">        placeForKickOff();</span>
+<span class="nc" id="L80">    }</span>
+
+        /**
+     * Advances the match one tick: players act and update, fake balls count down,
+     * the physics library moves everything and the goals are checked.
+     * It does nothing once the match is finished.
+     *
+     * @param dt elapsed time, in seconds
+     */
+    public void update(double dt) {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (isFinished()) {</span>
+<span class="fc" id="L91">            return;</span>
+        }
+<span class="fc" id="L93">        elapsed += dt;</span>
+<span class="fc" id="L94">        leftPlayer.act(this);</span>
+<span class="fc" id="L95">        rightPlayer.act(this);</span>
+<span class="fc" id="L96">        leftPlayer.update(dt);</span>
+<span class="fc" id="L97">        rightPlayer.update(dt);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        for (int i = fakeBalls.size() - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L99">            FakeBall fake = fakeBalls.get(i);</span>
+<span class="nc" id="L100">            fake.update(dt);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (fake.isExpired()) {</span>
+<span class="nc" id="L102">                fakeBalls.remove(i);</span>
+            }
+        }
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; ball.getSpeed() &lt; Ball.MIN_SHOT_SPEED) {</span>
+<span class="nc" id="L106">            ball.clearCharge();</span>
+        }
+<span class="fc" id="L108">        physics.step(this, dt);</span>
+<span class="fc" id="L109">        checkGoals();</span>
+<span class="fc" id="L110">    }</span>
+
+    /**
+     * A player touched the ball. The physics calls it, and also a kick with the aura on.
+     * If the player has the aura, its power shot comes out. If the ball carries a power shot of the rival,
+     * the player takes its damage (base damage times the shooter's kick multiplier) and its effect.
+     *
+     * @param p the player that touched the ball
+     */
+    public void onBallTouch(Player p) {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (p.hasAura()) {</span>
+<span class="fc" id="L121">            p.useAura();</span>
+<span class="fc" id="L122">            ball.clearCharge();</span>
+<span class="fc" id="L123">            p.launchPowerShot(this);</span>
+<span class="fc" id="L124">            return;</span>
+        }
+<span class="pc bpc" id="L126" title="3 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; !p.getSide().equals(ball.getShooter())) {</span>
+<span class="nc" id="L127">            PowerShot shot = ball.getCharge();</span>
+<span class="nc" id="L128">            double multiplier = getPlayer(ball.getShooter()).getKickMultiplier();</span>
+<span class="nc" id="L129">            p.takeDamage((int) Math.round(shot.getBaseDamage() * multiplier));</span>
+<span class="nc" id="L130">            p.applyEffect(shot.createEffect());</span>
+<span class="nc" id="L131">            ball.clearCharge();</span>
+        }
+<span class="fc" id="L133">    }</span>
+
+    /**
+     * The ball hit a wall, the ceiling or a crossbar: a power shot that was on its way is over.
+     * The physics calls it.
+     */
+    public void onBallHitsBorder() {
+<span class="fc" id="L140">        ball.clearCharge();</span>
+<span class="fc" id="L141">    }</span>
+
+    /**
+     * Creates fake balls next to the real one, each going a bit differently.
+     *
+     * @param count    how many
+     * @param duration seconds they last
+     */
+    public void spawnFakeBalls(int count, double duration) {
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        for (int i = 0; i &lt; count; i++) {</span>
+<span class="nc" id="L151">            FakeBall fake = new FakeBall(ball.getX(), ball.getY(), ball.getRadius(), duration);</span>
+<span class="nc" id="L152">            double spread = i - (count - 1) / 2.0;</span>
+<span class="nc" id="L153">            fake.setVelocity(ball.getVx() * (0.75 + 0.08 * i), ball.getVy() + 110 * spread);</span>
+<span class="nc" id="L154">            fakeBalls.add(fake);</span>
+        }
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Ends the match now, without a winner.
+     */
+    public void end() {
+<span class="fc" id="L162">        ended = true;</span>
+<span class="fc" id="L163">    }</span>
+
+    /**
+     * Tells whether the match is over.
+     *
+     * @return true if it was ended or its rule says it is over
+     */
+    public boolean isFinished() {
+<span class="fc bfc" id="L171" title="All 4 branches covered.">        return ended || type.isMatchOver(this);</span>
+    }
+
+    /**
+     * Returns the winner.
+     *
+     * @return &quot;LEFT&quot;, &quot;RIGHT&quot;, or null if it is not over or was ended by hand
+     */
+    public String getWinner() {
+<span class="fc bfc" id="L180" title="All 4 branches covered.">        if (ended || !type.isMatchOver(this)) {</span>
+<span class="fc" id="L181">            return null;</span>
+        }
+<span class="fc" id="L183">        return type.getWinner(this);</span>
+    }
+
+    /**
+     * Tells whether the match was ended by hand.
+     *
+     * @return true if {@link #end()} was called
+     */
+    public boolean wasEnded() {
+<span class="fc" id="L192">        return ended;</span>
+    }
+
+    /**
+     * Returns the player of a side.
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return its player, or null for an unknown side
+     */
+    public Player getPlayer(String side) {
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="fc" id="L203">            return leftPlayer;</span>
+        }
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        return &quot;RIGHT&quot;.equals(side) ? rightPlayer : null;</span>
+    }
+
+    /**
+     * Returns the rival of a player.
+     *
+     * @param p one of the players
+     * @return the other player
+     */
+    public Player getOpponent(Player p) {
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">        return p == leftPlayer ? rightPlayer : leftPlayer;</span>
+    }
+
+    /**
+     * Returns the real ball.
+     *
+     * @return the ball
+     */
+    public Ball getBall() {
+<span class="fc" id="L224">        return ball;</span>
+    }
+
+    /**
+     * Returns the fake balls on the field.
+     *
+     * @return a copy of the list of fake balls
+     */
+    public List&lt;FakeBall&gt; getFakeBalls() {
+<span class="fc" id="L233">        return new ArrayList&lt;&gt;(fakeBalls);</span>
+    }
+
+    /**
+     * Returns the scoreboard.
+     *
+     * @return the scoreboard
+     */
+    public ScoreBoard getScoreBoard() {
+<span class="fc" id="L242">        return scoreBoard;</span>
+    }
+
+    /**
+     * Returns the rule to end the match.
+     *
+     * @return the match type
+     */
+    public MatchType getType() {
+<span class="fc" id="L251">        return type;</span>
+    }
+
+    /**
+     * Returns the seconds played.
+     *
+     * @return seconds played
+     */
+    public double getElapsed() {
+<span class="fc" id="L260">        return elapsed;</span>
+    }
+
+    /**
+     * Checks whether the ball entered a goal: adds the goal, gives the quarter of bar to the side that
+     * received it, tells the rule and kicks off again.
+     */
+    private void checkGoals() {
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        for (String defender : new String[]{&quot;LEFT&quot;, &quot;RIGHT&quot;}) {</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">            if (stadium.isInGoal(defender, ball)) {</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">                String scorer = &quot;LEFT&quot;.equals(defender) ? &quot;RIGHT&quot; : &quot;LEFT&quot;;</span>
+<span class="fc" id="L271">                scoreBoard.addGoal(scorer);</span>
+<span class="fc" id="L272">                addEvent(&quot;GOAL&quot;);</span>
+<span class="fc" id="L273">                getPlayer(defender).onGoalAgainst();</span>
+<span class="fc" id="L274">                type.onGoal(scorer, this);</span>
+<span class="fc" id="L275">                fakeBalls.clear();</span>
+<span class="fc" id="L276">                placeForKickOff();</span>
+<span class="fc" id="L277">                return;</span>
+            }
+        }
+<span class="fc" id="L280">    }</span>
+
+    /**
+     * Places the players on the ground at a fifth of the field from each side,
+     * and the ball still over the center.
+     */
+    private void placeForKickOff() {
+<span class="fc" id="L287">        double width = stadium.getWidth();</span>
+<span class="fc" id="L288">        double feet = stadium.getGroundY() - Player.HEIGHT;</span>
+<span class="fc" id="L289">        leftPlayer.setPosition(width * 0.22 - Player.WIDTH / 2, feet);</span>
+<span class="fc" id="L290">        rightPlayer.setPosition(width * 0.78 - Player.WIDTH / 2, feet);</span>
+<span class="fc" id="L291">        leftPlayer.setVelocity(0, 0);</span>
+<span class="fc" id="L292">        rightPlayer.setVelocity(0, 0);</span>
+<span class="fc" id="L293">        ball.reset(width / 2 - ball.getRadius(), stadium.getHeight() * 0.15);</span>
+<span class="fc" id="L294">        fakeBalls.clear();</span>
+<span class="fc" id="L295">    }</span>
+
+    /** Things that happened since the last poll, for the sounds of the presentation; not saved. */
+    private transient List&lt;String&gt; events;
+
+    /**
+     * Records something the presentation may want to play a sound for.
+     *
+     * @param event &quot;KICK&quot;, &quot;POST&quot; or &quot;GOAL&quot;
+     */
+    public void addEvent(String event) {
+<span class="fc bfc" id="L306" title="All 2 branches covered.">        if (events == null) {</span>
+<span class="fc" id="L307">            events = new ArrayList&lt;&gt;(); // also after opening a saved game</span>
+        }
+<span class="fc" id="L309">        events.add(event);</span>
+<span class="fc" id="L310">    }</span>
+
+    /**
+     * Returns the events since the last call and forgets them.
+     *
+     * @return the events, in the order they happened
+     */
+    public List&lt;String&gt; pollEvents() {
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        List&lt;String&gt; copy = events == null ? new ArrayList&lt;&gt;() : new ArrayList&lt;&gt;(events);</span>
+<span class="fc" id="L319">        events = null;</span>
+<span class="fc" id="L320">        return copy;</span>
+    }
+
+    //  answers for the facade: the match asks its own parts
+
+    /**
+     * Returns the name of its type.
+     *
+     * @return &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
+     */
+    public String getTypeName() {
+<span class="fc" id="L331">        return type.getName();</span>
+    }
+
+    /**
+     * Returns the time left.
+     *
+     * @return seconds left, or -1 if the match has no time limit
+     */
+    public int getTimeLeft() {
+<span class="fc" id="L340">        return type.getTimeLeft(this);</span>
+    }
+
+    /**
+     * Tells whether the match is in sudden death.
+     *
+     * @return true in sudden death
+     */
+    public boolean isSuddenDeath() {
+<span class="fc" id="L349">        return type.isSuddenDeath();</span>
+    }
+
+    /**
+     * Returns the goals of a side.
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return its goals
+     */
+    public int getGoals(String side) {
+<span class="fc" id="L359">        return scoreBoard.getGoals(side);</span>
+    }
+
+    /**
+     * Returns the horizontal position of the ball.
+     *
+     * @return left edge, in pixels
+     */
+    public double getBallX() {
+<span class="fc" id="L368">        return ball.getX();</span>
+    }
+
+    /**
+     * Returns the vertical position of the ball.
+     *
+     * @return top edge, in pixels
+     */
+    public double getBallY() {
+<span class="nc" id="L377">        return ball.getY();</span>
+    }
+
+    /**
+     * Returns the name of the skin of the ball.
+     *
+     * @return the name of the skin
+     */
+    public String getBallName() {
+<span class="fc" id="L386">        return ball.getSkinName();</span>
+    }
+
+    /**
+     * Returns the power shot the ball carries.
+     *
+     * @return the name of the shot, or null if the ball is normal
+     */
+    public String getBallPower() {
+<span class="fc" id="L395">        return ball.getChargeName();</span>
+    }
+
+    /**
+     * Returns the width of the field.
+     *
+     * @return width, in pixels
+     */
+    public double getFieldWidth() {
+<span class="fc" id="L404">        return stadium.getWidth();</span>
+    }
+
+    /**
+     * Returns the height of the field.
+     *
+     * @return height, in pixels
+     */
+    public double getFieldHeight() {
+<span class="fc" id="L413">        return stadium.getHeight();</span>
+    }
+
+    /**
+     * Returns the height of the ground.
+     *
+     * @return y of the ground, in pixels
+     */
+    public double getGroundY() {
+<span class="fc" id="L422">        return stadium.getGroundY();</span>
+    }
+
+    /**
+     * Returns the rectangle of the goal a side defends.
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return {x, y, width, height}, in pixels
+     */
+    public double[] getGoalBounds(String side) {
+<span class="fc" id="L432">        return stadium.getGoalBounds(side);</span>
+    }
+
+    /**
+     * Returns the balls left of a player (survival).
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return the balls left
+     * @throws DOPOSoccerException INVALID_STATE if the match is not survival, UNKNOWN_SIDE
+     */
+    public int getBalls(String side) throws DOPOSoccerException {
+<span class="nc" id="L443">        return type.getBalls(side);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

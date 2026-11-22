@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.7.0" timestamp="2026-11-21T15:23:09.508">
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\domain\AIController.java">
+<violation beginline="125" endline="125" begincolumn="21" endcolumn="56" rule="UselessParentheses" ruleset="Code Style" package="domain" class="AIController" method="isBallNear" variable="dx" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#uselessparentheses" priority="4">
+Useless parentheses.
+</violation>
+<violation beginline="126" endline="126" begincolumn="21" endcolumn="57" rule="UselessParentheses" ruleset="Code Style" package="domain" class="AIController" method="isBallNear" variable="dy" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#uselessparentheses" priority="4">
+Useless parentheses.
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\DOPOSoccerGUI.java">
+<violation beginline="140" endline="140" begincolumn="34" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation" class="DOPOSoccerGUI" method="prepareController" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'JFrame': 'WindowConstants::DO_NOTHING_ON_CLOSE' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="803" endline="805" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation" class="DOPOSoccerGUI" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
+Avoid empty catch blocks
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\ArcadeView.java">
+<violation beginline="103" endline="103" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="ArcadeView" method="createBadge" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="139" endline="139" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="ArcadeView" method="createGridColumn" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="194" endline="194" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="ArcadeView" method="createOptionText" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="220" endline="220" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="ArcadeView" method="createTextLine" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="246" endline="246" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="ArcadeView" method="createModeImage" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="318" endline="318" begincolumn="33" endcolumn="42" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="Option" method="addBadge" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\SelectArcadeBallView.java">
+<violation beginline="150" endline="150" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeBallView" method="createDetailsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="245" endline="245" begincolumn="33" endcolumn="42" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="BallCard" method="BallCard" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\SelectArcadeCharacterView.java">
+<violation beginline="212" endline="212" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeCharacterView" method="createDetailsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="310" endline="310" begincolumn="33" endcolumn="42" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="CharacterCard" method="CharacterCard" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\SelectArcadeMatchTypeView.java">
+<violation beginline="123" endline="123" begincolumn="31" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeMatchTypeView" method="addBottomControl" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="187" endline="187" begincolumn="31" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeMatchTypeView" method="createGoalsControl" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="239" endline="239" begincolumn="32" endcolumn="41" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeMatchTypeView" method="createSurvivalInfo" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\SelectArcadeModeView.java">
+<violation beginline="78" endline="78" begincolumn="36" endcolumn="45" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeModeView" method="createAIProfileButton" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\SelectArcadeResolutionView.java">
+<violation beginline="72" endline="72" begincolumn="31" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.arcade" class="SelectArcadeResolutionView" method="createScreenPreview" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\home\SelectModeView.java">
+<violation beginline="93" endline="93" begincolumn="32" endcolumn="41" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="SelectModeView" method="createModeButton" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="98" endline="98" begincolumn="35" endcolumn="44" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="SelectModeView" method="createModeButton" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\home\StoreView.java">
+<violation beginline="435" endline="435" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreView" method="createDetailsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'LEFT_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="450" endline="450" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreView" method="createDetailsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="451" endline="451" begincolumn="30" endcolumn="39" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreView" method="createDetailsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="579" endline="579" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreView" method="createStatRow" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'LEFT_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="662" endline="662" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreView" method="createNotEnoughPointsPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="717" endline="717" begincolumn="33" endcolumn="42" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.home" class="StoreCard" method="StoreCard" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\match\MatchView.java">
+<violation beginline="104" endline="106" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation.views.match" class="MatchView" method="paintComponent" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
+Avoid empty catch blocks
+</violation>
+</file>
+<file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\tournament\NewTournamentView.java">
+<violation beginline="139" endline="139" begincolumn="29" endcolumn="38" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.tournament" class="NewTournamentView" method="createTeamPanel" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="157" endline="157" begincolumn="32" endcolumn="41" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.tournament" class="NewTournamentView" method="createTypeColumn" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+<violation beginline="167" endline="167" begincolumn="31" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation.views.tournament" class="NewTournamentView" method="createTypeColumn" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope because it is inherited by an enclosing type
+</violation>
+</file>
+</pmd>

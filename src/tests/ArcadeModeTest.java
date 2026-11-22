@@ -50,15 +50,23 @@ public class ArcadeModeTest {
     public void shouldNotHaveANextMatch() throws DOPOSoccerException {
         ArcadeMode mode = newMode("MEDIUM");
         mode.start();
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, mode::nextMatch);
-        assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        try {
+            mode.nextMatch();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotStartWithAnUnknownResolution() throws DOPOSoccerException {
         ArcadeMode mode = newMode("HUGE");
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, mode::start);
-        assertEquals(DOPOSoccerException.UNKNOWN_RESOLUTION, e.getMessage());
+        try {
+            mode.start();
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_RESOLUTION, e.getMessage());
+        }
         assertNull(mode.getMatch());
     }
 }

@@ -30,14 +30,22 @@ public class MatchTypeTest {
 
     @Test
     public void shouldNotAcceptZeroMinutes() {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, () -> new TimeMatch(0));
-        assertEquals(DOPOSoccerException.INVALID_MINUTES, e.getMessage());
+        try {
+            new TimeMatch(0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_MINUTES, e.getMessage());
+        }
     }
 
     @Test
     public void shouldNotAcceptZeroGoals() {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, () -> new GoalsMatch(0));
-        assertEquals(DOPOSoccerException.INVALID_GOAL_TARGET, e.getMessage());
+        try {
+            new GoalsMatch(0);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_GOAL_TARGET, e.getMessage());
+        }
     }
 
     @Test

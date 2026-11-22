@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Entity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">Entity.java</span></div><h1>Entity.java</h1><pre class="source lang-java linenums">package domain;
+
+import java.io.Serializable;
+
+/**
+ * Anything that moves on the field: the players, the ball and the fake balls.
+ * It keeps a position, a velocity and a rectangular box, in pixels, pixels per second and seconds.
+ * Entities do not move by themselves: {@link PhysicsEngine} moves them with the physics library
+ * and copies the result back.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public abstract class Entity implements Serializable {
+
+    /** Left edge of the box, in pixels. */
+    protected double x;
+    /** Top edge of the box, in pixels. */
+    protected double y;
+    /** Horizontal velocity, in pixels per second. */
+    protected double vx;
+    /** Vertical velocity, in pixels per second (positive goes down). */
+    protected double vy;
+    /** Width of the box, in pixels. */
+    protected double width;
+    /** Height of the box, in pixels. */
+    protected double height;
+
+    /**
+     * Creates a still entity. Subclasses call it with super(...).
+     *
+     * @param x      left edge, in pixels
+     * @param y      top edge, in pixels
+     * @param width  box width, in pixels
+     * @param height box height, in pixels
+     */
+<span class="fc" id="L38">    public Entity(double x, double y, double width, double height) {</span>
+<span class="fc" id="L39">        this.x = x;</span>
+<span class="fc" id="L40">        this.y = y;</span>
+<span class="fc" id="L41">        this.width = width;</span>
+<span class="fc" id="L42">        this.height = height;</span>
+<span class="fc" id="L43">        this.vx = 0;</span>
+<span class="fc" id="L44">        this.vy = 0;</span>
+<span class="fc" id="L45">    }</span>
+
+    /**
+     * Tells whether the boxes of this entity and another one overlap.
+     *
+     * @param other the other entity
+     * @return true if both boxes overlap
+     */
+    public boolean collidesWith(Entity other) {
+<span class="nc bnc" id="L54" title="All 8 branches missed.">        return x &lt; other.x + other.width &amp;&amp; other.x &lt; x + width</span>
+                &amp;&amp; y &lt; other.y + other.height &amp;&amp; other.y &lt; y + height;
+    }
+
+    /**
+     * Places the entity at a new position without changing its velocity.
+     *
+     * @param x new left edge, in pixels
+     * @param y new top edge, in pixels
+     */
+    public void setPosition(double x, double y) {
+<span class="fc" id="L65">        this.x = x;</span>
+<span class="fc" id="L66">        this.y = y;</span>
+<span class="fc" id="L67">    }</span>
+
+    /**
+     * Changes the velocity of the entity.
+     *
+     * @param vx horizontal velocity, in pixels per second
+     * @param vy vertical velocity, in pixels per second (positive goes down)
+     */
+    public void setVelocity(double vx, double vy) {
+<span class="fc" id="L76">        this.vx = vx;</span>
+<span class="fc" id="L77">        this.vy = vy;</span>
+<span class="fc" id="L78">    }</span>
+
+    /**
+     * Returns the left edge.
+     *
+     * @return left edge, in pixels
+     */
+    public double getX() {
+<span class="fc" id="L86">        return x;</span>
+    }
+
+    /**
+     * Returns the top edge.
+     *
+     * @return top edge, in pixels
+     */
+    public double getY() {
+<span class="fc" id="L95">        return y;</span>
+    }
+
+    /**
+     * Returns the horizontal velocity.
+     *
+     * @return horizontal velocity, in pixels per second
+     */
+    public double getVx() {
+<span class="fc" id="L104">        return vx;</span>
+    }
+
+    /**
+     * Returns the vertical velocity.
+     *
+     * @return vertical velocity, in pixels per second (positive goes down)
+     */
+    public double getVy() {
+<span class="fc" id="L113">        return vy;</span>
+    }
+
+    /**
+     * Returns the box width.
+     *
+     * @return width, in pixels
+     */
+    public double getWidth() {
+<span class="fc" id="L122">        return width;</span>
+    }
+
+    /**
+     * Returns the box height.
+     *
+     * @return height, in pixels
+     */
+    public double getHeight() {
+<span class="fc" id="L131">        return height;</span>
+    }
+
+    /**
+     * Returns how much gravity acts on the entity. By default all of it.
+     *
+     * @return 1 for full gravity, 0 for none
+     */
+    public double getGravityScale() {
+<span class="fc" id="L140">        return 1;</span>
+    }
+
+    /**
+     * Asks the physics for the body of this kind of entity (double dispatch): each subclass calls
+     * the method of {@link PhysicsEngine} that creates its own body, so the engine never checks types.
+     *
+     * @param engine the physics adapter of the match
+     */
+    abstract void addTo(PhysicsEngine engine);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

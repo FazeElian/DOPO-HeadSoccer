@@ -47,15 +47,29 @@ public class SettingsTest {
 
     @Test
     public void shouldNotAcceptAVolumeOutOfRange() {
-        DOPOSoccerException e = assertThrows(DOPOSoccerException.class, () -> settings.setMusicVolume(101));
-        assertEquals(DOPOSoccerException.INVALID_VOLUME, e.getMessage());
-        assertThrows(DOPOSoccerException.class, () -> settings.setEffectsVolume(-1));
+        try {
+            settings.setMusicVolume(101);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_VOLUME, e.getMessage());
+        }
+        try {
+            settings.setEffectsVolume(-1);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_VOLUME, e.getMessage());
+        }
     }
 
     @Test
     public void shouldKeepTheVolumeWhenTheNewOneIsInvalid() throws DOPOSoccerException {
         settings.setMusicVolume(40);
-        assertThrows(DOPOSoccerException.class, () -> settings.setMusicVolume(500));
+        try {
+            settings.setMusicVolume(500);
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.INVALID_VOLUME, e.getMessage());
+        }
         assertEquals(40, settings.getMusicVolume());
     }
 

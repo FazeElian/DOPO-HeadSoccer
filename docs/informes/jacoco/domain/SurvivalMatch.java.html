@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SurvivalMatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">SurvivalMatch.java</span></div><h1>SurvivalMatch.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Survival: each player starts with 3 balls and loses one for each goal received;
+ * the match ends when a player has no balls left. It is a series against the machine:
+ * the left player keeps its balls from one match to the next, and the rival starts
+ * every match with 3. The series ends when the left player has no balls left.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class SurvivalMatch extends MatchType {
+
+    /** Balls of each player at the start. */
+    public static final int INITIAL_BALLS = 3;
+
+    /** Balls left of the left player (they are kept for the whole series). */
+    private int leftBalls;
+    /** Balls left of the right player (3 again in every match). */
+    private int rightBalls;
+
+    /**
+     * Creates the rule with 3 balls for each player.
+     */
+    public SurvivalMatch() {
+<span class="nc" id="L27">        super();</span>
+<span class="nc" id="L28">        this.leftBalls = INITIAL_BALLS;</span>
+<span class="nc" id="L29">        this.rightBalls = INITIAL_BALLS;</span>
+<span class="nc" id="L30">    }</span>
+
+    /**
+     * The player that received the goal loses a ball.
+     *
+     * @param scorer &quot;LEFT&quot; or &quot;RIGHT&quot;: the side that scored
+     * @param match  the match being played
+     */
+    @Override
+    public void onGoal(String scorer, Match match) {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (&quot;LEFT&quot;.equals(scorer)) {</span>
+<span class="nc" id="L41">            rightBalls = Math.max(0, rightBalls - 1);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        } else if (&quot;RIGHT&quot;.equals(scorer)) {</span>
+<span class="nc" id="L43">            leftBalls = Math.max(0, leftBalls - 1);</span>
+        }
+<span class="nc" id="L45">    }</span>
+
+    /**
+     * The match ends when a player has no balls left.
+     *
+     * @param match the match being played
+     * @return true if a player has 0 balls
+     */
+    @Override
+    public boolean isMatchOver(Match match) {
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        return leftBalls == 0 || rightBalls == 0;</span>
+    }
+
+    /**
+     * The winner is the player that still has balls.
+     *
+     * @param match the match being played
+     * @return &quot;LEFT&quot;, &quot;RIGHT&quot; or null if both still have balls
+     */
+    @Override
+    public String getWinner(Match match) {
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (leftBalls == 0) {</span>
+<span class="nc" id="L67">            return &quot;RIGHT&quot;;</span>
+        }
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        return rightBalls == 0 ? &quot;LEFT&quot; : null;</span>
+    }
+
+    /**
+     * Returns the balls left of a player.
+     *
+     * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
+     * @return the balls left
+     * @throws DOPOSoccerException UNKNOWN_SIDE if the side is not LEFT or RIGHT
+     */
+    @Override
+    public int getBalls(String side) throws DOPOSoccerException {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="nc" id="L82">            return leftBalls;</span>
+        }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (&quot;RIGHT&quot;.equals(side)) {</span>
+<span class="nc" id="L85">            return rightBalls;</span>
+        }
+<span class="nc" id="L87">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);</span>
+    }
+
+    /**
+     * The series continues while the left player wins.
+     *
+     * @param winner the winner of the match that ended
+     * @return true if the left player won
+     */
+    @Override
+    public boolean continuesAfter(String winner) {
+<span class="nc" id="L98">        return &quot;LEFT&quot;.equals(winner);</span>
+    }
+
+    /**
+     * Gets the rule ready for the next match of the series: the rival gets 3 balls again,
+     * the left player keeps the balls it has.
+     */
+    @Override
+    public void reset() {
+<span class="nc" id="L107">        rightBalls = INITIAL_BALLS;</span>
+<span class="nc" id="L108">    }</span>
+
+    /**
+     * Returns the name of the rule.
+     *
+     * @return &quot;SURVIVAL&quot;
+     */
+    @Override
+    public String getName() {
+<span class="nc" id="L117">        return &quot;SURVIVAL&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PushEffect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">PushEffect.java</span></div><h1>PushEffect.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Push, from Blue Aura (South Korea): the rival is thrown towards its own goal
+ * and cannot control itself for 1.5 seconds.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class PushEffect extends Effect {
+
+    /** Name shown on screen. */
+    public static final String NAME = &quot;Empuje&quot;;
+    /** Seconds it lasts. */
+    public static final double DURATION = 1.5;
+    /** Horizontal speed of the push, in pixels per second. */
+    public static final double PUSH_SPEED = 900;
+    /** Small lift so the push does not stick to the ground, in pixels per second. */
+    public static final double LIFT_SPEED = 250;
+
+    /**
+     * Creates the push.
+     */
+    public PushEffect() {
+<span class="fc" id="L26">        super(DURATION);</span>
+<span class="fc" id="L27">    }</span>
+
+    /**
+     * Throws the player towards the goal it defends.
+     *
+     * @param p the affected player
+     */
+    @Override
+    public void onApply(Player p) {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        double towardsOwnGoal = &quot;LEFT&quot;.equals(p.getSide()) ? -1 : 1;</span>
+<span class="fc" id="L37">        p.setVelocity(towardsOwnGoal * PUSH_SPEED, -LIFT_SPEED);</span>
+<span class="fc" id="L38">        p.setOnGround(false);</span>
+<span class="fc" id="L39">    }</span>
+
+    /**
+     * While being pushed the player does not control itself.
+     *
+     * @return false
+     */
+    @Override
+    public boolean canAct() {
+<span class="fc" id="L48">        return false;</span>
+    }
+
+    /**
+     * Returns the name shown on screen.
+     *
+     * @return &quot;Empuje&quot;
+     */
+    @Override
+    public String getName() {
+<span class="nc" id="L58">        return NAME;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

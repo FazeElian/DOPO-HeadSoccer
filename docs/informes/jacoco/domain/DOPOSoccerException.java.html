@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOPOSoccerException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">DOPOSoccerException.java</span></div><h1>DOPOSoccerException.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Error of the game: an invalid choice, an action that cannot be done at that moment,
+ * or an option that is still under construction.
+ * Every message is a constant written in Spanish, so the interface can show it to the user as it is.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class DOPOSoccerException extends Exception {
+
+    /** The option exists in the design but is not built in this version. */
+    public static final String UNDER_CONSTRUCTION = &quot;Opción en construcción.&quot;;
+    /** The modality is not &quot;PVP&quot; or &quot;PVM&quot;. */
+    public static final String UNKNOWN_MODALITY = &quot;La modalidad no es jugador vs jugador ni jugador vs máquina.&quot;;
+    /** The game mode is not &quot;ARCADE&quot; or &quot;TOURNAMENT&quot;. */
+    public static final String UNKNOWN_MODE = &quot;El modo de juego no es Arcade ni Torneo.&quot;;
+    /** The match type is not &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;. */
+    public static final String UNKNOWN_MATCH_TYPE = &quot;El tipo de partido no es por tiempo, por goles ni supervivencia.&quot;;
+    /** The resolution is not &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;. */
+    public static final String UNKNOWN_RESOLUTION = &quot;La resolución no es pequeña, mediana ni grande.&quot;;
+    /** No character has that country. */
+    public static final String UNKNOWN_CHARACTER = &quot;El personaje no existe.&quot;;
+    /** No ball of the catalog has that name. */
+    public static final String UNKNOWN_BALL = &quot;El balón no existe.&quot;;
+    /** The side is not &quot;LEFT&quot; or &quot;RIGHT&quot;. */
+    public static final String UNKNOWN_SIDE = &quot;El lado no es izquierdo ni derecho.&quot;;
+    /** The minutes of a time match are 0 or less. */
+    public static final String INVALID_MINUTES = &quot;Los minutos del partido deben ser mayores que 0.&quot;;
+    /** The goal target is 0 or less. */
+    public static final String INVALID_GOAL_TARGET = &quot;La meta de goles debe ser mayor que 0.&quot;;
+    /** There is no game being played. */
+    public static final String GAME_NOT_STARTED = &quot;No hay ningún partido en curso.&quot;;
+    /** The action does not make sense right now. */
+    public static final String INVALID_STATE = &quot;Esa acción no se puede hacer en este momento.&quot;;
+    /** The match already ended. */
+    public static final String GAME_OVER = &quot;El juego ya terminó.&quot;;
+    /** The stat is not &quot;SPEED&quot;, &quot;JUMP&quot;, &quot;KICK&quot; or &quot;SURVIVAL&quot;. */
+    public static final String UNKNOWN_STAT = &quot;La estadística no es speed, jump, kick ni survival.&quot;;
+    /** The stat is already at its maximum. */
+    public static final String STAT_AT_MAX = &quot;Esa estadística ya está en 10.&quot;;
+    /** Message: the player doesn't have the points to pay. */
+    public static final String NOT_ENOUGH_POINTS = &quot;No tienes puntos suficientes.&quot;;
+    /** Message: the player already has that character or ball. */
+    public static final String ALREADY_OWNED = &quot;Ya lo tienes.&quot;;
+    /** Message: the character must be bought first. */
+    public static final String CHARACTER_LOCKED = &quot;Ese personaje está bloqueado: cómpralo en la tienda.&quot;;
+    /** Message: the ball must be bought first. */
+    public static final String BALL_LOCKED = &quot;Ese balón está bloqueado: cómpralo en la tienda.&quot;;
+    /** Message: the machine profile doesn't exist. */
+    public static final String UNKNOWN_AI_PROFILE = &quot;El perfil de la máquina no existe.&quot;;
+    /** The volume is not between 0 and 100. */
+    public static final String INVALID_VOLUME = &quot;El volumen debe estar entre 0 y 100.&quot;;
+    /** Message: survival is only played against the machine. */
+    public static final String SURVIVAL_ONLY_PVM = &quot;Supervivencia solo se juega contra la máquina.&quot;;
+    /** The tournament is only played by time or by goals, not in survival. */
+    public static final String INVALID_TOURNAMENT_TYPE = &quot;El torneo solo se juega por tiempo o por goles.&quot;;
+    /**
+     * Creates the exception with one of the message constants.
+     *
+     * @param message one of the constants of this class
+     */
+    public DOPOSoccerException(String message) {
+<span class="fc" id="L66">        super(message);</span>
+<span class="fc" id="L67">    }</span>
+
+    /**
+     * Creates the exception with one of the message constants and the error that caused it,
+     * so the error log keeps the original trace.
+     *
+     * @param message one of the constants of this class
+     * @param cause   the original error
+     */
+    public DOPOSoccerException(String message, Throwable cause) {
+<span class="nc" id="L77">        super(message, cause);</span>
+<span class="nc" id="L78">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArcadeMode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">ArcadeMode.java</span></div><h1>ArcadeMode.java</h1><pre class="source lang-java linenums">package domain;
+
+/**
+ * Arcade: one match between the two chosen characters. It is the mode of version one.
+ *
+ * @author Elian Ibarra
+ * @author Oscar Poveda
+ * @version 1.0
+ */
+public class ArcadeMode extends GameMode {
+    /** Number of the current match: 1 in a single match, it grows in a survival series. */
+    private int round;
+
+    /**
+     * Keeps the configuration of the game.
+     *
+     * @param leftCharacter   character of the left player
+     * @param leftStats       stats of the left player
+     * @param leftController  who controls the left player
+     * @param rightCharacter  character of the right player
+     * @param rightStats      stats of the right player
+     * @param rightController who controls the right player
+     * @param type            rule to end the match
+     * @param resolution      &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
+     * @param skin            ball to play with
+     */
+    public ArcadeMode(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
+                      GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
+                      MatchType type, String resolution, BallSkin skin) {
+<span class="fc" id="L30">        super(leftCharacter, leftStats, leftController, rightCharacter, rightStats, rightController,</span>
+                type, resolution, skin);
+<span class="fc" id="L32">        this.round = 1;</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * Creates the only match.
+     *
+     * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
+     */
+    @Override
+    public void start() throws DOPOSoccerException {
+<span class="fc" id="L42">        round = 1;</span>
+<span class="fc" id="L43">        match = createMatch(rightCharacter);</span>
+<span class="fc" id="L44">    }</span>
+
+    /**
+     * Tells whether the match ended.
+     *
+     * @return true once the match is finished
+     */
+    @Override
+    public boolean isOver() {
+<span class="pc bpc" id="L53" title="1 of 6 branches missed.">                return match != null &amp;&amp; match.isFinished() &amp;&amp; !type.continuesAfter(match.getWinner());</span>
+    }
+
+    /**
+     * Returns the name of the mode.
+     *
+     * @return &quot;ARCADE&quot;
+     */
+    @Override
+    public String getName() {
+<span class="fc" id="L63">        return &quot;ARCADE&quot;;</span>
+    }
+
+        /**
+     * Creates the next match of a survival series.
+     *
+     * @throws DOPOSoccerException INVALID_STATE if the match has not ended or the mode is over
+     */
+    @Override
+    public void nextMatch() throws DOPOSoccerException {
+<span class="pc bpc" id="L73" title="2 of 6 branches missed.">        if (match == null || !match.isFinished() || isOver()) {</span>
+<span class="fc" id="L74">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);</span>
+        }
+<span class="nc" id="L76">        round++;</span>
+<span class="nc" id="L77">        match = createMatch(rightCharacter);</span>
+<span class="nc" id="L78">    }</span>
+
+    /**
+     * Returns the number of the current match.
+     *
+     * @return 1 in a single match; 1, 2, 3... in a survival series
+     */
+    @Override
+    public int getRound() {
+<span class="fc" id="L87">        return round;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
