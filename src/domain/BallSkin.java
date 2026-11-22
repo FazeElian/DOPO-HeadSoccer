@@ -12,6 +12,9 @@ import java.io.Serializable;
  */
 public class BallSkin implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Name of the ball and of its image. */
     private final String name;
     /** Price in points. */

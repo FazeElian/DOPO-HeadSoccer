@@ -12,6 +12,9 @@ import java.util.HashSet;
  */
 public class PlayerProfile implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Name of the player. */
     private final String name;
     /** Points of the player. */

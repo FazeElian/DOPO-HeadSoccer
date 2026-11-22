@@ -12,6 +12,9 @@ import java.io.Serializable;
  */
 public class Stats implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Lowest level of a stat. */
     public static final int MIN_STAT = 1;
     /** Highest level of a stat. */

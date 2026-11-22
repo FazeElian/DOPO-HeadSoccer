@@ -90,6 +90,11 @@ public abstract class MatchView extends View {
         pauseOverlay = createOverlay(createPauseCard());
     }
 
+    // Changes the game it draws (an opened game is a new DOPOSoccer object)
+    public void setGame(DOPOSoccer game) {
+        this.game = game;
+    }
+
     // Draws the match over the stadium: players, fake balls and ball, in the places the domain says
     @Override
     protected void paintComponent(Graphics g) {

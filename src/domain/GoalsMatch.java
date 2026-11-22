@@ -57,6 +57,7 @@ public class GoalsMatch extends MatchType {
      *
      * @return goals needed to win
      */
+    @Override
     public int getTarget() {
         return target;
     }
