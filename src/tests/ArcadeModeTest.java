@@ -18,7 +18,7 @@ public class ArcadeModeTest {
     private static ArcadeMode newMode(String resolution) throws DOPOSoccerException {
         return new ArcadeMode(new GameCharacter("Colombia", new IllusionShot()), new Stats(), new HumanController(),
                 new GameCharacter("Argentina", new LightningShot()), new Stats(), new HumanController(),
-                new GoalsMatch(1), resolution, new BallSkin("Clásico", 0));
+                new GoalsMatch(1), resolution, new BallSkin("Clásico", 0), "default");
     }
 
     @Test

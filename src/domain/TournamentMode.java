@@ -45,13 +45,16 @@ public class TournamentMode extends GameMode {
      * @param resolution      "SMALL", "MEDIUM" or "LARGE"
      * @param skin            ball chosen to play
      * @param others          the teams that can be rivals (at least 7)
-     * @param random          draws the bracket and decides the matches between the other teams
+     * @param random          draws the bracket, the stadium of each match and the matches between the other teams
      * @throws DOPOSoccerException INVALID_STATE if there are less than 7 rivals
      */
     public TournamentMode(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                           Stats rightStats, PlayerController rightController, MatchType type, String resolution,
-                          BallSkin skin, List<GameCharacter> others, Random random) throws DOPOSoccerException {
-        super(leftCharacter, leftStats, leftController, null, rightStats, rightController, type, resolution, skin);
+                          BallSkin skin, List<GameCharacter> others, Random random)
+            throws DOPOSoccerException {
+        // Each match draws its own stadium (randomStadium), so the mode keeps the default one
+        super(leftCharacter, leftStats, leftController, null, rightStats, rightController, type, resolution, skin,
+                STADIUMS.get(0));
         if(others.size() < TEAMS - 1) {
             throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE);
         }
@@ -81,7 +84,7 @@ public class TournamentMode extends GameMode {
             bracket.add(new BracketMatch(round, rivals.get(i), rivals.get(i + 1)));
         }
 
-        match = createMatch(getRival());
+        match = createMatch(getRival(), randomStadium());
     }
 
     /**
@@ -196,7 +199,7 @@ public class TournamentMode extends GameMode {
             }
             bracket.add(new BracketMatch(round, a, b));
         }
-        match = createMatch(getRival());
+        match = createMatch(getRival(), randomStadium());
     }
 
     /**
@@ -273,5 +276,14 @@ public class TournamentMode extends GameMode {
     @Override
     public String getName() {
         return "TOURNAMENT";
+    }
+
+    /**
+     * Draws the stadium of a match: every match of the tournament is played in a random one.
+     *
+     * @return one of {@link #STADIUMS}
+     */
+    private String randomStadium() {
+        return STADIUMS.get(random.nextInt(STADIUMS.size()));
     }
 }

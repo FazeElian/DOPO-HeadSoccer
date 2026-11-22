@@ -24,12 +24,13 @@ public class ArcadeMode extends GameMode {
      * @param type            rule to end the match
      * @param resolution      "SMALL", "MEDIUM" or "LARGE"
      * @param skin            ball to play with
+     * @param stadium         stadium of the match ("default", "rain"...)
      */
     public ArcadeMode(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                       GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
-                      MatchType type, String resolution, BallSkin skin) {
+                      MatchType type, String resolution, BallSkin skin, String stadium) {
         super(leftCharacter, leftStats, leftController, rightCharacter, rightStats, rightController,
-                type, resolution, skin);
+                type, resolution, skin, stadium);
         this.round = 1;
     }
 

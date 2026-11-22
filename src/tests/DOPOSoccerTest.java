@@ -495,7 +495,7 @@ public class DOPOSoccerTest {
             game.getTournamentTeams();
             fail("Debió lanzar DOPOSoccerException");
         } catch (DOPOSoccerException e) {
-            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage()); // a game, but not a tournament
         }
     }
 
@@ -549,8 +549,41 @@ public class DOPOSoccerTest {
             game.getTournamentTeams();
             fail("Debió lanzar DOPOSoccerException");
         } catch (DOPOSoccerException e) {
-            assertEquals(DOPOSoccerException.GAME_NOT_STARTED, e.getMessage());
+            assertEquals(DOPOSoccerException.INVALID_STATE, e.getMessage()); // a game, but not a tournament
         }
+    }
+
+    // stadium
+
+    @Test
+    public void shouldPlayInTheDefaultStadium() throws DOPOSoccerException {
+        newGoalsGame(3);
+        assertEquals(DOPOSoccer.DEFAULT_STADIUM, game.getStadium());
+    }
+
+    @Test
+    public void shouldPlayInTheChosenStadium() throws DOPOSoccerException {
+        game.selectStadium("rain");
+        newGoalsGame(3);
+        assertEquals("rain", game.getStadium());
+    }
+
+    @Test
+    public void shouldPlayEachTournamentMatchInARandomStadium() throws DOPOSoccerException {
+        game.selectStadium("rain");
+        newTournament();
+        assertTrue(game.getStadiums().contains(game.getStadium())); // drawn, not the chosen one
+    }
+
+    @Test
+    public void shouldNotChooseAnUnknownStadium() {
+        try {
+            game.selectStadium("moon");
+            fail("Debió lanzar DOPOSoccerException");
+        } catch (DOPOSoccerException e) {
+            assertEquals(DOPOSoccerException.UNKNOWN_STADIUM, e.getMessage());
+        }
+        assertEquals(9, game.getStadiums().size());
     }
 
     // player vs machine

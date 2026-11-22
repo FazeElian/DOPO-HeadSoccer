@@ -54,12 +54,13 @@ public class Match implements Serializable {
      * @param type            rule to end the match
      * @param resolution      "SMALL", "MEDIUM" or "LARGE"
      * @param skin            ball chosen to play
+     * @param stadiumName     stadium where it is played ("default", "rain"...)
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
      */
     public Match(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                  GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
-                 MatchType type, String resolution, BallSkin skin) throws DOPOSoccerException {
-        this.stadium = new Stadium(resolution);
+                 MatchType type, String resolution, BallSkin skin, String stadiumName) throws DOPOSoccerException {
+        this.stadium = new Stadium(resolution, stadiumName);
         this.ball = new Ball(0, 0, BALL_RADIUS, skin);
         this.fakeBalls = new ArrayList<>();
         this.leftPlayer = new Player("LEFT", leftCharacter, leftStats, leftController, 0, 0);
@@ -441,5 +442,14 @@ public class Match implements Serializable {
      */
     public int getBalls(String side) throws DOPOSoccerException {
         return type.getBalls(side);
+    }
+
+    /**
+     * Returns the stadium where the match is played, so the interface draws its picture.
+     *
+     * @return name of the stadium ("default", "rain"...)
+     */
+    public String getStadiumName() {
+        return stadium.getName();
     }
 }

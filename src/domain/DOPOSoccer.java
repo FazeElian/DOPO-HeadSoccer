@@ -50,6 +50,10 @@ public class DOPOSoccer {
     private final Settings settings;
     /** Tournament being played, or null in Arcade. */
     private TournamentMode tournament;
+    /** Stadium used until another one is chosen. */
+    public static final String DEFAULT_STADIUM = "default";
+    /** Stadium of the next matches (the last one chosen). */
+    private String stadium = DEFAULT_STADIUM;
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
@@ -140,7 +144,7 @@ public class DOPOSoccer {
             PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
             Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
             newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),
-                    right, rivalStats, rival, type, resolution, ball);
+                    right, rivalStats, rival, type, resolution, ball, stadium);
             this.modality = modality;
         }
         newMode.start();
@@ -1173,5 +1177,39 @@ public class DOPOSoccer {
             return 1;
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);
+    }
+
+    /**
+     * Chooses the stadium of the next Arcade matches (each tournament match draws its own).
+     * Like the ball, choose it before {@link #newGame}.
+     *
+     * @param stadium name of the stadium ("default", "rain", "snow"...)
+     * @throws DOPOSoccerException UNKNOWN_STADIUM if it is not one of {@link #getStadiums()}
+     */
+    public void selectStadium(String stadium) throws DOPOSoccerException {
+        if (!GameMode.STADIUMS.contains(stadium)) {
+            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_STADIUM);
+        }
+        this.stadium = stadium;
+    }
+
+    /**
+     * Returns the names of the stadiums, in order.
+     *
+     * @return "default", "day", "sunset"...
+     */
+    public List<String> getStadiums() {
+        return GameMode.STADIUMS;
+    }
+
+    /**
+     * Returns the stadium of the current match, so the interface draws its picture.
+     * In the tournament it changes in every match.
+     *
+     * @return name of the stadium ("default", "rain"...)
+     * @throws DOPOSoccerException GAME_NOT_STARTED
+     */
+    public String getStadium() throws DOPOSoccerException {
+        return match().getStadiumName();
     }
 }
