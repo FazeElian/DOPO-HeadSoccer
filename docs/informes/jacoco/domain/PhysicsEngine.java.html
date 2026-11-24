@@ -58,21 +58,21 @@ public class PhysicsEngine implements Serializable {
 
     /** Field whose limits become static bodies. */
     private final Stadium stadium;
-    /** World of the library; rebuilt after opening a game. */
-    private World&lt;Body&gt; world;
+    /** World of the library; it is not saved (transient) and is rebuilt on the first step after opening a game. */
+    private transient World&lt;Body&gt; world;
     /** Body of each entity on the field. */
-    private Map&lt;Entity, Body&gt; bodies;
+    private transient Map&lt;Entity, Body&gt; bodies;
     /** Player of each player body, to report touches and the ground. */
-    private Map&lt;Body, Player&gt; players;
+    private transient Map&lt;Body, Player&gt; players;
     /** Body of the real ball. */
-    private Body ballBody;
+    private transient Body ballBody;
     /** Bodies of the walls, the ceiling and the crossbars: they end a power shot. */
-    private Set&lt;Body&gt; borders;
+    private transient Set&lt;Body&gt; borders;
     /** Pairs of bodies that started touching in the last step. */
-    private LinkedHashSet&lt;List&lt;Body&gt;&gt; contacts;
+    private transient LinkedHashSet&lt;List&lt;Body&gt;&gt; contacts;
 
     /** Bodies of the crossbars, to tell the presentation the ball hit the post. */
-    private Set&lt;Body&gt; crossbars;
+    private transient Set&lt;Body&gt; crossbars;
 
     /**
      * Creates the adapter for a field. The world of the library is built on the first step.

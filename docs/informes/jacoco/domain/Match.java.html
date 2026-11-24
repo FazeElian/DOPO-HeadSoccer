@@ -54,32 +54,33 @@ public class Match implements Serializable {
      * @param type            rule to end the match
      * @param resolution      &quot;SMALL&quot;, &quot;MEDIUM&quot; or &quot;LARGE&quot;
      * @param skin            ball chosen to play
+     * @param stadiumName     stadium where it is played (&quot;default&quot;, &quot;rain&quot;...)
      * @throws DOPOSoccerException UNKNOWN_RESOLUTION if the resolution is not valid
      */
     public Match(GameCharacter leftCharacter, Stats leftStats, PlayerController leftController,
                  GameCharacter rightCharacter, Stats rightStats, PlayerController rightController,
-<span class="fc" id="L61">                 MatchType type, String resolution, BallSkin skin) throws DOPOSoccerException {</span>
-<span class="fc" id="L62">        this.stadium = new Stadium(resolution);</span>
-<span class="fc" id="L63">        this.ball = new Ball(0, 0, BALL_RADIUS, skin);</span>
-<span class="fc" id="L64">        this.fakeBalls = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L65">        this.leftPlayer = new Player(&quot;LEFT&quot;, leftCharacter, leftStats, leftController, 0, 0);</span>
-<span class="fc" id="L66">        this.rightPlayer = new Player(&quot;RIGHT&quot;, rightCharacter, rightStats, rightController, 0, 0);</span>
-<span class="fc" id="L67">        this.scoreBoard = new ScoreBoard();</span>
-<span class="fc" id="L68">        this.physics = new PhysicsEngine(stadium);</span>
-<span class="fc" id="L69">        this.type = type;</span>
-<span class="fc" id="L70">        this.elapsed = 0;</span>
-<span class="fc" id="L71">        this.ended = false;</span>
-<span class="fc" id="L72">        placeForKickOff();</span>
-<span class="fc" id="L73">    }</span>
+<span class="fc" id="L62">                 MatchType type, String resolution, BallSkin skin, String stadiumName) throws DOPOSoccerException {</span>
+<span class="fc" id="L63">        this.stadium = new Stadium(resolution, stadiumName);</span>
+<span class="fc" id="L64">        this.ball = new Ball(0, 0, BALL_RADIUS, skin);</span>
+<span class="fc" id="L65">        this.fakeBalls = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L66">        this.leftPlayer = new Player(&quot;LEFT&quot;, leftCharacter, leftStats, leftController, 0, 0);</span>
+<span class="fc" id="L67">        this.rightPlayer = new Player(&quot;RIGHT&quot;, rightCharacter, rightStats, rightController, 0, 0);</span>
+<span class="fc" id="L68">        this.scoreBoard = new ScoreBoard();</span>
+<span class="fc" id="L69">        this.physics = new PhysicsEngine(stadium);</span>
+<span class="fc" id="L70">        this.type = type;</span>
+<span class="fc" id="L71">        this.elapsed = 0;</span>
+<span class="fc" id="L72">        this.ended = false;</span>
+<span class="fc" id="L73">        placeForKickOff();</span>
+<span class="fc" id="L74">    }</span>
 
     /**
      * Puts the players at their places and drops the ball from the center.
      */
     public void kickOff() {
-<span class="nc" id="L79">        placeForKickOff();</span>
-<span class="nc" id="L80">    }</span>
+<span class="nc" id="L80">        placeForKickOff();</span>
+<span class="nc" id="L81">    }</span>
 
-        /**
+    /**
      * Advances the match one tick: players act and update, fake balls count down,
      * the physics library moves everything and the goals are checked.
      * It does nothing once the match is finished.
@@ -87,27 +88,27 @@ public class Match implements Serializable {
      * @param dt elapsed time, in seconds
      */
     public void update(double dt) {
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (isFinished()) {</span>
-<span class="fc" id="L91">            return;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (isFinished()) {</span>
+<span class="fc" id="L92">            return;</span>
         }
-<span class="fc" id="L93">        elapsed += dt;</span>
-<span class="fc" id="L94">        leftPlayer.act(this);</span>
-<span class="fc" id="L95">        rightPlayer.act(this);</span>
-<span class="fc" id="L96">        leftPlayer.update(dt);</span>
-<span class="fc" id="L97">        rightPlayer.update(dt);</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        for (int i = fakeBalls.size() - 1; i &gt;= 0; i--) {</span>
-<span class="nc" id="L99">            FakeBall fake = fakeBalls.get(i);</span>
-<span class="nc" id="L100">            fake.update(dt);</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (fake.isExpired()) {</span>
-<span class="nc" id="L102">                fakeBalls.remove(i);</span>
+<span class="fc" id="L94">        elapsed += dt;</span>
+<span class="fc" id="L95">        leftPlayer.act(this);</span>
+<span class="fc" id="L96">        rightPlayer.act(this);</span>
+<span class="fc" id="L97">        leftPlayer.update(dt);</span>
+<span class="fc" id="L98">        rightPlayer.update(dt);</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        for (int i = fakeBalls.size() - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L100">            FakeBall fake = fakeBalls.get(i);</span>
+<span class="nc" id="L101">            fake.update(dt);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (fake.isExpired()) {</span>
+<span class="nc" id="L103">                fakeBalls.remove(i);</span>
             }
         }
-<span class="pc bpc" id="L105" title="1 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; ball.getSpeed() &lt; Ball.MIN_SHOT_SPEED) {</span>
-<span class="nc" id="L106">            ball.clearCharge();</span>
+<span class="pc bpc" id="L106" title="1 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; ball.getSpeed() &lt; Ball.MIN_SHOT_SPEED) {</span>
+<span class="nc" id="L107">            ball.clearCharge();</span>
         }
-<span class="fc" id="L108">        physics.step(this, dt);</span>
-<span class="fc" id="L109">        checkGoals();</span>
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L109">        physics.step(this, dt);</span>
+<span class="fc" id="L110">        checkGoals();</span>
+<span class="fc" id="L111">    }</span>
 
     /**
      * A player touched the ball. The physics calls it, and also a kick with the aura on.
@@ -117,28 +118,28 @@ public class Match implements Serializable {
      * @param p the player that touched the ball
      */
     public void onBallTouch(Player p) {
-<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (p.hasAura()) {</span>
-<span class="fc" id="L121">            p.useAura();</span>
-<span class="fc" id="L122">            ball.clearCharge();</span>
-<span class="fc" id="L123">            p.launchPowerShot(this);</span>
-<span class="fc" id="L124">            return;</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (p.hasAura()) {</span>
+<span class="fc" id="L122">            p.useAura();</span>
+<span class="fc" id="L123">            ball.clearCharge();</span>
+<span class="fc" id="L124">            p.launchPowerShot(this);</span>
+<span class="fc" id="L125">            return;</span>
         }
-<span class="pc bpc" id="L126" title="3 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; !p.getSide().equals(ball.getShooter())) {</span>
-<span class="nc" id="L127">            PowerShot shot = ball.getCharge();</span>
-<span class="nc" id="L128">            double multiplier = getPlayer(ball.getShooter()).getKickMultiplier();</span>
-<span class="nc" id="L129">            p.takeDamage((int) Math.round(shot.getBaseDamage() * multiplier));</span>
-<span class="nc" id="L130">            p.applyEffect(shot.createEffect());</span>
-<span class="nc" id="L131">            ball.clearCharge();</span>
+<span class="pc bpc" id="L127" title="1 of 4 branches missed.">        if (ball.isPowerShot() &amp;&amp; !p.getSide().equals(ball.getShooter())) {</span>
+<span class="fc" id="L128">            PowerShot shot = ball.getCharge();</span>
+<span class="fc" id="L129">            double multiplier = getPlayer(ball.getShooter()).getKickMultiplier();</span>
+<span class="fc" id="L130">            p.takeDamage((int) Math.round(shot.getBaseDamage() * multiplier));</span>
+<span class="fc" id="L131">            p.applyEffect(shot.createEffect());</span>
+<span class="fc" id="L132">            ball.clearCharge();</span>
         }
-<span class="fc" id="L133">    }</span>
+<span class="fc" id="L134">    }</span>
 
     /**
      * The ball hit a wall, the ceiling or a crossbar: a power shot that was on its way is over.
      * The physics calls it.
      */
     public void onBallHitsBorder() {
-<span class="fc" id="L140">        ball.clearCharge();</span>
-<span class="fc" id="L141">    }</span>
+<span class="fc" id="L141">        ball.clearCharge();</span>
+<span class="fc" id="L142">    }</span>
 
     /**
      * Creates fake balls next to the real one, each going a bit differently.
@@ -147,20 +148,20 @@ public class Match implements Serializable {
      * @param duration seconds they last
      */
     public void spawnFakeBalls(int count, double duration) {
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        for (int i = 0; i &lt; count; i++) {</span>
-<span class="nc" id="L151">            FakeBall fake = new FakeBall(ball.getX(), ball.getY(), ball.getRadius(), duration);</span>
-<span class="nc" id="L152">            double spread = i - (count - 1) / 2.0;</span>
-<span class="nc" id="L153">            fake.setVelocity(ball.getVx() * (0.75 + 0.08 * i), ball.getVy() + 110 * spread);</span>
-<span class="nc" id="L154">            fakeBalls.add(fake);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        for (int i = 0; i &lt; count; i++) {</span>
+<span class="nc" id="L152">            FakeBall fake = new FakeBall(ball.getX(), ball.getY(), ball.getRadius(), duration);</span>
+<span class="nc" id="L153">            double spread = i - (count - 1) / 2.0;</span>
+<span class="nc" id="L154">            fake.setVelocity(ball.getVx() * (0.75 + 0.08 * i), ball.getVy() + 110 * spread);</span>
+<span class="nc" id="L155">            fakeBalls.add(fake);</span>
         }
-<span class="nc" id="L156">    }</span>
+<span class="nc" id="L157">    }</span>
 
     /**
      * Ends the match now, without a winner.
      */
     public void end() {
-<span class="fc" id="L162">        ended = true;</span>
-<span class="fc" id="L163">    }</span>
+<span class="fc" id="L163">        ended = true;</span>
+<span class="fc" id="L164">    }</span>
 
     /**
      * Tells whether the match is over.
@@ -168,7 +169,7 @@ public class Match implements Serializable {
      * @return true if it was ended or its rule says it is over
      */
     public boolean isFinished() {
-<span class="fc bfc" id="L171" title="All 4 branches covered.">        return ended || type.isMatchOver(this);</span>
+<span class="fc bfc" id="L172" title="All 4 branches covered.">        return ended || type.isMatchOver(this);</span>
     }
 
     /**
@@ -177,10 +178,10 @@ public class Match implements Serializable {
      * @return &quot;LEFT&quot;, &quot;RIGHT&quot;, or null if it is not over or was ended by hand
      */
     public String getWinner() {
-<span class="fc bfc" id="L180" title="All 4 branches covered.">        if (ended || !type.isMatchOver(this)) {</span>
-<span class="fc" id="L181">            return null;</span>
+<span class="fc bfc" id="L181" title="All 4 branches covered.">        if (ended || !type.isMatchOver(this)) {</span>
+<span class="fc" id="L182">            return null;</span>
         }
-<span class="fc" id="L183">        return type.getWinner(this);</span>
+<span class="fc" id="L184">        return type.getWinner(this);</span>
     }
 
     /**
@@ -189,7 +190,7 @@ public class Match implements Serializable {
      * @return true if {@link #end()} was called
      */
     public boolean wasEnded() {
-<span class="fc" id="L192">        return ended;</span>
+<span class="fc" id="L193">        return ended;</span>
     }
 
     /**
@@ -199,10 +200,10 @@ public class Match implements Serializable {
      * @return its player, or null for an unknown side
      */
     public Player getPlayer(String side) {
-<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
-<span class="fc" id="L203">            return leftPlayer;</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="fc" id="L204">            return leftPlayer;</span>
         }
-<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        return &quot;RIGHT&quot;.equals(side) ? rightPlayer : null;</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        return &quot;RIGHT&quot;.equals(side) ? rightPlayer : null;</span>
     }
 
     /**
@@ -212,7 +213,7 @@ public class Match implements Serializable {
      * @return the other player
      */
     public Player getOpponent(Player p) {
-<span class="pc bpc" id="L215" title="1 of 2 branches missed.">        return p == leftPlayer ? rightPlayer : leftPlayer;</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">        return p == leftPlayer ? rightPlayer : leftPlayer;</span>
     }
 
     /**
@@ -221,7 +222,7 @@ public class Match implements Serializable {
      * @return the ball
      */
     public Ball getBall() {
-<span class="fc" id="L224">        return ball;</span>
+<span class="fc" id="L225">        return ball;</span>
     }
 
     /**
@@ -230,7 +231,7 @@ public class Match implements Serializable {
      * @return a copy of the list of fake balls
      */
     public List&lt;FakeBall&gt; getFakeBalls() {
-<span class="fc" id="L233">        return new ArrayList&lt;&gt;(fakeBalls);</span>
+<span class="fc" id="L234">        return new ArrayList&lt;&gt;(fakeBalls);</span>
     }
 
     /**
@@ -239,7 +240,7 @@ public class Match implements Serializable {
      * @return the scoreboard
      */
     public ScoreBoard getScoreBoard() {
-<span class="fc" id="L242">        return scoreBoard;</span>
+<span class="fc" id="L243">        return scoreBoard;</span>
     }
 
     /**
@@ -248,7 +249,7 @@ public class Match implements Serializable {
      * @return the match type
      */
     public MatchType getType() {
-<span class="fc" id="L251">        return type;</span>
+<span class="fc" id="L252">        return type;</span>
     }
 
     /**
@@ -257,7 +258,7 @@ public class Match implements Serializable {
      * @return seconds played
      */
     public double getElapsed() {
-<span class="fc" id="L260">        return elapsed;</span>
+<span class="fc" id="L261">        return elapsed;</span>
     }
 
     /**
@@ -265,34 +266,34 @@ public class Match implements Serializable {
      * received it, tells the rule and kicks off again.
      */
     private void checkGoals() {
-<span class="fc bfc" id="L268" title="All 2 branches covered.">        for (String defender : new String[]{&quot;LEFT&quot;, &quot;RIGHT&quot;}) {</span>
-<span class="fc bfc" id="L269" title="All 2 branches covered.">            if (stadium.isInGoal(defender, ball)) {</span>
-<span class="fc bfc" id="L270" title="All 2 branches covered.">                String scorer = &quot;LEFT&quot;.equals(defender) ? &quot;RIGHT&quot; : &quot;LEFT&quot;;</span>
-<span class="fc" id="L271">                scoreBoard.addGoal(scorer);</span>
-<span class="fc" id="L272">                addEvent(&quot;GOAL&quot;);</span>
-<span class="fc" id="L273">                getPlayer(defender).onGoalAgainst();</span>
-<span class="fc" id="L274">                type.onGoal(scorer, this);</span>
-<span class="fc" id="L275">                fakeBalls.clear();</span>
-<span class="fc" id="L276">                placeForKickOff();</span>
-<span class="fc" id="L277">                return;</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">        for (String defender : new String[]{&quot;LEFT&quot;, &quot;RIGHT&quot;}) {</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">            if (stadium.isInGoal(defender, ball)) {</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">                String scorer = &quot;LEFT&quot;.equals(defender) ? &quot;RIGHT&quot; : &quot;LEFT&quot;;</span>
+<span class="fc" id="L272">                scoreBoard.addGoal(scorer);</span>
+<span class="fc" id="L273">                addEvent(&quot;GOAL&quot;);</span>
+<span class="fc" id="L274">                getPlayer(defender).onGoalAgainst();</span>
+<span class="fc" id="L275">                type.onGoal(scorer, this);</span>
+<span class="fc" id="L276">                fakeBalls.clear();</span>
+<span class="fc" id="L277">                placeForKickOff();</span>
+<span class="fc" id="L278">                return;</span>
             }
         }
-<span class="fc" id="L280">    }</span>
+<span class="fc" id="L281">    }</span>
 
     /**
      * Places the players on the ground at a fifth of the field from each side,
      * and the ball still over the center.
      */
     private void placeForKickOff() {
-<span class="fc" id="L287">        double width = stadium.getWidth();</span>
-<span class="fc" id="L288">        double feet = stadium.getGroundY() - Player.HEIGHT;</span>
-<span class="fc" id="L289">        leftPlayer.setPosition(width * 0.22 - Player.WIDTH / 2, feet);</span>
-<span class="fc" id="L290">        rightPlayer.setPosition(width * 0.78 - Player.WIDTH / 2, feet);</span>
-<span class="fc" id="L291">        leftPlayer.setVelocity(0, 0);</span>
-<span class="fc" id="L292">        rightPlayer.setVelocity(0, 0);</span>
-<span class="fc" id="L293">        ball.reset(width / 2 - ball.getRadius(), stadium.getHeight() * 0.15);</span>
-<span class="fc" id="L294">        fakeBalls.clear();</span>
-<span class="fc" id="L295">    }</span>
+<span class="fc" id="L288">        double width = stadium.getWidth();</span>
+<span class="fc" id="L289">        double feet = stadium.getGroundY() - Player.HEIGHT;</span>
+<span class="fc" id="L290">        leftPlayer.setPosition(width * 0.22 - Player.WIDTH / 2, feet);</span>
+<span class="fc" id="L291">        rightPlayer.setPosition(width * 0.78 - Player.WIDTH / 2, feet);</span>
+<span class="fc" id="L292">        leftPlayer.setVelocity(0, 0);</span>
+<span class="fc" id="L293">        rightPlayer.setVelocity(0, 0);</span>
+<span class="fc" id="L294">        ball.reset(width / 2 - ball.getRadius(), stadium.getHeight() * 0.15);</span>
+<span class="fc" id="L295">        fakeBalls.clear();</span>
+<span class="fc" id="L296">    }</span>
 
     /** Things that happened since the last poll, for the sounds of the presentation; not saved. */
     private transient List&lt;String&gt; events;
@@ -303,11 +304,11 @@ public class Match implements Serializable {
      * @param event &quot;KICK&quot;, &quot;POST&quot; or &quot;GOAL&quot;
      */
     public void addEvent(String event) {
-<span class="fc bfc" id="L306" title="All 2 branches covered.">        if (events == null) {</span>
-<span class="fc" id="L307">            events = new ArrayList&lt;&gt;(); // also after opening a saved game</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">        if (events == null) {</span>
+<span class="fc" id="L308">            events = new ArrayList&lt;&gt;(); // also after opening a saved game</span>
         }
-<span class="fc" id="L309">        events.add(event);</span>
-<span class="fc" id="L310">    }</span>
+<span class="fc" id="L310">        events.add(event);</span>
+<span class="fc" id="L311">    }</span>
 
     /**
      * Returns the events since the last call and forgets them.
@@ -315,9 +316,9 @@ public class Match implements Serializable {
      * @return the events, in the order they happened
      */
     public List&lt;String&gt; pollEvents() {
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        List&lt;String&gt; copy = events == null ? new ArrayList&lt;&gt;() : new ArrayList&lt;&gt;(events);</span>
-<span class="fc" id="L319">        events = null;</span>
-<span class="fc" id="L320">        return copy;</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">        List&lt;String&gt; copy = events == null ? new ArrayList&lt;&gt;() : new ArrayList&lt;&gt;(events);</span>
+<span class="fc" id="L320">        events = null;</span>
+<span class="fc" id="L321">        return copy;</span>
     }
 
     //  answers for the facade: the match asks its own parts
@@ -328,7 +329,16 @@ public class Match implements Serializable {
      * @return &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
      */
     public String getTypeName() {
-<span class="fc" id="L331">        return type.getName();</span>
+<span class="fc" id="L332">        return type.getName();</span>
+    }
+
+    /**
+     * Returns the goals needed to win.
+     *
+     * @return the goal target, or -1 if it is not a match by goals
+     */
+    public int getGoalTarget() {
+<span class="fc" id="L341">        return type.getTarget();</span>
     }
 
     /**
@@ -337,7 +347,7 @@ public class Match implements Serializable {
      * @return seconds left, or -1 if the match has no time limit
      */
     public int getTimeLeft() {
-<span class="fc" id="L340">        return type.getTimeLeft(this);</span>
+<span class="fc" id="L350">        return type.getTimeLeft(this);</span>
     }
 
     /**
@@ -346,7 +356,7 @@ public class Match implements Serializable {
      * @return true in sudden death
      */
     public boolean isSuddenDeath() {
-<span class="fc" id="L349">        return type.isSuddenDeath();</span>
+<span class="fc" id="L359">        return type.isSuddenDeath();</span>
     }
 
     /**
@@ -356,7 +366,7 @@ public class Match implements Serializable {
      * @return its goals
      */
     public int getGoals(String side) {
-<span class="fc" id="L359">        return scoreBoard.getGoals(side);</span>
+<span class="fc" id="L369">        return scoreBoard.getGoals(side);</span>
     }
 
     /**
@@ -365,7 +375,7 @@ public class Match implements Serializable {
      * @return left edge, in pixels
      */
     public double getBallX() {
-<span class="fc" id="L368">        return ball.getX();</span>
+<span class="fc" id="L378">        return ball.getX();</span>
     }
 
     /**
@@ -374,7 +384,7 @@ public class Match implements Serializable {
      * @return top edge, in pixels
      */
     public double getBallY() {
-<span class="nc" id="L377">        return ball.getY();</span>
+<span class="nc" id="L387">        return ball.getY();</span>
     }
 
     /**
@@ -383,7 +393,7 @@ public class Match implements Serializable {
      * @return the name of the skin
      */
     public String getBallName() {
-<span class="fc" id="L386">        return ball.getSkinName();</span>
+<span class="fc" id="L396">        return ball.getSkinName();</span>
     }
 
     /**
@@ -392,7 +402,7 @@ public class Match implements Serializable {
      * @return the name of the shot, or null if the ball is normal
      */
     public String getBallPower() {
-<span class="fc" id="L395">        return ball.getChargeName();</span>
+<span class="fc" id="L405">        return ball.getChargeName();</span>
     }
 
     /**
@@ -401,7 +411,7 @@ public class Match implements Serializable {
      * @return width, in pixels
      */
     public double getFieldWidth() {
-<span class="fc" id="L404">        return stadium.getWidth();</span>
+<span class="fc" id="L414">        return stadium.getWidth();</span>
     }
 
     /**
@@ -410,7 +420,7 @@ public class Match implements Serializable {
      * @return height, in pixels
      */
     public double getFieldHeight() {
-<span class="fc" id="L413">        return stadium.getHeight();</span>
+<span class="fc" id="L423">        return stadium.getHeight();</span>
     }
 
     /**
@@ -419,7 +429,7 @@ public class Match implements Serializable {
      * @return y of the ground, in pixels
      */
     public double getGroundY() {
-<span class="fc" id="L422">        return stadium.getGroundY();</span>
+<span class="fc" id="L432">        return stadium.getGroundY();</span>
     }
 
     /**
@@ -429,7 +439,7 @@ public class Match implements Serializable {
      * @return {x, y, width, height}, in pixels
      */
     public double[] getGoalBounds(String side) {
-<span class="fc" id="L432">        return stadium.getGoalBounds(side);</span>
+<span class="fc" id="L442">        return stadium.getGoalBounds(side);</span>
     }
 
     /**
@@ -440,7 +450,16 @@ public class Match implements Serializable {
      * @throws DOPOSoccerException INVALID_STATE if the match is not survival, UNKNOWN_SIDE
      */
     public int getBalls(String side) throws DOPOSoccerException {
-<span class="nc" id="L443">        return type.getBalls(side);</span>
+<span class="fc" id="L453">        return type.getBalls(side);</span>
+    }
+
+    /**
+     * Returns the stadium where the match is played, so the interface draws its picture.
+     *
+     * @return name of the stadium (&quot;default&quot;, &quot;rain&quot;...)
+     */
+    public String getStadiumName() {
+<span class="fc" id="L462">        return stadium.getName();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

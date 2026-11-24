@@ -97,6 +97,37 @@
                 </executions>
             </plugin>
 
+            <!-- API documentation (Javadoc) of domain and presentation, with private members, in docs/apidocs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <!-- the plugin always writes into an "apidocs" folder inside this one -->
+                    <outputDirectory>${project.basedir}/docs</outputDirectory>
+                    <excludePackageNames>tests</excludePackageNames>
+                    <show>private</show>
+                    <author>true</author>
+                    <version>true</version>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
+                    <doctitle>DOPOSoccer ${project.version} API</doctitle>
+                    <windowtitle>DOPOSoccer ${project.version} API</windowtitle>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>javadoc</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Good practices: static analysis of the main code (domain and presentation) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

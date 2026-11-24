@@ -1,12 +1,13 @@
 tests\StatsTest.class
-tests\TournamentModeTest.class
-tests\ScoreBoardTest.class
 tests\SettingsTest.class
 tests\StoreTest.class
 tests\PlayerTest.class
 tests\MatchTypeTest.class
 tests\HumanControllerTest.class
-tests\AIControllerTest.class
-tests\DOPOSoccerTest.class
 tests\EffectTest.class
 tests\ArcadeModeTest.class
+tests\TournamentModeTest.class
+tests\ScoreBoardTest.class
+tests\PersistenceTest.class
+tests\AIControllerTest.class
+tests\DOPOSoccerTest.class

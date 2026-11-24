@@ -129,7 +129,7 @@ public class Player extends Entity {
 <span class="fc" id="L129">        kickTimer = Math.max(0, kickTimer - dt);</span>
 <span class="fc bfc" id="L130" title="All 2 branches covered.">        if (effect != null) {</span>
 <span class="fc" id="L131">            effect.update(dt);</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">            if (effect.isExpired()) {</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">            if (effect.isExpired()) {</span>
 <span class="fc" id="L133">                effect = null;</span>
             }
         }
@@ -188,8 +188,8 @@ public class Player extends Entity {
 <span class="fc" id="L188">        Ball ball = match.getBall();</span>
 <span class="fc bfc" id="L189" title="All 2 branches covered.">        if (reachesBall(ball)) {</span>
 <span class="fc" id="L190">            match.addEvent(&quot;KICK&quot;);</span>
-<span class="pc bpc" id="L191" title="1 of 2 branches missed.">            if (aura) {</span>
-<span class="nc" id="L192">                match.onBallTouch(this);</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">            if (aura) {</span>
+<span class="fc" id="L192">                match.onBallTouch(this);</span>
             } else {
 <span class="fc" id="L194">                ball.applyImpulse(getDirection() * KICK_SPEED, -KICK_SPEED * 0.6);</span>
             }
@@ -454,7 +454,7 @@ public class Player extends Entity {
      * @return the kick multiplier of its stats
      */
     public double getKickMultiplier() {
-<span class="nc" id="L457">        return stats.getKickMultiplier();</span>
+<span class="fc" id="L457">        return stats.getKickMultiplier();</span>
     }
 
     /**

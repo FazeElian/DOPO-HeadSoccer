@@ -1,0 +1,62 @@
+-J-Duser.language=
+-J-Duser.country=
+@options
+@packages
+-classpath
+'C:/Users/oscar/.m2/repository/org/dyn4j/dyn4j/5.0.2/dyn4j-5.0.2.jar'
+-encoding
+'UTF-8'
+-private
+--release
+21
+-sourcepath
+'C:/Users/oscar/Desktop/ESCUELA COLOMBIANA DE INGENIERIA/4.CUARTO SEMESTRE/DOPO/PROYECTOS/PROYECTO2/DOPO-HeadSoccer/src;C:/Users/oscar/Desktop/ESCUELA COLOMBIANA DE INGENIERIA/4.CUARTO SEMESTRE/DOPO/PROYECTOS/PROYECTO2/DOPO-HeadSoccer/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 1980. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/oscar/Desktop/ESCUELA COLOMBIANA DE INGENIERIA/4.CUARTO SEMESTRE/DOPO/PROYECTOS/PROYECTO2/DOPO-HeadSoccer/docs/apidocs'
+-docencoding
+'UTF-8'
+-Xdoclint:none
+-doctitle
+'DOPOSoccer 1.0 API'
+-notimestamp
+-use
+-version
+-windowtitle
+'DOPOSoccer 1.0 API'
+domain
+presentation
+presentation.views.arcade
+presentation.views.home
+presentation.views.match
+presentation.views.tournament
+presentation.views
+C:\Users\oscar\.m2\repository\org\dyn4j\dyn4j\5.0.2\dyn4j-5.0.2.jar = 1710619102000
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src = 1794142043300
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\target\generated-sources\annotations = 1795371261910
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\allclasses-index.html = 1795371273149
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\allpackages-index.html = 1795371273155
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\constant-values.html = 1795371272476
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\copy.svg = 1795371273291
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\element-list = 1795371272366
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\help-doc.html = 1795371273279
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\index-all.html = 1795371273259
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\index.html = 1795371273055
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\link.svg = 1795371273294
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\member-search-index.js = 1795371273171
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\module-search-index.js = 1795371273159
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\overview-summary.html = 1795371273269
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\overview-tree.html = 1795371273047
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\package-search-index.js = 1795371273162
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\script.js = 1795371273287
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\search-page.js = 1795371273304
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\search.html = 1795371273264
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\search.js = 1795371273300
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\serialized-form.html = 1795371272530
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\stylesheet.css = 1795371273284
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\tag-search-index.js = 1795371273173
+C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\docs\apidocs\type-search-index.js = 1795371273165
