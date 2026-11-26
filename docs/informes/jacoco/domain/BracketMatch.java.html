@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BracketMatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">BracketMatch.java</span></div><h1>BracketMatch.java</h1><pre class="source lang-java linenums">package domain;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /**
@@ -11,7 +12,10 @@ import java.util.Random;
  * @author Oscar Poveda
  * @version 1.0
  */
-public class BracketMatch {
+public class BracketMatch implements Serializable {
+    /** Version of the saved data, so a saved game of this version can be opened again. */
+    private static final long serialVersionUID = 1L;
+
     /** Round of the tournament it belongs to, from 1 (quarterfinals). */
     private final int currentRound;
     /** Team on the left (the player, in the matches of the player). */
@@ -19,9 +23,9 @@ public class BracketMatch {
     /** Team on the right. */
     private final GameCharacter rightCharacter;
     /** Goals of the left team. */
-<span class="fc" id="L22">    private int leftGoals = 0;</span>
+<span class="fc" id="L26">    private int leftGoals = 0;</span>
     /** Goals of the right team. */
-<span class="fc" id="L24">    private int rightGoals = 0;</span>
+<span class="fc" id="L28">    private int rightGoals = 0;</span>
     /** Whether it already has a result. */
     private boolean played;
 
@@ -36,11 +40,11 @@ public class BracketMatch {
         int round,
         GameCharacter leftCharacter,
         GameCharacter rightCharacter
-<span class="fc" id="L39">    ) {</span>
-<span class="fc" id="L40">        this.leftCharacter = leftCharacter;</span>
-<span class="fc" id="L41">        this.rightCharacter = rightCharacter;</span>
-<span class="fc" id="L42">        this.currentRound = round;</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L43">    ) {</span>
+<span class="fc" id="L44">        this.leftCharacter = leftCharacter;</span>
+<span class="fc" id="L45">        this.rightCharacter = rightCharacter;</span>
+<span class="fc" id="L46">        this.currentRound = round;</span>
+<span class="fc" id="L47">    }</span>
 
     /**
      * Saves the result of the match and marks it as played.
@@ -52,10 +56,10 @@ public class BracketMatch {
         int leftGoals,
         int rightGoals
     ) {
-<span class="fc" id="L55">        this.leftGoals = leftGoals;</span>
-<span class="fc" id="L56">        this.rightGoals = rightGoals;</span>
-<span class="fc" id="L57">        this.played = true;</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L59">        this.leftGoals = leftGoals;</span>
+<span class="fc" id="L60">        this.rightGoals = rightGoals;</span>
+<span class="fc" id="L61">        this.played = true;</span>
+<span class="fc" id="L62">    }</span>
 
     /**
      * Gives a random result to a match between two machines (from 0 to 3 goals each).
@@ -64,19 +68,19 @@ public class BracketMatch {
      * @param random decides the goals
      */
     public void simulate(Random random) {
-<span class="fc" id="L67">        int leftIA = random.nextInt(4);</span>
-<span class="fc" id="L68">        int rightIA = random.nextInt(4);</span>
+<span class="fc" id="L71">        int leftIA = random.nextInt(4);</span>
+<span class="fc" id="L72">        int rightIA = random.nextInt(4);</span>
 
-<span class="fc bfc" id="L70" title="All 2 branches covered.">        if(leftIA == rightIA) {</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">            if(random.nextBoolean()) {</span>
-<span class="fc" id="L72">                leftIA++;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if(leftIA == rightIA) {</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            if(random.nextBoolean()) {</span>
+<span class="fc" id="L76">                leftIA++;</span>
             } else {
-<span class="fc" id="L74">                rightIA++;</span>
+<span class="fc" id="L78">                rightIA++;</span>
             }
         }
 
-<span class="fc" id="L78">        setResult(leftIA, rightIA);</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L82">        setResult(leftIA, rightIA);</span>
+<span class="fc" id="L83">    }</span>
 
     /**
      * Returns the team that won the match.
@@ -84,10 +88,10 @@ public class BracketMatch {
      * @return the winner, or null if it was not played yet or it is a tie
      */
     public GameCharacter getWinner() {
-<span class="pc bpc" id="L87" title="1 of 4 branches missed.">        if(!played || leftGoals == rightGoals) {</span>
-<span class="fc" id="L88">            return null;</span>
+<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if(!played || leftGoals == rightGoals) {</span>
+<span class="fc" id="L92">            return null;</span>
         }
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        return leftGoals &gt; rightGoals ? leftCharacter : rightCharacter;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        return leftGoals &gt; rightGoals ? leftCharacter : rightCharacter;</span>
     }
 
     /**
@@ -97,7 +101,7 @@ public class BracketMatch {
      * @return true if it is the left or the right team
      */
     public boolean includes(GameCharacter character) {
-<span class="pc bpc" id="L100" title="1 of 4 branches missed.">        return leftCharacter == character || rightCharacter == character;</span>
+<span class="pc bpc" id="L104" title="1 of 4 branches missed.">        return leftCharacter == character || rightCharacter == character;</span>
     }
 
     /**
@@ -106,7 +110,7 @@ public class BracketMatch {
      * @return 1 (quarterfinals), 2 (semifinal) or 3 (final)
      */
     public int getRound() {
-<span class="fc" id="L109">        return currentRound;</span>
+<span class="fc" id="L113">        return currentRound;</span>
     }
 
     /**
@@ -115,7 +119,7 @@ public class BracketMatch {
      * @return &quot;CUARTOS&quot;, &quot;SEMIFINAL&quot; or &quot;FINAL&quot;
      */
     public String getDisplayRound() {
-<span class="fc" id="L118">        return TournamentMode.ROUND_NAMES[currentRound - 1];</span>
+<span class="fc" id="L122">        return TournamentMode.ROUND_NAMES[currentRound - 1];</span>
     }
 
     /**
@@ -124,7 +128,7 @@ public class BracketMatch {
      * @return the left team
      */
     public GameCharacter getLeftCharacter() {
-<span class="fc" id="L127">        return leftCharacter;</span>
+<span class="fc" id="L131">        return leftCharacter;</span>
     }
 
     /**
@@ -133,7 +137,7 @@ public class BracketMatch {
      * @return the right team
      */
     public GameCharacter getRightCharacter() {
-<span class="fc" id="L136">        return rightCharacter;</span>
+<span class="fc" id="L140">        return rightCharacter;</span>
     }
 
     /**
@@ -142,7 +146,7 @@ public class BracketMatch {
      * @return true after {@link #setResult} or {@link #simulate}
      */
     public boolean isPlayed() {
-<span class="fc" id="L145">        return played;</span>
+<span class="fc" id="L149">        return played;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

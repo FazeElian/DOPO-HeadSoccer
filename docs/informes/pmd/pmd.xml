@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.7.0" timestamp="2026-11-21T15:23:09.508">
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.7.0" timestamp="2026-11-22T13:14:37.406">
 <file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\domain\AIController.java">
 <violation beginline="125" endline="125" begincolumn="21" endcolumn="56" rule="UselessParentheses" ruleset="Code Style" package="domain" class="AIController" method="isBallNear" variable="dx" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#uselessparentheses" priority="4">
 Useless parentheses.
@@ -9,11 +9,14 @@ Useless parentheses.
 </violation>
 </file>
 <file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\DOPOSoccerGUI.java">
-<violation beginline="140" endline="140" begincolumn="34" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation" class="DOPOSoccerGUI" method="prepareController" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+<violation beginline="148" endline="148" begincolumn="34" endcolumn="40" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation" class="DOPOSoccerGUI" method="prepareController" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
 Unnecessary qualifier 'JFrame': 'WindowConstants::DO_NOTHING_ON_CLOSE' is already in scope because it is inherited by an enclosing type
 </violation>
-<violation beginline="803" endline="805" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation" class="DOPOSoccerGUI" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
+<violation beginline="918" endline="920" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation" class="DOPOSoccerGUI" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
 Avoid empty catch blocks
+</violation>
+<violation beginline="1140" endline="1140" begincolumn="64" endcolumn="76" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="presentation" class="DOPOSoccerGUI" method="loadFonts" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary qualifier 'java.io': 'File' is already in scope because it is imported in this file
 </violation>
 </file>
 <file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\arcade\ArcadeView.java">
@@ -102,7 +105,7 @@ Unnecessary qualifier 'Component': 'CENTER_ALIGNMENT' is already in scope becaus
 </violation>
 </file>
 <file name="C:\Users\oscar\Desktop\ESCUELA COLOMBIANA DE INGENIERIA\4.CUARTO SEMESTRE\DOPO\PROYECTOS\PROYECTO2\DOPO-HeadSoccer\src\presentation\views\match\MatchView.java">
-<violation beginline="104" endline="106" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation.views.match" class="MatchView" method="paintComponent" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
+<violation beginline="109" endline="111" begincolumn="11" endcolumn="10" rule="EmptyCatchBlock" ruleset="Error Prone" package="presentation.views.match" class="MatchView" method="paintComponent" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.7.0/pmd_rules_java_errorprone.html#emptycatchblock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>

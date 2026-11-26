@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"domain"},{"l":"presentation"},{"l":"presentation.views"},{"l":"presentation.views.arcade"},{"l":"presentation.views.home"},{"l":"presentation.views.match"},{"l":"presentation.views.tournament"}];updateSearchResults();

@@ -6,6 +6,7 @@ domain\DOPOSoccer.class
 presentation\views\arcade\SelectArcadeCharacterView$CharacterCard.class
 presentation\views\home\StoreView.class
 domain\Player.class
+presentation\views\arcade\SelectStadiumView.class
 presentation\views\tournament\TournamentRoundView.class
 presentation\views\match\SurvivalMatchView$1.class
 domain\PlayerController.class

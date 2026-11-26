@@ -57,14 +57,25 @@ public class DOPOSoccerException extends Exception {
     public static final String SURVIVAL_ONLY_PVM = &quot;Supervivencia solo se juega contra la máquina.&quot;;
     /** The tournament is only played by time or by goals, not in survival. */
     public static final String INVALID_TOURNAMENT_TYPE = &quot;El torneo solo se juega por tiempo o por goles.&quot;;
+    /** The stadium does not exist. */
+    public static final String UNKNOWN_STADIUM = &quot;El estadio no existe.&quot;;
+    /** Message: the progress file could not be written. */
+    public static final String SAVE_FAILED = &quot;No se pudo guardar el progreso.&quot;;
+    /** Message: the progress file could not be read, so the game starts from zero. */
+    public static final String LOAD_FAILED = &quot;No se pudo abrir el progreso guardado: se empieza de cero.&quot;;
+    /** Message: the game being played could not be written to the chosen file. */
+    public static final String GAME_SAVE_FAILED = &quot;No se pudo guardar la partida.&quot;;
+    /** Message: the chosen file is not a saved game or it is damaged. */
+    public static final String GAME_OPEN_FAILED = &quot;No se pudo abrir la partida: el archivo no es una partida guardada o está dañado.&quot;;
+
     /**
      * Creates the exception with one of the message constants.
      *
      * @param message one of the constants of this class
      */
     public DOPOSoccerException(String message) {
-<span class="fc" id="L66">        super(message);</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L77">        super(message);</span>
+<span class="fc" id="L78">    }</span>
 
     /**
      * Creates the exception with one of the message constants and the error that caused it,
@@ -74,7 +85,7 @@ public class DOPOSoccerException extends Exception {
      * @param cause   the original error
      */
     public DOPOSoccerException(String message, Throwable cause) {
-<span class="nc" id="L77">        super(message, cause);</span>
-<span class="nc" id="L78">    }</span>
+<span class="fc" id="L88">        super(message, cause);</span>
+<span class="fc" id="L89">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

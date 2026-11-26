@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DOPOSoccer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DOPOSoccer</a> &gt; <a href="index.source.html" class="el_package">domain</a> &gt; <span class="el_source">DOPOSoccer.java</span></div><h1>DOPOSoccer.java</h1><pre class="source lang-java linenums">package domain;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,17 +14,22 @@ import java.util.Random;
 
 /**
  * Facade of the domain: the only class the interface talks to (Facade pattern).
- * Arcade works player vs player and player vs machine, by time or by goals, and the store
- * (points, characters, balls and stats) works while the game is open.
- * Every other option of the design throws a {@link DOPOSoccerException} with
- * {@link DOPOSoccerException#UNDER_CONSTRUCTION}, which the interface catches and shows.
+ * Arcade works player vs player and player vs machine, by time, by goals or in survival (only
+ * against the machine); the tournament (8 teams against the machine) works by time or by goals;
+ * and the store (points, characters, balls and stats). The profiles of both players are saved in a
+ * fixed progress file every time they change, and loaded when the game opens. A game being played is
+ * saved whole in a file chosen by the user ({@link #saveGame}) and opened again as a new object
+ * ({@link #openGame}); the profiles and the settings are not part of it.
  * The public methods keep the signatures of the full version.
  *
  * @author Elian Ibarra
  * @author Oscar Poveda
  * @version 1.0
  */
-public class DOPOSoccer {
+public class DOPOSoccer implements Serializable {
+
+    /** Version of the saved data, so a saved game of this version can be opened again. */
+    private static final long serialVersionUID = 1L;
 
     /** Points for the winner of a match. */
     public static final int WIN_POINTS = 100;
@@ -26,6 +37,10 @@ public class DOPOSoccer {
     public static final int LOSE_POINTS = 25;
     /** Name of the ball used until another one is chosen. */
     public static final String DEFAULT_BALL = &quot;Clásico&quot;;
+    /** Name of the file where the progress is saved, next to the project. */
+    public static final String PROGRESS_FILE = &quot;DOPOSoccer.progress&quot;;
+    /** Extension of the files of the saved games (&quot;ds&quot;, of DOPO Soccer), without the dot. */
+    public static final String GAME_EXTENSION = &quot;ds&quot;;
 
     /** The 8 teams, by country. */
     private final LinkedHashMap&lt;String, GameCharacter&gt; characters;
@@ -43,46 +58,66 @@ public class DOPOSoccer {
     private boolean pointsGiven;
     /** Points earned by each side in the last match. */
     private final int[] lastPoints;
-    /** Profiles of the left and right players: their stats are used in every match. */
-    private final PlayerProfile[] profiles;
-    /** Settings of the game. */
-    private final Settings settings;
+    /**
+     * Profiles of the left and right players: their stats are used in every match. They are not saved
+     * with a game (transient): they live in the progress file, so opening a game never takes them back.
+     */
+    private transient PlayerProfile[] profiles;
+    /** Settings of the game. They are not saved with a game (transient). */
+    private transient Settings settings;
     /** Tournament being played, or null in Arcade. */
     private TournamentMode tournament;
+    /** Stadium used until another one is chosen. */
+    public static final String DEFAULT_STADIUM = &quot;default&quot;;
+    /** Stadium of the next matches (the last one chosen). */
+<span class="fc" id="L73">    private String stadium = DEFAULT_STADIUM;</span>
+    /** Fixed file where the profiles of both players are saved and loaded. */
+    private final File progressFile;
+
+    /**
+     * Creates the game that saves its progress in {@link #PROGRESS_FILE}.
+     */
+    public DOPOSoccer() {
+<span class="fc" id="L81">        this(new File(PROGRESS_FILE));</span>
+<span class="fc" id="L82">    }</span>
 
     /**
      * Creates the game with the 8 teams (the 4 characters of Annex 1 and 4 more that share their power shots;
      * España and Japón are locked) and the 6 balls of the catalog (Dorado, Fuego, Hielo and Galaxia are locked).
+     * The progress is not loaded here: {@link #loadProgress()} does it.
+     *
+     * @param progressFile file where the progress is saved and loaded
      */
-<span class="fc" id="L57">    public DOPOSoccer() {</span>
-<span class="fc" id="L58">        characters = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L59">        characters.put(&quot;Corea del Sur&quot;, new GameCharacter(&quot;Corea del Sur&quot;, new BlueAuraShot()));</span>
-<span class="fc" id="L60">        characters.put(&quot;Camerún&quot;, new GameCharacter(&quot;Camerún&quot;, new LightningShot()));</span>
-<span class="fc" id="L61">        characters.put(&quot;Nigeria&quot;, new GameCharacter(&quot;Nigeria&quot;, new TornadoShot()));</span>
-<span class="fc" id="L62">        characters.put(&quot;Estados Unidos&quot;, new GameCharacter(&quot;Estados Unidos&quot;, new IllusionShot()));</span>
-<span class="fc" id="L63">        characters.put(&quot;Colombia&quot;, new GameCharacter(&quot;Colombia&quot;, new IllusionShot()));</span>
-<span class="fc" id="L64">        characters.put(&quot;Argentina&quot;, new GameCharacter(&quot;Argentina&quot;, new LightningShot()));</span>
-<span class="fc" id="L65">        characters.put(&quot;España&quot;, new GameCharacter(&quot;España&quot;, new BlueAuraShot(), 800));</span>
-<span class="fc" id="L66">        characters.put(&quot;Japón&quot;, new GameCharacter(&quot;Japón&quot;, new TornadoShot(), 1200));</span>
-<span class="fc" id="L67">        balls = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L68">        balls.put(&quot;Clásico&quot;, new BallSkin(&quot;Clásico&quot;, 0));</span>
-<span class="fc" id="L69">        balls.put(&quot;Tricolor&quot;, new BallSkin(&quot;Tricolor&quot;, 0));</span>
-<span class="fc" id="L70">        balls.put(&quot;Dorado&quot;, new BallSkin(&quot;Dorado&quot;, 500));</span>
-<span class="fc" id="L71">        balls.put(&quot;Fuego&quot;, new BallSkin(&quot;Fuego&quot;, 700));</span>
-<span class="fc" id="L72">        balls.put(&quot;Hielo&quot;, new BallSkin(&quot;Hielo&quot;, 700));</span>
-<span class="fc" id="L73">        balls.put(&quot;Galaxia&quot;, new BallSkin(&quot;Galaxia&quot;, 1000));</span>
-<span class="fc" id="L74">        ball = balls.get(DEFAULT_BALL);</span>
-<span class="fc" id="L75">        lastPoints = new int[2];</span>
-<span class="fc" id="L76">        profiles = new PlayerProfile[]{new PlayerProfile(&quot;J1&quot;, ball), new PlayerProfile(&quot;J2&quot;, ball)};</span>
-<span class="fc" id="L77">        settings = new Settings();</span>
-<span class="fc" id="L78">    }</span>
+<span class="fc" id="L91">    public DOPOSoccer(File progressFile) {</span>
+<span class="fc" id="L92">        this.progressFile = progressFile;</span>
+<span class="fc" id="L93">        characters = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L94">        characters.put(&quot;Corea del Sur&quot;, new GameCharacter(&quot;Corea del Sur&quot;, new BlueAuraShot()));</span>
+<span class="fc" id="L95">        characters.put(&quot;Camerún&quot;, new GameCharacter(&quot;Camerún&quot;, new LightningShot()));</span>
+<span class="fc" id="L96">        characters.put(&quot;Nigeria&quot;, new GameCharacter(&quot;Nigeria&quot;, new TornadoShot()));</span>
+<span class="fc" id="L97">        characters.put(&quot;Estados Unidos&quot;, new GameCharacter(&quot;Estados Unidos&quot;, new IllusionShot()));</span>
+<span class="fc" id="L98">        characters.put(&quot;Colombia&quot;, new GameCharacter(&quot;Colombia&quot;, new IllusionShot()));</span>
+<span class="fc" id="L99">        characters.put(&quot;Argentina&quot;, new GameCharacter(&quot;Argentina&quot;, new LightningShot()));</span>
+<span class="fc" id="L100">        characters.put(&quot;España&quot;, new GameCharacter(&quot;España&quot;, new BlueAuraShot(), 800));</span>
+<span class="fc" id="L101">        characters.put(&quot;Japón&quot;, new GameCharacter(&quot;Japón&quot;, new TornadoShot(), 1200));</span>
+<span class="fc" id="L102">        balls = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L103">        balls.put(&quot;Clásico&quot;, new BallSkin(&quot;Clásico&quot;, 0));</span>
+<span class="fc" id="L104">        balls.put(&quot;Tricolor&quot;, new BallSkin(&quot;Tricolor&quot;, 0));</span>
+<span class="fc" id="L105">        balls.put(&quot;Dorado&quot;, new BallSkin(&quot;Dorado&quot;, 500));</span>
+<span class="fc" id="L106">        balls.put(&quot;Fuego&quot;, new BallSkin(&quot;Fuego&quot;, 700));</span>
+<span class="fc" id="L107">        balls.put(&quot;Hielo&quot;, new BallSkin(&quot;Hielo&quot;, 700));</span>
+<span class="fc" id="L108">        balls.put(&quot;Galaxia&quot;, new BallSkin(&quot;Galaxia&quot;, 1000));</span>
+<span class="fc" id="L109">        ball = balls.get(DEFAULT_BALL);</span>
+<span class="fc" id="L110">        lastPoints = new int[2];</span>
+<span class="fc" id="L111">        profiles = new PlayerProfile[]{new PlayerProfile(&quot;J1&quot;, ball), new PlayerProfile(&quot;J2&quot;, ball)};</span>
+<span class="fc" id="L112">        settings = new Settings();</span>
+<span class="fc" id="L113">    }</span>
 
     // game
 
     /**
      * Validates the choices and prepares the game. Arcade is played player vs player or against
      * the machine; the tournament is played against the machine, with 7 rivals drawn at random.
-     * Both are played by time or by goals; survival is under construction.
+     * Both are played by time or by goals; survival is played only in Arcade against the machine.
      *
      * @param modality       &quot;PVP&quot; or &quot;PVM&quot;
      * @param aiProfile      &quot;CLUMSY&quot;, &quot;OFFENSIVE&quot;, &quot;DEFENSIVE&quot; or &quot;EXPERT&quot;; not used in player vs player
@@ -90,65 +125,66 @@ public class DOPOSoccer {
      * @param modeName       &quot;ARCADE&quot; or &quot;TOURNAMENT&quot;
      * @param leftCharacter  country of the left player
      * @param rightCharacter country of the right player (not used in the tournament)
-     * @param matchType      &quot;TIME&quot; or &quot;GOALS&quot; (&quot;SURVIVAL&quot; is under construction)
-     * @param amount         minutes of the match or goals to win
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER,
-     *                             CHARACTER_LOCKED, UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION,
-     *                             INVALID_MINUTES, INVALID_GOAL_TARGET or INVALID_TOURNAMENT_TYPE
+     * @param matchType      &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
+     * @param amount         minutes of the match or goals to win (not used in survival)
+     * @throws DOPOSoccerException UNKNOWN_MODALITY, UNKNOWN_MODE, UNKNOWN_CHARACTER, CHARACTER_LOCKED,
+     *                             UNKNOWN_AI_PROFILE, UNKNOWN_MATCH_TYPE, UNKNOWN_RESOLUTION, INVALID_MINUTES,
+     *                             INVALID_GOAL_TARGET, INVALID_TOURNAMENT_TYPE or SURVIVAL_ONLY_PVM
      */
     public void newGame(String modality, String aiProfile, String resolution, String modeName,
                         String leftCharacter, String rightCharacter, String matchType, int amount)
             throws DOPOSoccerException {
-<span class="fc" id="L102">        boolean vsMachine = &quot;PVM&quot;.equals(modality);</span>
-<span class="fc bfc" id="L103" title="All 4 branches covered.">        if (!vsMachine &amp;&amp; !&quot;PVP&quot;.equals(modality)) {</span>
-<span class="fc" id="L104">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODALITY);</span>
+<span class="fc" id="L137">        boolean vsMachine = &quot;PVM&quot;.equals(modality);</span>
+<span class="fc bfc" id="L138" title="All 4 branches covered.">        if (!vsMachine &amp;&amp; !&quot;PVP&quot;.equals(modality)) {</span>
+<span class="fc" id="L139">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODALITY);</span>
         }
-<span class="fc" id="L106">        boolean isTournament = &quot;TOURNAMENT&quot;.equals(modeName);</span>
-<span class="fc bfc" id="L107" title="All 4 branches covered.">        if (!isTournament &amp;&amp; !&quot;ARCADE&quot;.equals(modeName)) {</span>
-<span class="fc" id="L108">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);</span>
+<span class="fc" id="L141">        boolean isTournament = &quot;TOURNAMENT&quot;.equals(modeName);</span>
+<span class="fc bfc" id="L142" title="All 4 branches covered.">        if (!isTournament &amp;&amp; !&quot;ARCADE&quot;.equals(modeName)) {</span>
+<span class="fc" id="L143">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);</span>
         }
-<span class="fc bfc" id="L110" title="All 4 branches covered.">        if (isTournament &amp;&amp; &quot;SURVIVAL&quot;.equals(matchType)) {</span>
-<span class="fc" id="L111">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_TOURNAMENT_TYPE);</span>
+<span class="fc bfc" id="L145" title="All 4 branches covered.">        if (isTournament &amp;&amp; &quot;SURVIVAL&quot;.equals(matchType)) {</span>
+<span class="fc" id="L146">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_TOURNAMENT_TYPE);</span>
         }
 
-<span class="fc" id="L114">        GameCharacter left = character(leftCharacter);</span>
-<span class="fc" id="L115">        GameCharacter right = character(rightCharacter);</span>
+<span class="fc" id="L149">        GameCharacter left = character(leftCharacter);</span>
+<span class="fc" id="L150">        GameCharacter right = character(rightCharacter);</span>
         
         // Each person plays only with its own characters; the machine plays with any
-<span class="fc bfc" id="L118" title="All 6 branches covered.">        if (!profiles[0].isCharacterUnlocked(left)</span>
-<span class="fc bfc" id="L119" title="All 2 branches covered.">                || (!isTournament &amp;&amp; !vsMachine &amp;&amp; !profiles[1].isCharacterUnlocked(right))) {</span>
-<span class="fc" id="L120">            throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);</span>
+<span class="fc bfc" id="L153" title="All 6 branches covered.">        if (!profiles[0].isCharacterUnlocked(left)</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">                || (!isTournament &amp;&amp; !vsMachine &amp;&amp; !profiles[1].isCharacterUnlocked(right))) {</span>
+<span class="fc" id="L155">            throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);</span>
         }
 
-<span class="pc bpc" id="L123" title="1 of 4 branches missed.">        if (&quot;SURVIVAL&quot;.equals(matchType) &amp;&amp; !vsMachine) {</span>
-<span class="fc" id="L124">            throw new DOPOSoccerException(DOPOSoccerException.SURVIVAL_ONLY_PVM);</span>
+<span class="fc bfc" id="L158" title="All 4 branches covered.">        if (&quot;SURVIVAL&quot;.equals(matchType) &amp;&amp; !vsMachine) {</span>
+<span class="fc" id="L159">            throw new DOPOSoccerException(DOPOSoccerException.SURVIVAL_ONLY_PVM);</span>
         }
-<span class="fc" id="L126">        MatchType type = createType(matchType, amount);</span>
+<span class="fc" id="L161">        MatchType type = createType(matchType, amount);</span>
 
         GameMode newMode;
-<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (isTournament) {</span>
+<span class="fc" id="L164">        TournamentMode newTournament = null;</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (isTournament) {</span>
             // Always against the machine: the 7 rivals are the other teams
-<span class="fc" id="L131">            List&lt;GameCharacter&gt; others = new ArrayList&lt;&gt;(characters.values());</span>
-<span class="fc" id="L132">            others.remove(left);</span>
-<span class="fc" id="L133">            tournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),</span>
-<span class="fc" id="L134">                    new Stats(), createAI(aiProfile), type, resolution, ball, others, new Random());</span>
-<span class="fc" id="L135">            newMode = tournament;</span>
-<span class="fc" id="L136">            this.modality = &quot;PVM&quot;;</span>
-<span class="fc" id="L137">        } else {</span>
-<span class="fc bfc" id="L138" title="All 2 branches covered.">            PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();</span>
-<span class="fc bfc" id="L139" title="All 2 branches covered.">            Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();</span>
-<span class="fc" id="L140">            tournament = null;</span>
-<span class="fc" id="L141">            newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),</span>
-                    right, rivalStats, rival, type, resolution, ball);
-<span class="fc" id="L143">            this.modality = modality;</span>
+<span class="fc" id="L167">            List&lt;GameCharacter&gt; others = new ArrayList&lt;&gt;(characters.values());</span>
+<span class="fc" id="L168">            others.remove(left);</span>
+<span class="fc" id="L169">            newTournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),</span>
+<span class="fc" id="L170">                    new Stats(), createAI(aiProfile), type, resolution, ball, others, new Random());</span>
+<span class="fc" id="L171">            newMode = newTournament;</span>
+<span class="fc" id="L172">            this.modality = &quot;PVM&quot;;</span>
+<span class="fc" id="L173">        } else {</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">            PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">            Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();</span>
+<span class="fc" id="L176">            newMode = new ArcadeMode(left, profiles[0].getStats(), new HumanController(),</span>
+                    right, rivalStats, rival, type, resolution, ball, stadium);
+<span class="fc" id="L178">            this.modality = modality;</span>
         }
-<span class="fc" id="L145">        newMode.start();</span>
-<span class="fc" id="L146">        mode = newMode;</span>
-<span class="fc" id="L147">        paused = false;</span>
-<span class="fc" id="L148">        pointsGiven = false;</span>
-<span class="fc" id="L149">        lastPoints[0] = 0;</span>
-<span class="fc" id="L150">        lastPoints[1] = 0;</span>
-<span class="fc" id="L151">    }</span>
+<span class="fc" id="L180">        newMode.start();</span>
+<span class="fc" id="L181">        mode = newMode;</span>
+<span class="fc" id="L182">        tournament = newTournament;</span>
+<span class="fc" id="L183">        paused = false;</span>
+<span class="fc" id="L184">        pointsGiven = false;</span>
+<span class="fc" id="L185">        lastPoints[0] = 0;</span>
+<span class="fc" id="L186">        lastPoints[1] = 0;</span>
+<span class="fc" id="L187">    }</span>
 
     /**
      * Advances the game one tick if it is not paused. When the match ends, it computes the points.
@@ -157,14 +193,14 @@ public class DOPOSoccer {
      * @param dt elapsed time, in seconds
      */
     public void update(double dt) {
-<span class="fc bfc" id="L160" title="All 4 branches covered.">        if (mode == null || paused) {</span>
-<span class="fc" id="L161">            return;</span>
+<span class="fc bfc" id="L196" title="All 4 branches covered.">        if (mode == null || paused) {</span>
+<span class="fc" id="L197">            return;</span>
         }
-<span class="fc" id="L163">        mode.update(dt);</span>
-<span class="pc bpc" id="L164" title="3 of 4 branches missed.">        if (mode.isMatchFinished() &amp;&amp; !pointsGiven) {</span>
-<span class="nc" id="L165">            givePoints();</span>
+<span class="fc" id="L199">        mode.update(dt);</span>
+<span class="pc bpc" id="L200" title="3 of 4 branches missed.">        if (mode.isMatchFinished() &amp;&amp; !pointsGiven) {</span>
+<span class="nc" id="L201">            givePoints();</span>
         }
-<span class="fc" id="L167">    }</span>
+<span class="fc" id="L203">    }</span>
 
     /**
      * An action key of a side was pressed.
@@ -174,8 +210,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public void press(String side, String action) throws DOPOSoccerException {
-<span class="fc" id="L177">        player(side).press(action);</span>
-<span class="fc" id="L178">    }</span>
+<span class="fc" id="L213">        player(side).press(action);</span>
+<span class="fc" id="L214">    }</span>
 
     /**
      * An action key of a side was released.
@@ -185,8 +221,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public void release(String side, String action) throws DOPOSoccerException {
-<span class="fc" id="L188">        player(side).release(action);</span>
-<span class="fc" id="L189">    }</span>
+<span class="fc" id="L224">        player(side).release(action);</span>
+<span class="fc" id="L225">    }</span>
 
 
     /**
@@ -195,11 +231,11 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED, or GAME_OVER if the match ended
      */
     public void pause() throws DOPOSoccerException {
-<span class="fc bfc" id="L198" title="All 2 branches covered.">        if (match().isFinished()) {</span>
-<span class="fc" id="L199">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">        if (match().isFinished()) {</span>
+<span class="fc" id="L235">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);</span>
         }
-<span class="fc" id="L201">        paused = true;</span>
-<span class="fc" id="L202">    }</span>
+<span class="fc" id="L237">        paused = true;</span>
+<span class="fc" id="L238">    }</span>
 
     /**
      * Resumes the game.
@@ -207,9 +243,9 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public void resume() throws DOPOSoccerException {
-<span class="fc" id="L210">        match();</span>
-<span class="fc" id="L211">        paused = false;</span>
-<span class="fc" id="L212">    }</span>
+<span class="fc" id="L246">        match();</span>
+<span class="fc" id="L247">        paused = false;</span>
+<span class="fc" id="L248">    }</span>
 
     /**
      * Tells whether the game is paused.
@@ -217,7 +253,7 @@ public class DOPOSoccer {
      * @return true if it is paused
      */
     public boolean isPaused() {
-<span class="fc" id="L220">        return paused;</span>
+<span class="fc" id="L256">        return paused;</span>
     }
 
     /**
@@ -226,29 +262,30 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED, or GAME_OVER if the match already ended
      */
     public void endGame() throws DOPOSoccerException {
-<span class="fc" id="L229">        Match match = match();</span>
-<span class="fc bfc" id="L230" title="All 2 branches covered.">        if (match.isFinished()) {</span>
-<span class="fc" id="L231">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);</span>
+<span class="fc" id="L265">        Match match = match();</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (match.isFinished()) {</span>
+<span class="fc" id="L267">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);</span>
         }
-<span class="fc" id="L233">        match.end();</span>
-<span class="fc" id="L234">        pointsGiven = true;</span>
-<span class="fc" id="L235">        paused = false;</span>
-<span class="fc" id="L236">    }</span>
+<span class="fc" id="L269">        match.end();</span>
+<span class="fc" id="L270">        pointsGiven = true;</span>
+<span class="fc" id="L271">        paused = false;</span>
+<span class="fc" id="L272">    }</span>
 
     /**
-     * Goes to the next match of the mode: in the tournament, the next round. The new match gives points again.
+     * Goes to the next match of the mode: in the tournament, the next round; in survival, the next
+     * match of the series. The new match gives points again.
      *
-     * @throws DOPOSoccerException GAME_NOT_STARTED; INVALID_STATE in Arcade (it has only one match)
+     * @throws DOPOSoccerException GAME_NOT_STARTED; INVALID_STATE in a single Arcade match (by time or by goals)
      *                             or if the current match is not over; GAME_OVER if the mode already ended
      */
     public void nextMatch() throws DOPOSoccerException {
-<span class="fc" id="L245">        match();</span>
-<span class="nc" id="L246">        mode.nextMatch();</span>
-<span class="nc" id="L247">        paused = false;</span>
-<span class="nc" id="L248">        pointsGiven = false;   // the new match gives points again</span>
-<span class="nc" id="L249">        lastPoints[0] = 0;</span>
-<span class="nc" id="L250">        lastPoints[1] = 0;</span>
-<span class="nc" id="L251">    }</span>
+<span class="fc" id="L282">        match();</span>
+<span class="nc" id="L283">        mode.nextMatch();</span>
+<span class="nc" id="L284">        paused = false;</span>
+<span class="nc" id="L285">        pointsGiven = false;   // the new match gives points again</span>
+<span class="nc" id="L286">        lastPoints[0] = 0;</span>
+<span class="nc" id="L287">        lastPoints[1] = 0;</span>
+<span class="nc" id="L288">    }</span>
 
     /**
      * Tells whether the current match ended.
@@ -257,19 +294,20 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isMatchOver() throws DOPOSoccerException {
-<span class="fc" id="L260">        return match().isFinished();</span>
+<span class="fc" id="L297">        return match().isFinished();</span>
     }
 
     /**
-     * Tells whether the mode ended. In Arcade it is the same as the match; the tournament ends
-     * when the player loses a match or wins the final.
+     * Tells whether the mode ended. In a single Arcade match it is the same as the match; a survival
+     * series ends when the left player loses a match; the tournament ends when the player loses a
+     * match or wins the final.
      *
      * @return true if it ended
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isModeOver() throws DOPOSoccerException {
-<span class="fc" id="L271">        match();</span>
-<span class="fc" id="L272">        return mode.isOver();</span>
+<span class="fc" id="L309">        match();</span>
+<span class="fc" id="L310">        return mode.isOver();</span>
     }
 
     /**
@@ -279,7 +317,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getWinner() throws DOPOSoccerException {
-<span class="fc" id="L282">        return match().getWinner();</span>
+<span class="fc" id="L320">        return match().getWinner();</span>
     }
 
     /**
@@ -290,50 +328,50 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     public int getPointsEarned(String side) throws DOPOSoccerException {
-<span class="fc" id="L293">        return lastPoints[index(side)];</span>
+<span class="fc" id="L331">        return lastPoints[index(side)];</span>
     }
 
     /**
      * Returns the name of the mode being played.
      *
-     * @return &quot;ARCADE&quot;
+     * @return &quot;ARCADE&quot; or &quot;TOURNAMENT&quot;
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getMode() throws DOPOSoccerException {
-<span class="fc" id="L303">        match();</span>
-<span class="fc" id="L304">        return mode.getName();</span>
+<span class="fc" id="L341">        match();</span>
+<span class="fc" id="L342">        return mode.getName();</span>
     }
 
     /**
      * Returns the current round of the mode.
      *
-     * @return 1 in Arcade
+     * @return 1 in a single Arcade match; 1, 2, 3... in a survival series; 1 to 3 in the tournament
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public int getRound() throws DOPOSoccerException {
-<span class="fc" id="L314">        match();</span>
-<span class="fc" id="L315">        return mode.getRound();</span>
+<span class="fc" id="L352">        match();</span>
+<span class="fc" id="L353">        return mode.getRound();</span>
     }
 
     /**
      * Returns the modality being played.
      *
-     * @return &quot;PVP&quot;
+     * @return &quot;PVP&quot; or &quot;PVM&quot; (the tournament is always &quot;PVM&quot;)
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getModality() throws DOPOSoccerException {
-<span class="fc" id="L325">        match();</span>
-<span class="fc" id="L326">        return modality;</span>
+<span class="fc" id="L363">        match();</span>
+<span class="fc" id="L364">        return modality;</span>
     }
 
     /**
      * Returns the name of the match type being played.
      *
-     * @return &quot;TIME&quot; or &quot;GOALS&quot;
+     * @return &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getMatchType() throws DOPOSoccerException {
-<span class="fc" id="L336">        return match().getTypeName();</span>
+<span class="fc" id="L374">        return match().getTypeName();</span>
     }
 
     // state for drawing
@@ -346,8 +384,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public int getGoals(String side) throws DOPOSoccerException {
-<span class="fc" id="L349">        index(side);</span>
-<span class="fc" id="L350">        return match().getGoals(side);</span>
+<span class="fc" id="L387">        index(side);</span>
+<span class="fc" id="L388">        return match().getGoals(side);</span>
     }
 
     /**
@@ -357,7 +395,17 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public int getTimeLeft() throws DOPOSoccerException {
-<span class="fc" id="L360">        return match().getTimeLeft();</span>
+<span class="fc" id="L398">        return match().getTimeLeft();</span>
+    }
+
+    /**
+     * Returns the goals needed to win a match by goals.
+     *
+     * @return the goal target, or -1 in a match by time or in survival
+     * @throws DOPOSoccerException GAME_NOT_STARTED
+     */
+    public int getGoalTarget() throws DOPOSoccerException {
+<span class="fc" id="L408">        return match().getGoalTarget();</span>
     }
 
     /**
@@ -367,7 +415,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public boolean isSuddenDeath() throws DOPOSoccerException {
-<span class="fc" id="L370">        return match().isSuddenDeath();</span>
+<span class="fc" id="L418">        return match().isSuddenDeath();</span>
     }
 
     /**
@@ -377,7 +425,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public List&lt;String&gt; pollEvents() throws DOPOSoccerException {
-<span class="fc" id="L380">        return match().pollEvents();</span>
+<span class="fc" id="L428">        return match().pollEvents();</span>
     }
 
     /**
@@ -388,7 +436,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public int getLife(String side) throws DOPOSoccerException {
-<span class="fc" id="L391">        return player(side).getLife();</span>
+<span class="fc" id="L439">        return player(side).getLife();</span>
     }
 
     /**
@@ -399,7 +447,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public int getMaxLife(String side) throws DOPOSoccerException {
-<span class="fc" id="L402">        return player(side).getMaxLife();</span>
+<span class="fc" id="L450">        return player(side).getMaxLife();</span>
     }
 
     /**
@@ -410,7 +458,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public double getPowerCharge(String side) throws DOPOSoccerException {
-<span class="fc" id="L413">        return player(side).getPowerCharge();</span>
+<span class="fc" id="L461">        return player(side).getPowerCharge();</span>
     }
 
     /**
@@ -421,7 +469,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public boolean hasAura(String side) throws DOPOSoccerException {
-<span class="fc" id="L424">        return player(side).hasAura();</span>
+<span class="fc" id="L472">        return player(side).hasAura();</span>
     }
 
     /**
@@ -432,7 +480,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public List&lt;String&gt; getStates(String side) throws DOPOSoccerException {
-<span class="fc" id="L435">        return player(side).getStates();</span>
+<span class="fc" id="L483">        return player(side).getStates();</span>
     }
 
     /**
@@ -443,7 +491,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public boolean isKicking(String side) throws DOPOSoccerException {
-<span class="nc" id="L446">        return player(side).isKicking();</span>
+<span class="nc" id="L494">        return player(side).isKicking();</span>
     }
 
     /**
@@ -454,7 +502,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public String getCharacter(String side) throws DOPOSoccerException {
-<span class="fc" id="L457">        return player(side).getCountry();</span>
+<span class="fc" id="L505">        return player(side).getCountry();</span>
     }
 
     /**
@@ -465,7 +513,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public String getPowerName(String side) throws DOPOSoccerException {
-<span class="nc" id="L468">        return player(side).getPowerName();</span>
+<span class="nc" id="L516">        return player(side).getPowerName();</span>
     }
 
     /**
@@ -476,7 +524,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public double getPlayerX(String side) throws DOPOSoccerException {
-<span class="fc" id="L479">        return player(side).getX();</span>
+<span class="fc" id="L527">        return player(side).getX();</span>
     }
 
     /**
@@ -487,7 +535,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public double getPlayerY(String side) throws DOPOSoccerException {
-<span class="nc" id="L490">        return player(side).getY();</span>
+<span class="nc" id="L538">        return player(side).getY();</span>
     }
 
     /**
@@ -496,7 +544,7 @@ public class DOPOSoccer {
      * @return width, in pixels
      */
     public double getPlayerWidth() {
-<span class="fc" id="L499">        return Player.WIDTH;</span>
+<span class="fc" id="L547">        return Player.WIDTH;</span>
     }
 
     /**
@@ -505,7 +553,7 @@ public class DOPOSoccer {
      * @return height, in pixels
      */
     public double getPlayerHeight() {
-<span class="fc" id="L508">        return Player.HEIGHT;</span>
+<span class="fc" id="L556">        return Player.HEIGHT;</span>
     }
 
     /**
@@ -515,7 +563,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getBallX() throws DOPOSoccerException {
-<span class="nc" id="L518">        return match().getBallX();</span>
+<span class="nc" id="L566">        return match().getBallX();</span>
     }
 
     /**
@@ -525,7 +573,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getBallY() throws DOPOSoccerException {
-<span class="nc" id="L528">        return match().getBallY();</span>
+<span class="nc" id="L576">        return match().getBallY();</span>
     }
 
     /**
@@ -534,7 +582,7 @@ public class DOPOSoccer {
      * @return radius, in pixels
      */
     public double getBallRadius() {
-<span class="fc" id="L537">        return Match.BALL_RADIUS;</span>
+<span class="fc" id="L585">        return Match.BALL_RADIUS;</span>
     }
 
     /**
@@ -544,11 +592,11 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public List&lt;double[]&gt; getFakeBalls() throws DOPOSoccerException {
-<span class="fc" id="L547">        List&lt;double[]&gt; positions = new ArrayList&lt;&gt;();</span>
-<span class="pc bpc" id="L548" title="1 of 2 branches missed.">        for (FakeBall fake : match().getFakeBalls()) {</span>
-<span class="nc" id="L549">            positions.add(new double[]{fake.getX(), fake.getY()});</span>
-<span class="nc" id="L550">        }</span>
-<span class="fc" id="L551">        return positions;</span>
+<span class="fc" id="L595">        List&lt;double[]&gt; positions = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L596" title="1 of 2 branches missed.">        for (FakeBall fake : match().getFakeBalls()) {</span>
+<span class="nc" id="L597">            positions.add(new double[]{fake.getX(), fake.getY()});</span>
+<span class="nc" id="L598">        }</span>
+<span class="fc" id="L599">        return positions;</span>
     }
 
     /**
@@ -558,7 +606,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getBallName() throws DOPOSoccerException {
-<span class="fc" id="L561">        return match().getBallName();</span>
+<span class="fc" id="L609">        return match().getBallName();</span>
     }
 
     /**
@@ -568,7 +616,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getFieldWidth() throws DOPOSoccerException {
-<span class="fc" id="L571">        return match().getFieldWidth();</span>
+<span class="fc" id="L619">        return match().getFieldWidth();</span>
     }
 
     /**
@@ -578,7 +626,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getFieldHeight() throws DOPOSoccerException {
-<span class="fc" id="L581">        return match().getFieldHeight();</span>
+<span class="fc" id="L629">        return match().getFieldHeight();</span>
     }
 
     /**
@@ -588,7 +636,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public double getGroundY() throws DOPOSoccerException {
-<span class="fc" id="L591">        return match().getGroundY();</span>
+<span class="fc" id="L639">        return match().getGroundY();</span>
     }
 
     /**
@@ -599,8 +647,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     public double[] getGoal(String side) throws DOPOSoccerException {
-<span class="fc" id="L602">        index(side);</span>
-<span class="fc" id="L603">        return match().getGoalBounds(side);</span>
+<span class="fc" id="L650">        index(side);</span>
+<span class="fc" id="L651">        return match().getGoalBounds(side);</span>
     }
 
     //  options for the screens
@@ -611,7 +659,7 @@ public class DOPOSoccer {
      * @return the 8 countries, in order
      */
     public List&lt;String&gt; getCharacters() {
-<span class="fc" id="L614">        return new ArrayList&lt;&gt;(characters.keySet());</span>
+<span class="fc" id="L662">        return new ArrayList&lt;&gt;(characters.keySet());</span>
     }
 
     /**
@@ -622,7 +670,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_CHARACTER
      */
     public String getPowerNameOf(String country) throws DOPOSoccerException {
-<span class="fc" id="L625">        return character(country).getPowerName();</span>
+<span class="fc" id="L673">        return character(country).getPowerName();</span>
     }
 
     /**
@@ -633,7 +681,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_CHARACTER
      */
     public int getCharacterPrice(String country) throws DOPOSoccerException {
-<span class="fc" id="L636">        return character(country).getPrice();</span>
+<span class="fc" id="L684">        return character(country).getPrice();</span>
     }
 
     /**
@@ -645,7 +693,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_CHARACTER
      */
     public boolean isCharacterUnlocked(String side, String country) throws DOPOSoccerException {
-<span class="fc" id="L648">        return profiles[index(side)].isCharacterUnlocked(character(country));</span>
+<span class="fc" id="L696">        return profiles[index(side)].isCharacterUnlocked(character(country));</span>
     }
 
     /**
@@ -654,7 +702,7 @@ public class DOPOSoccer {
      * @return &quot;SMALL&quot;, &quot;MEDIUM&quot; and &quot;LARGE&quot;
      */
     public List&lt;String&gt; getResolutions() {
-<span class="fc" id="L657">        return List.of(&quot;SMALL&quot;, &quot;MEDIUM&quot;, &quot;LARGE&quot;);</span>
+<span class="fc" id="L705">        return List.of(&quot;SMALL&quot;, &quot;MEDIUM&quot;, &quot;LARGE&quot;);</span>
     }
 
     /**
@@ -663,34 +711,36 @@ public class DOPOSoccer {
      * @return &quot;CLUMSY&quot;, &quot;OFFENSIVE&quot;, &quot;DEFENSIVE&quot; and &quot;EXPERT&quot;
      */
     public List&lt;String&gt; getAIProfiles() {
-<span class="fc" id="L666">        return List.of(&quot;CLUMSY&quot;, &quot;OFFENSIVE&quot;, &quot;DEFENSIVE&quot;, &quot;EXPERT&quot;);</span>
+<span class="fc" id="L714">        return List.of(&quot;CLUMSY&quot;, &quot;OFFENSIVE&quot;, &quot;DEFENSIVE&quot;, &quot;EXPERT&quot;);</span>
     }
 
-    // under construction
+    // survival and tournament
 
     /**
-     * Returns the balls left in Survival. Under construction.
+     * Returns the balls left of a player in survival. The left player keeps its balls for the
+     * whole series; the rival starts every match with 3.
      *
      * @param side &quot;LEFT&quot; or &quot;RIGHT&quot;
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the balls left, from 0 to 3
+     * @throws DOPOSoccerException UNKNOWN_SIDE, GAME_NOT_STARTED, or INVALID_STATE if the match is not survival
      */
     public int getBalls(String side) throws DOPOSoccerException {
-<span class="nc" id="L679">        index(side);</span>
-<span class="nc" id="L680">        return match().getBalls(side);    }</span>
+<span class="fc" id="L728">        index(side);</span>
+<span class="fc" id="L729">        return match().getBalls(side);</span>
+    }
 
     /**
      * Returns the tournament being played.
      *
      * @return the tournament
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     private TournamentMode tournament() throws DOPOSoccerException {
-<span class="fc" id="L689">    match();               </span>
-<span class="fc bfc" id="L690" title="All 2 branches covered.">    if (tournament == null) {</span>
-<span class="fc" id="L691">        throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE); // a game, but not a tournament</span>
-    }
-<span class="fc" id="L693">    return tournament;</span>
+<span class="fc" id="L739">        match();</span>
+<span class="fc bfc" id="L740" title="All 2 branches covered.">        if (tournament == null) {</span>
+<span class="fc" id="L741">            throw new DOPOSoccerException(DOPOSoccerException.INVALID_STATE); // a game, but not a tournament</span>
+        }
+<span class="fc" id="L743">        return tournament;</span>
     }
 
     /**
@@ -700,51 +750,51 @@ public class DOPOSoccer {
      * @return their countries, in the same order
      */
     private static List&lt;String&gt; countries(List&lt;GameCharacter&gt; list) {
-<span class="fc" id="L703">        List&lt;String&gt; names = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L704" title="All 2 branches covered.">        for (GameCharacter c : list) {</span>
-<span class="fc" id="L705">            names.add(c.getCountry());</span>
-<span class="fc" id="L706">        }</span>
-<span class="fc" id="L707">        return names;</span>
+<span class="fc" id="L753">        List&lt;String&gt; names = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L754" title="All 2 branches covered.">        for (GameCharacter c : list) {</span>
+<span class="fc" id="L755">            names.add(c.getCountry());</span>
+<span class="fc" id="L756">        }</span>
+<span class="fc" id="L757">        return names;</span>
     }
 
     /**
      * Returns the 8 teams of the quarterfinals, in bracket order: each 2 consecutive teams play each other.
      *
      * @return the countries of the teams
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List&lt;String&gt; getTournamentTeams() throws DOPOSoccerException {
-<span class="fc" id="L717">        return countries(tournament().getTeams(1));</span>
+<span class="fc" id="L767">        return countries(tournament().getTeams(1));</span>
     }
 
     /**
      * Returns the 4 teams of the semifinal, in bracket order.
      *
      * @return the countries of the teams, empty if the semifinal was not reached yet
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List&lt;String&gt; getTournamentSemifinalists() throws DOPOSoccerException {
-<span class="fc" id="L727">        return countries(tournament().getTeams(2));</span>
+<span class="fc" id="L777">        return countries(tournament().getTeams(2));</span>
     }
 
     /**
      * Returns the 2 teams of the final.
      *
      * @return the countries of the teams, empty if the final was not reached yet
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public List&lt;String&gt; getTournamentFinalists() throws DOPOSoccerException {
-<span class="fc" id="L737">        return countries(tournament().getTeams(3));</span>
+<span class="fc" id="L787">        return countries(tournament().getTeams(3));</span>
     }
 
     /**
      * Returns the name of the current round of the tournament.
      *
      * @return &quot;CUARTOS&quot;, &quot;SEMIFINAL&quot; or &quot;FINAL&quot;
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public String getTournamentRound() throws DOPOSoccerException {
-<span class="fc" id="L747">        return tournament().getRoundName();</span>
+<span class="fc" id="L797">        return tournament().getRoundName();</span>
     }
 
     /**
@@ -753,37 +803,37 @@ public class DOPOSoccer {
      * @return &quot;CUARTOS&quot;, &quot;SEMIFINAL&quot; and &quot;FINAL&quot;
      */
     public List&lt;String&gt; getTournamentRounds() {
-<span class="fc" id="L756">        return List.of(TournamentMode.ROUND_NAMES);</span>
+<span class="fc" id="L806">        return List.of(TournamentMode.ROUND_NAMES);</span>
     }
 
     /**
      * Returns the rival of the player in the current round.
      *
      * @return the country of the rival
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public String getTournamentRival() throws DOPOSoccerException {
-<span class="fc" id="L766">        return tournament().getRival().getCountry();</span>
+<span class="fc" id="L816">        return tournament().getRival().getCountry();</span>
     }
 
     /**
      * Tells whether the player won the tournament.
      *
      * @return true if the player won the final
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public boolean isTournamentChampion() throws DOPOSoccerException {
-<span class="fc" id="L776">        return tournament().isChampion();</span>
+<span class="fc" id="L826">        return tournament().isChampion();</span>
     }
 
     /**
      * Returns how many matches of the tournament the player won.
      *
      * @return wins of the player, from 0 to 3
-     * @throws DOPOSoccerException GAME_NOT_STARTED if no tournament is being played
+     * @throws DOPOSoccerException GAME_NOT_STARTED if there is no game; INVALID_STATE if the game is not a tournament
      */
     public int getTournamentWins() throws DOPOSoccerException {
-<span class="fc" id="L786">        return tournament().getWins();</span>
+<span class="fc" id="L836">        return tournament().getWins();</span>
     }
 
     /**
@@ -794,7 +844,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     public int getPoints(String side) throws DOPOSoccerException {
-<span class="fc" id="L797">        return profiles[index(side)].getPoints();</span>
+<span class="fc" id="L847">        return profiles[index(side)].getPoints();</span>
     }
 
     /**
@@ -806,7 +856,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getStat(String side, String stat) throws DOPOSoccerException {
-<span class="fc" id="L809">        return profiles[index(side)].getStat(stat);</span>
+<span class="fc" id="L859">        return profiles[index(side)].getStat(stat);</span>
     }
 
     /**
@@ -818,7 +868,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_STAT
      */
     public int getUpgradeCost(String side, String stat) throws DOPOSoccerException {
-<span class="fc" id="L821">        return profiles[index(side)].getUpgradeCost(stat);</span>
+<span class="fc" id="L871">        return profiles[index(side)].getUpgradeCost(stat);</span>
     }
 
     /**
@@ -829,8 +879,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_STAT, STAT_AT_MAX or NOT_ENOUGH_POINTS
      */
     public void upgrade(String side, String stat) throws DOPOSoccerException {
-<span class="nc" id="L832">        profiles[index(side)].upgrade(stat);</span>
-<span class="nc" id="L833">    }</span>
+<span class="fc" id="L882">        profiles[index(side)].upgrade(stat);</span>
+<span class="fc" id="L883">    }</span>
 
     /**
      * Buys a locked character with the points of the player.
@@ -840,8 +890,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_CHARACTER, ALREADY_OWNED or NOT_ENOUGH_POINTS
      */
     public void buyCharacter(String side, String country) throws DOPOSoccerException {
-<span class="nc" id="L843">        profiles[index(side)].unlockCharacter(character(country));</span>
-<span class="nc" id="L844">    }</span>
+<span class="fc" id="L893">        profiles[index(side)].unlockCharacter(character(country));</span>
+<span class="fc" id="L894">    }</span>
 
     /**
      * Returns the names of the balls of the catalog.
@@ -849,7 +899,7 @@ public class DOPOSoccer {
      * @return the 6 names, in order
      */
     public List&lt;String&gt; getBallNames() {
-<span class="fc" id="L852">        return new ArrayList&lt;&gt;(balls.keySet());</span>
+<span class="fc" id="L902">        return new ArrayList&lt;&gt;(balls.keySet());</span>
     }
 
     /**
@@ -860,7 +910,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_BALL
      */
     public int getBallPrice(String name) throws DOPOSoccerException {
-<span class="fc" id="L863">        return ballSkin(name).getPrice();</span>
+<span class="fc" id="L913">        return ballSkin(name).getPrice();</span>
     }
 
     /**
@@ -870,7 +920,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     public String getBallPower() throws DOPOSoccerException {
-<span class="fc" id="L873">        return match().getBallPower();</span>
+<span class="fc" id="L923">        return match().getBallPower();</span>
     }
 
     /**
@@ -882,7 +932,7 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE or UNKNOWN_BALL
      */
     public boolean isBallUnlocked(String side, String name) throws DOPOSoccerException {
-<span class="fc" id="L885">        return profiles[index(side)].isBallUnlocked(ballSkin(name));</span>
+<span class="fc" id="L935">        return profiles[index(side)].isBallUnlocked(ballSkin(name));</span>
     }
 
     /**
@@ -893,8 +943,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL, ALREADY_OWNED or NOT_ENOUGH_POINTS
      */
     public void buyBall(String side, String name) throws DOPOSoccerException {
-<span class="nc" id="L896">        profiles[index(side)].unlockBall(ballSkin(name));</span>
-<span class="nc" id="L897">    }</span>
+<span class="fc" id="L946">        profiles[index(side)].unlockBall(ballSkin(name));</span>
+<span class="fc" id="L947">    }</span>
 
     /**
      * Chooses the ball of the next matches. In this version there is one ball for the game,
@@ -905,10 +955,10 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE, UNKNOWN_BALL or BALL_LOCKED
      */
     public void selectBall(String side, String name) throws DOPOSoccerException {
-<span class="fc" id="L908">        BallSkin skin = ballSkin(name);</span>
-<span class="fc" id="L909">        profiles[index(side)].selectBall(skin);</span>
-<span class="fc" id="L910">        ball = skin;</span>
-<span class="fc" id="L911">    }</span>
+<span class="fc" id="L958">        BallSkin skin = ballSkin(name);</span>
+<span class="fc" id="L959">        profiles[index(side)].selectBall(skin);</span>
+<span class="fc" id="L960">        ball = skin;</span>
+<span class="fc" id="L961">    }</span>
 
     /**
      * Returns the ball chosen for the next matches.
@@ -918,8 +968,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     public String getSelectedBall(String side) throws DOPOSoccerException {
-<span class="fc" id="L921">        index(side);</span>
-<span class="fc" id="L922">        return ball.getName();</span>
+<span class="fc" id="L971">        index(side);</span>
+<span class="fc" id="L972">        return ball.getName();</span>
     }
 
     // settings
@@ -930,7 +980,7 @@ public class DOPOSoccer {
      * @return the volume, from 0 to 100
      */
     public int getMusicVolume() {
-<span class="fc" id="L933">        return settings.getMusicVolume();</span>
+<span class="fc" id="L983">        return settings.getMusicVolume();</span>
     }
 
     /**
@@ -940,8 +990,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setMusicVolume(int volume) throws DOPOSoccerException {
-<span class="fc" id="L943">        settings.setMusicVolume(volume);</span>
-<span class="fc" id="L944">    }</span>
+<span class="fc" id="L993">        settings.setMusicVolume(volume);</span>
+<span class="fc" id="L994">    }</span>
 
     /**
      * Returns the volume of the sound effects.
@@ -949,7 +999,7 @@ public class DOPOSoccer {
      * @return the volume, from 0 to 100
      */
     public int getEffectsVolume() {
-<span class="fc" id="L952">        return settings.getEffectsVolume();</span>
+<span class="fc" id="L1002">        return settings.getEffectsVolume();</span>
     }
 
     /**
@@ -959,15 +1009,15 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException INVALID_VOLUME if it is out of 0..100
      */
     public void setEffectsVolume(int volume) throws DOPOSoccerException {
-<span class="fc" id="L962">        settings.setEffectsVolume(volume);</span>
-<span class="fc" id="L963">    }</span>
+<span class="fc" id="L1012">        settings.setEffectsVolume(volume);</span>
+<span class="fc" id="L1013">    }</span>
 
     /**
      * Puts both volumes back to their default values.
      */
     public void resetSettings() {
-<span class="fc" id="L969">        settings.reset();</span>
-<span class="fc" id="L970">    }</span>
+<span class="fc" id="L1019">        settings.reset();</span>
+<span class="fc" id="L1020">    }</span>
 
     /**
      * Returns the points the champion of a tournament wins, to show them before and during the tournament.
@@ -975,55 +1025,105 @@ public class DOPOSoccer {
      * @return {@link TournamentMode#PRIZE}
      */
     public int getTournamentPrize() {
-<span class="fc" id="L978">        return TournamentMode.PRIZE;</span>
+<span class="fc" id="L1028">        return TournamentMode.PRIZE;</span>
     }
 
     /**
-     * Tells whether there is saved progress. Under construction (persistence).
+     * Tells whether there is saved progress.
      *
-     * @return never returns
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return true if the progress file exists
      */
-    public boolean hasSavedProgress() throws DOPOSoccerException {
-<span class="nc" id="L988">        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);</span>
+    public boolean hasSavedProgress() {
+<span class="fc" id="L1037">        return progressFile.exists();</span>
     }
 
     /**
-     * Saves the progress. Under construction (persistence).
+     * Saves the progress in the progress file, which is always the same (the player doesn't choose it):
+     * the profiles of both players (points, purchases, upgrades and selected ball). The file is
+     * written again every time it is called.
      *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException SAVE_FAILED if the file cannot be written
      */
     public void saveProgress() throws DOPOSoccerException {
-<span class="fc" id="L997">        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);</span>
-    }
+        // The file is its own resource, so it is closed even if the object stream cannot be created
+<span class="fc" id="L1049">        try (FileOutputStream file = new FileOutputStream(progressFile);</span>
+<span class="fc" id="L1050">             ObjectOutputStream out = new ObjectOutputStream(file)) {</span>
+<span class="fc" id="L1051">            out.writeObject(profiles);</span>
+<span class="fc" id="L1052">        } catch (IOException e) {</span>
+<span class="fc" id="L1053">            throw new DOPOSoccerException(DOPOSoccerException.SAVE_FAILED, e);</span>
+<span class="fc" id="L1054">        }</span>
+<span class="fc" id="L1055">    }</span>
 
     /**
-     * Loads the progress. Under construction (persistence).
+     * Loads the profiles saved in the progress file. If the file cannot be read, the current
+     * profiles are kept as they were.
      *
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException LOAD_FAILED if the file cannot be read or is damaged
      */
     public void loadProgress() throws DOPOSoccerException {
-<span class="nc" id="L1006">        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);</span>
-    }
+        // The file is its own resource, so it is closed even if it is damaged and the object stream fails
+<span class="fc" id="L1065">        try (FileInputStream file = new FileInputStream(progressFile);</span>
+<span class="fc" id="L1066">             ObjectInputStream in = new ObjectInputStream(file)) {</span>
+<span class="fc" id="L1067">            PlayerProfile[] loadedProfiles = (PlayerProfile[]) in.readObject();</span>
+<span class="fc" id="L1068">            profiles = loadedProfiles;</span>
+<span class="fc" id="L1069">            ball = profiles[0].getSelectedBall();</span>
+<span class="fc" id="L1070">        } catch (IOException | ClassNotFoundException | ClassCastException e) {</span>
+<span class="fc" id="L1071">            throw new DOPOSoccerException(DOPOSoccerException.LOAD_FAILED, e);</span>
+<span class="fc" id="L1072">        }</span>
+<span class="fc" id="L1073">    }</span>
 
     /**
-     * Saves the game being played. Under construction (persistence, version two).
+     * Saves the whole game in a file chosen by the user: the catalogs, the mode with its match (players,
+     * ball, score, time, effects, stadium), the tournament, the modality and the points of the last match.
+     * Not saved (transient): the physics world of the library, rebuilt from the entities on the first step;
+     * the profiles, which are in the progress file; and the settings.
      *
      * @param file file chosen by the user
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @throws DOPOSoccerException GAME_NOT_STARTED, GAME_OVER if the mode already ended,
+     *                             or GAME_SAVE_FAILED if the file cannot be written
      */
     public void saveGame(File file) throws DOPOSoccerException {
-<span class="nc" id="L1016">        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);</span>
-    }
+<span class="fc" id="L1086">        match();</span>
+<span class="fc bfc" id="L1087" title="All 2 branches covered.">        if (mode.isOver()) {</span>
+<span class="fc" id="L1088">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);</span>
+        }
+        // The file is its own resource, so it is closed even if the object stream cannot be created
+<span class="fc" id="L1091">        try (FileOutputStream stream = new FileOutputStream(file);</span>
+<span class="fc" id="L1092">             ObjectOutputStream out = new ObjectOutputStream(stream)) {</span>
+<span class="fc" id="L1093">            out.writeObject(this);</span>
+<span class="fc" id="L1094">        } catch (IOException e) {</span>
+<span class="fc" id="L1095">            throw new DOPOSoccerException(DOPOSoccerException.GAME_SAVE_FAILED, e);</span>
+<span class="fc" id="L1096">        }</span>
+<span class="fc" id="L1097">    }</span>
 
     /**
-     * Opens a saved game. Under construction (persistence, version two).
+     * Opens a game saved with {@link #saveGame(File)} as a new object, paused, so the player resumes it.
+     * Its profiles are loaded from its progress file (the newest ones, not the ones of the moment it was
+     * saved) and its settings are the default ones. The interface replaces its game with the returned one.
      *
      * @param file file chosen by the user
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION always
+     * @return the opened game
+     * @throws DOPOSoccerException GAME_OPEN_FAILED if the file is not a saved game or is damaged;
+     *                             LOAD_FAILED if the progress file is damaged
      */
-    public void openGame(File file) throws DOPOSoccerException {
-<span class="nc" id="L1026">        throw new DOPOSoccerException(DOPOSoccerException.UNDER_CONSTRUCTION);</span>
+    public static DOPOSoccer openGame(File file) throws DOPOSoccerException {
+        DOPOSoccer opened;
+        // The file is its own resource, so it is closed even if it is damaged and the object stream fails
+<span class="fc" id="L1112">        try (FileInputStream stream = new FileInputStream(file);</span>
+<span class="fc" id="L1113">             ObjectInputStream in = new ObjectInputStream(stream)) {</span>
+<span class="fc" id="L1114">            opened = (DOPOSoccer) in.readObject();</span>
+<span class="fc" id="L1115">        } catch (IOException | ClassNotFoundException | ClassCastException e) {</span>
+<span class="fc" id="L1116">            throw new DOPOSoccerException(DOPOSoccerException.GAME_OPEN_FAILED, e);</span>
+<span class="fc" id="L1117">        }</span>
+        // What was not saved (transient): settings by default, profiles from the progress file
+<span class="fc" id="L1119">        opened.settings = new Settings();</span>
+<span class="fc" id="L1120">        opened.ball = opened.balls.get(DEFAULT_BALL);</span>
+<span class="fc" id="L1121">        opened.profiles = new PlayerProfile[]{new PlayerProfile(&quot;J1&quot;, opened.ball), new PlayerProfile(&quot;J2&quot;, opened.ball)};</span>
+<span class="fc bfc" id="L1122" title="All 2 branches covered.">        if (opened.hasSavedProgress()) {</span>
+<span class="fc" id="L1123">            opened.loadProgress();</span>
+        }
+<span class="fc" id="L1125">        opened.paused = true;</span>
+<span class="fc" id="L1126">        return opened;</span>
     }
 
     //  helpers
@@ -1034,24 +1134,24 @@ public class DOPOSoccer {
      * wins the prize. They last while the game is open.
      */
     private void givePoints() {
-<span class="nc" id="L1037">        pointsGiven = true;</span>
-<span class="nc" id="L1038">        String winner = mode.getMatchWinner();</span>
-<span class="nc bnc" id="L1039" title="All 2 branches missed.">        if (winner == null) {</span>
-<span class="nc" id="L1040">            return;</span>
+<span class="nc" id="L1137">        pointsGiven = true;</span>
+<span class="nc" id="L1138">        String winner = mode.getMatchWinner();</span>
+<span class="nc bnc" id="L1139" title="All 2 branches missed.">        if (winner == null) {</span>
+<span class="nc" id="L1140">            return;</span>
         }
-<span class="nc bnc" id="L1042" title="All 2 branches missed.">        int w = &quot;LEFT&quot;.equals(winner) ? 0 : 1;</span>
-<span class="nc" id="L1043">        lastPoints[w] = WIN_POINTS;</span>
-<span class="nc" id="L1044">        lastPoints[1 - w] = LOSE_POINTS;</span>
-<span class="nc" id="L1045">        profiles[0].addPoints(lastPoints[0]);</span>
-<span class="nc bnc" id="L1046" title="All 2 branches missed.">        if (&quot;PVP&quot;.equals(modality)) {</span>
-<span class="nc" id="L1047">            profiles[1].addPoints(lastPoints[1]); // the machine has no wallet</span>
+<span class="nc bnc" id="L1142" title="All 2 branches missed.">        int w = &quot;LEFT&quot;.equals(winner) ? 0 : 1;</span>
+<span class="nc" id="L1143">        lastPoints[w] = WIN_POINTS;</span>
+<span class="nc" id="L1144">        lastPoints[1 - w] = LOSE_POINTS;</span>
+<span class="nc" id="L1145">        profiles[0].addPoints(lastPoints[0]);</span>
+<span class="nc bnc" id="L1146" title="All 2 branches missed.">        if (&quot;PVP&quot;.equals(modality)) {</span>
+<span class="nc" id="L1147">            profiles[1].addPoints(lastPoints[1]); // the machine has no wallet</span>
         }
-<span class="nc bnc" id="L1049" title="All 2 branches missed.">        if (tournament != null) {</span>
-<span class="nc" id="L1050">            int prize = tournament.getPrize();</span>
-<span class="nc" id="L1051">            lastPoints[0] += prize;</span>
-<span class="nc" id="L1052">            profiles[0].addPoints(prize);</span>
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">        if (tournament != null) {</span>
+<span class="nc" id="L1150">            int prize = tournament.getPrize();</span>
+<span class="nc" id="L1151">            lastPoints[0] += prize;</span>
+<span class="nc" id="L1152">            profiles[0].addPoints(prize);</span>
         }
-<span class="nc" id="L1054">    }</span>
+<span class="nc" id="L1154">    }</span>
 
     /**
      * Creates the controller of the machine.
@@ -1061,40 +1161,40 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_AI_PROFILE
      */
     private static PlayerController createAI(String profile) throws DOPOSoccerException {
-<span class="fc bfc" id="L1064" title="All 2 branches covered.">        if (&quot;CLUMSY&quot;.equals(profile)) {</span>
-<span class="fc" id="L1065">            return new ClumsyAI();</span>
+<span class="fc bfc" id="L1164" title="All 2 branches covered.">        if (&quot;CLUMSY&quot;.equals(profile)) {</span>
+<span class="fc" id="L1165">            return new ClumsyAI();</span>
         }
-<span class="fc bfc" id="L1067" title="All 2 branches covered.">        if (&quot;OFFENSIVE&quot;.equals(profile)) {</span>
-<span class="fc" id="L1068">            return new OffensiveAI();</span>
+<span class="fc bfc" id="L1167" title="All 2 branches covered.">        if (&quot;OFFENSIVE&quot;.equals(profile)) {</span>
+<span class="fc" id="L1168">            return new OffensiveAI();</span>
         }
-<span class="pc bpc" id="L1070" title="1 of 2 branches missed.">        if (&quot;DEFENSIVE&quot;.equals(profile)) {</span>
-<span class="nc" id="L1071">            return new DefensiveAI();</span>
+<span class="pc bpc" id="L1170" title="1 of 2 branches missed.">        if (&quot;DEFENSIVE&quot;.equals(profile)) {</span>
+<span class="nc" id="L1171">            return new DefensiveAI();</span>
         }
-<span class="fc bfc" id="L1073" title="All 2 branches covered.">        if (&quot;EXPERT&quot;.equals(profile)) {</span>
-<span class="fc" id="L1074">            return new ExpertAI();</span>
+<span class="fc bfc" id="L1173" title="All 2 branches covered.">        if (&quot;EXPERT&quot;.equals(profile)) {</span>
+<span class="fc" id="L1174">            return new ExpertAI();</span>
         }
-<span class="fc" id="L1076">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_AI_PROFILE);</span>
+<span class="fc" id="L1176">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_AI_PROFILE);</span>
     }
 
     /**
      * Creates the rule of the match.
      *
-     * @param matchType &quot;TIME&quot; or &quot;GOALS&quot; (&quot;SURVIVAL&quot; is under construction)
-     * @param amount    minutes or goals
+     * @param matchType &quot;TIME&quot;, &quot;GOALS&quot; or &quot;SURVIVAL&quot;
+     * @param amount    minutes or goals (not used in survival)
      * @return the rule
-     * @throws DOPOSoccerException UNDER_CONSTRUCTION, UNKNOWN_MATCH_TYPE, INVALID_MINUTES or INVALID_GOAL_TARGET
+     * @throws DOPOSoccerException UNKNOWN_MATCH_TYPE, INVALID_MINUTES or INVALID_GOAL_TARGET
      */
     private static MatchType createType(String matchType, int amount) throws DOPOSoccerException {
-<span class="fc bfc" id="L1088" title="All 2 branches covered.">        if (&quot;TIME&quot;.equals(matchType)) {</span>
-<span class="fc" id="L1089">            return new TimeMatch(amount);</span>
+<span class="fc bfc" id="L1188" title="All 2 branches covered.">        if (&quot;TIME&quot;.equals(matchType)) {</span>
+<span class="fc" id="L1189">            return new TimeMatch(amount);</span>
         }
-<span class="fc bfc" id="L1091" title="All 2 branches covered.">        if (&quot;GOALS&quot;.equals(matchType)) {</span>
-<span class="fc" id="L1092">            return new GoalsMatch(amount);</span>
+<span class="fc bfc" id="L1191" title="All 2 branches covered.">        if (&quot;GOALS&quot;.equals(matchType)) {</span>
+<span class="fc" id="L1192">            return new GoalsMatch(amount);</span>
         }
-<span class="pc bpc" id="L1094" title="1 of 2 branches missed.">        if (&quot;SURVIVAL&quot;.equals(matchType)) {</span>
-<span class="nc" id="L1095">            return new SurvivalMatch(); // under construction: it throws</span>
+<span class="fc bfc" id="L1194" title="All 2 branches covered.">        if (&quot;SURVIVAL&quot;.equals(matchType)) {</span>
+<span class="fc" id="L1195">            return new SurvivalMatch(); // 3 balls for each player</span>
         }
-<span class="fc" id="L1097">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MATCH_TYPE);</span>
+<span class="fc" id="L1197">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MATCH_TYPE);</span>
     }
 
     /**
@@ -1105,11 +1205,11 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_CHARACTER
      */
     private GameCharacter character(String country) throws DOPOSoccerException {
-<span class="fc" id="L1108">        GameCharacter c = characters.get(country);</span>
-<span class="fc bfc" id="L1109" title="All 2 branches covered.">        if (c == null) {</span>
-<span class="fc" id="L1110">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_CHARACTER);</span>
+<span class="fc" id="L1208">        GameCharacter c = characters.get(country);</span>
+<span class="fc bfc" id="L1209" title="All 2 branches covered.">        if (c == null) {</span>
+<span class="fc" id="L1210">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_CHARACTER);</span>
         }
-<span class="fc" id="L1112">        return c;</span>
+<span class="fc" id="L1212">        return c;</span>
     }
 
     /**
@@ -1120,11 +1220,11 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_BALL
      */
     private BallSkin ballSkin(String name) throws DOPOSoccerException {
-<span class="fc" id="L1123">        BallSkin skin = balls.get(name);</span>
-<span class="fc bfc" id="L1124" title="All 2 branches covered.">        if (skin == null) {</span>
-<span class="fc" id="L1125">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_BALL);</span>
+<span class="fc" id="L1223">        BallSkin skin = balls.get(name);</span>
+<span class="fc bfc" id="L1224" title="All 2 branches covered.">        if (skin == null) {</span>
+<span class="fc" id="L1225">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_BALL);</span>
         }
-<span class="fc" id="L1127">        return skin;</span>
+<span class="fc" id="L1227">        return skin;</span>
     }
 
     /**
@@ -1134,10 +1234,10 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED
      */
     private Match match() throws DOPOSoccerException {
-<span class="pc bpc" id="L1137" title="1 of 4 branches missed.">        if (mode == null || mode.getMatch() == null) {</span>
-<span class="fc" id="L1138">            throw new DOPOSoccerException(DOPOSoccerException.GAME_NOT_STARTED);</span>
+<span class="pc bpc" id="L1237" title="1 of 4 branches missed.">        if (mode == null || mode.getMatch() == null) {</span>
+<span class="fc" id="L1238">            throw new DOPOSoccerException(DOPOSoccerException.GAME_NOT_STARTED);</span>
         }
-<span class="fc" id="L1140">        return mode.getMatch();</span>
+<span class="fc" id="L1240">        return mode.getMatch();</span>
     }
 
     /**
@@ -1148,8 +1248,8 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException GAME_NOT_STARTED or UNKNOWN_SIDE
      */
     private Player player(String side) throws DOPOSoccerException {
-<span class="fc" id="L1151">        index(side);</span>
-<span class="fc" id="L1152">        return match().getPlayer(side);</span>
+<span class="fc" id="L1251">        index(side);</span>
+<span class="fc" id="L1252">        return match().getPlayer(side);</span>
     }
 
     /**
@@ -1160,13 +1260,47 @@ public class DOPOSoccer {
      * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     private static int index(String side) throws DOPOSoccerException {
-<span class="fc bfc" id="L1163" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
-<span class="fc" id="L1164">            return 0;</span>
+<span class="fc bfc" id="L1263" title="All 2 branches covered.">        if (&quot;LEFT&quot;.equals(side)) {</span>
+<span class="fc" id="L1264">            return 0;</span>
         }
-<span class="fc bfc" id="L1166" title="All 2 branches covered.">        if (&quot;RIGHT&quot;.equals(side)) {</span>
-<span class="fc" id="L1167">            return 1;</span>
+<span class="fc bfc" id="L1266" title="All 2 branches covered.">        if (&quot;RIGHT&quot;.equals(side)) {</span>
+<span class="fc" id="L1267">            return 1;</span>
         }
-<span class="fc" id="L1169">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);</span>
+<span class="fc" id="L1269">        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);</span>
+    }
+
+    /**
+     * Chooses the stadium of the next Arcade matches (each tournament match draws its own).
+     * Like the ball, choose it before {@link #newGame}.
+     *
+     * @param stadium name of the stadium (&quot;default&quot;, &quot;rain&quot;, &quot;snow&quot;...)
+     * @throws DOPOSoccerException UNKNOWN_STADIUM if it is not one of {@link #getStadiums()}
+     */
+    public void selectStadium(String stadium) throws DOPOSoccerException {
+<span class="fc bfc" id="L1280" title="All 2 branches covered.">        if (!GameMode.STADIUMS.contains(stadium)) {</span>
+<span class="fc" id="L1281">            throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_STADIUM);</span>
+        }
+<span class="fc" id="L1283">        this.stadium = stadium;</span>
+<span class="fc" id="L1284">    }</span>
+
+    /**
+     * Returns the names of the stadiums, in order.
+     *
+     * @return &quot;default&quot;, &quot;day&quot;, &quot;sunset&quot;...
+     */
+    public List&lt;String&gt; getStadiums() {
+<span class="fc" id="L1292">        return GameMode.STADIUMS;</span>
+    }
+
+    /**
+     * Returns the stadium of the current match, so the interface draws its picture.
+     * In the tournament it changes in every match.
+     *
+     * @return name of the stadium (&quot;default&quot;, &quot;rain&quot;...)
+     * @throws DOPOSoccerException GAME_NOT_STARTED
+     */
+    public String getStadium() throws DOPOSoccerException {
+<span class="fc" id="L1303">        return match().getStadiumName();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

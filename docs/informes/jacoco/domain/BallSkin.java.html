@@ -12,6 +12,9 @@ import java.io.Serializable;
  */
 public class BallSkin implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Name of the ball and of its image. */
     private final String name;
     /** Price in points. */
@@ -23,10 +26,10 @@ public class BallSkin implements Serializable {
      * @param name  name shown in the store; it is also the name of its image
      * @param price price in points; 0 for the free one
      */
-<span class="fc" id="L26">    public BallSkin(String name, int price) {</span>
-<span class="fc" id="L27">        this.name = name;</span>
-<span class="fc" id="L28">        this.price = Math.max(0, price);</span>
-<span class="fc" id="L29">    }</span>
+<span class="fc" id="L29">    public BallSkin(String name, int price) {</span>
+<span class="fc" id="L30">        this.name = name;</span>
+<span class="fc" id="L31">        this.price = Math.max(0, price);</span>
+<span class="fc" id="L32">    }</span>
 
     /**
      * Returns the name of the ball.
@@ -34,7 +37,7 @@ public class BallSkin implements Serializable {
      * @return the name, also used to load its image
      */
     public String getName() {
-<span class="fc" id="L37">        return name;</span>
+<span class="fc" id="L40">        return name;</span>
     }
 
     /**
@@ -43,7 +46,7 @@ public class BallSkin implements Serializable {
      * @return price in points
      */
     public int getPrice() {
-<span class="fc" id="L46">        return price;</span>
+<span class="fc" id="L49">        return price;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

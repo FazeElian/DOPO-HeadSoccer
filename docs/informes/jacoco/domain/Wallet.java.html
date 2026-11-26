@@ -11,6 +11,9 @@ import java.io.Serializable;
  */
 public class Wallet implements Serializable {
 
+    /** Version of the saved data, so a progress file of this version can be read again. */
+    private static final long serialVersionUID = 1L;
+
     /** Points the player has. */
     private int points;
 
@@ -19,9 +22,9 @@ public class Wallet implements Serializable {
      *
      * @param points initial points (a negative amount counts as 0)
      */
-<span class="fc" id="L22">    public Wallet(int points) {</span>
-<span class="fc" id="L23">        this.points = Math.max(0, points);</span>
-<span class="fc" id="L24">    }</span>
+<span class="fc" id="L25">    public Wallet(int points) {</span>
+<span class="fc" id="L26">        this.points = Math.max(0, points);</span>
+<span class="fc" id="L27">    }</span>
 
     /**
      * Adds points.
@@ -29,8 +32,8 @@ public class Wallet implements Serializable {
      * @param amount points won (a negative amount is ignored)
      */
     public void add(int amount) {
-<span class="fc" id="L32">        points += Math.max(0, amount);</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L35">        points += Math.max(0, amount);</span>
+<span class="fc" id="L36">    }</span>
 
     /**
      * Spends points.
@@ -39,11 +42,11 @@ public class Wallet implements Serializable {
      * @throws DOPOSoccerException NOT_ENOUGH_POINTS if the wallet has less than the amount
      */
     public void spend(int amount) throws DOPOSoccerException {
-<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (amount &gt; points) {</span>
-<span class="fc" id="L43">            throw new DOPOSoccerException(DOPOSoccerException.NOT_ENOUGH_POINTS);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (amount &gt; points) {</span>
+<span class="fc" id="L46">            throw new DOPOSoccerException(DOPOSoccerException.NOT_ENOUGH_POINTS);</span>
         }
-<span class="fc" id="L45">        points -= amount;</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L48">        points -= amount;</span>
+<span class="fc" id="L49">    }</span>
 
     /**
      * Returns the points.
@@ -51,7 +54,7 @@ public class Wallet implements Serializable {
      * @return points the player has
      */
     public int getPoints() {
-<span class="fc" id="L54">        return points;</span>
+<span class="fc" id="L57">        return points;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
