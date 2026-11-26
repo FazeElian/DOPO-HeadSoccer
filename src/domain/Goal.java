@@ -1,5 +1,6 @@
 package domain;
 
+import domain.enums.Side;
 import java.io.Serializable;
 
 /**
@@ -51,7 +52,7 @@ public class Goal implements Serializable {
         if (ball.getY() < y) {
             return false;
         }
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return ball.getX() + ball.getWidth() <= x + width;
         }
         return ball.getX() >= x;

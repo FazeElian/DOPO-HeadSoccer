@@ -1,5 +1,7 @@
 package presentation.views.home;
 
+import domain.enums.StatType;
+import domain.enums.Team;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -38,18 +40,18 @@ public class StoreView extends HomeView {
 
     // Upgrades: text in the screen and stat name in the domain (action command of each "MEJORAR" button)
     private static final String[] STATS_NAMES = {"VELOCIDAD", "SALTO", "PATADA", "VIDA"};
-    private static final String[] STATS = {"SPEED", "JUMP", "KICK", "SURVIVAL"};
+    private static final String[] STATS = {StatType.SPEED.getName(), StatType.JUMP.getName(), StatType.KICK.getName(), StatType.SURVIVAL.getName()};
 
     // Characters: name, image (assets/img/players/<image>.png), power and flag (assets/img/flags/<flag>.png)
     private static final String[][] CHARACTERS = {
-        {"COLOMBIA", "colombia", "ILUSIÓN", "Colombia"},
-        {"ARGENTINA", "argentina", "RAYO", "Argentina"},
-        {"COREA DEL SUR", "corea-sur", "AURA AZUL", "Corea del Sur"},
-        {"CAMERÚN", "cameroon", "RAYO", "Camerún"},
-        {"NIGERIA", "nigeria", "TORNADO", "Nigeria"},
-        {"ESTADOS UNIDOS", "usa", "ILUSIÓN", "Estados Unidos"},
-        {"ESPAÑA", "spain", "AURA AZUL", "España"},
-        {"JAPÓN", "japan", "TORNADO", "Japón"}
+        {"COLOMBIA", "colombia", "ILUSIÓN", Team.COLOMBIA.getName()},
+        {"ARGENTINA", "argentina", "RAYO", Team.ARGENTINA.getName()},
+        {"COREA DEL SUR", "corea-sur", "AURA AZUL", Team.COREA_DEL_SUR.getName()},
+        {"CAMERÚN", "cameroon", "RAYO", Team.CAMERUN.getName()},
+        {"NIGERIA", "nigeria", "TORNADO", Team.NIGERIA.getName()},
+        {"ESTADOS UNIDOS", "usa", "ILUSIÓN", Team.ESTADOS_UNIDOS.getName()},
+        {"ESPAÑA", "spain", "AURA AZUL", Team.ESPANA.getName()},
+        {"JAPÓN", "japan", "TORNADO", Team.JAPON.getName()}
     };
 
     // Balls: name and image (assets/img/balls/<image>.png)

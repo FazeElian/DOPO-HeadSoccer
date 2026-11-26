@@ -156,7 +156,7 @@ public class TournamentRoundView extends TournamentView {
             info.add(label);
         }
 
-        box.add(createSideColumn("JUGADOR 1", BLUE, playerFace), BorderLayout.WEST);
+        box.add(createSideColumn(PLAYER1_NAME, BLUE, playerFace), BorderLayout.WEST);
         box.add(info, BorderLayout.CENTER);
         box.add(createSideColumn("RIVAL: IA", RED, rivalFace), BorderLayout.EAST);
         return box;

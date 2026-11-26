@@ -1,5 +1,6 @@
 package domain;
 
+import domain.enums.Side;
 import java.io.Serializable;
 
 /**
@@ -29,9 +30,9 @@ public class ScoreBoard implements Serializable {
      * @param side "LEFT" or "RIGHT": the side that scored
      */
     public void addGoal(String side) {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             leftGoals++;
-        } else if ("RIGHT".equals(side)) {
+        } else if (Side.RIGHT.getName().equals(side)) {
             rightGoals++;
         }
     }
@@ -43,10 +44,10 @@ public class ScoreBoard implements Serializable {
      * @return its goals, or 0 for an unknown side
      */
     public int getGoals(String side) {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return leftGoals;
         }
-        return "RIGHT".equals(side) ? rightGoals : 0;
+        return Side.RIGHT.getName().equals(side) ? rightGoals : 0;
     }
 
     /**

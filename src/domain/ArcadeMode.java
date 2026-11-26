@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.ModeType;
+
 /**
  * Arcade: a match between the two chosen characters, by time or by goals. In survival it is a series
  * against the machine: while the left player wins, a new match is played.
@@ -62,7 +64,7 @@ public class ArcadeMode extends GameMode {
      */
     @Override
     public String getName() {
-        return "ARCADE";
+        return ModeType.ARCADE.getName();
     }
 
     /**

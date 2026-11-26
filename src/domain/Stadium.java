@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.Resolution;
+import domain.enums.Side;
 import java.io.Serializable;
 
 /**
@@ -56,8 +58,8 @@ public class Stadium implements Serializable {
         this.groundY = height * GROUND_SHARE;
         double goalWidth = width * GOAL_WIDTH_SHARE;
         double goalHeight = height * GOAL_HEIGHT_SHARE;
-        this.leftGoal = new Goal("LEFT", 0, groundY - goalHeight, goalWidth, goalHeight);
-        this.rightGoal = new Goal("RIGHT", width - goalWidth, groundY - goalHeight, goalWidth, goalHeight);
+        this.leftGoal = new Goal(Side.LEFT.getName(), 0, groundY - goalHeight, goalWidth, goalHeight);
+        this.rightGoal = new Goal(Side.RIGHT.getName(), width - goalWidth, groundY - goalHeight, goalWidth, goalHeight);
     }
 
     /**
@@ -72,16 +74,16 @@ public class Stadium implements Serializable {
         {
             resolution = "";
         }
-        switch (resolution) {
-            case "SMALL":
-                return SMALL;
-            case "MEDIUM":
-                return MEDIUM;
-            case "LARGE":
-                return LARGE;
-            default:
-                throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_RESOLUTION);
+        if (Resolution.SMALL.getName().equals(resolution)) {
+            return SMALL;
         }
+        if (Resolution.MEDIUM.getName().equals(resolution)) {
+            return MEDIUM;
+        }
+        if (Resolution.LARGE.getName().equals(resolution)) {
+            return LARGE;
+        }
+        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_RESOLUTION);
     }
 
     /**
@@ -91,7 +93,7 @@ public class Stadium implements Serializable {
      * @return its goal, or null for an unknown side
      */
     public Goal getGoal(String side) {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return leftGoal;
         }
         return rightGoal;

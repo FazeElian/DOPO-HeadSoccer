@@ -1,5 +1,8 @@
 package domain;
 
+import domain.enums.MatchKind;
+import domain.enums.Side;
+
 /**
  * Survival: each player starts with 3 balls and loses one for each goal received;
  * the match ends when a player has no balls left. It is a series against the machine:
@@ -37,9 +40,9 @@ public class SurvivalMatch extends MatchType {
      */
     @Override
     public void onGoal(String scorer, Match match) {
-        if ("LEFT".equals(scorer)) {
+        if (Side.LEFT.getName().equals(scorer)) {
             rightBalls = Math.max(0, rightBalls - 1);
-        } else if ("RIGHT".equals(scorer)) {
+        } else if (Side.RIGHT.getName().equals(scorer)) {
             leftBalls = Math.max(0, leftBalls - 1);
         }
     }
@@ -64,9 +67,9 @@ public class SurvivalMatch extends MatchType {
     @Override
     public String getWinner(Match match) {
         if (leftBalls == 0) {
-            return "RIGHT";
+            return Side.RIGHT.getName();
         }
-        return rightBalls == 0 ? "LEFT" : null;
+        return rightBalls == 0 ? Side.LEFT.getName() : null;
     }
 
     /**
@@ -78,10 +81,10 @@ public class SurvivalMatch extends MatchType {
      */
     @Override
     public int getBalls(String side) throws DOPOSoccerException {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return leftBalls;
         }
-        if ("RIGHT".equals(side)) {
+        if (Side.RIGHT.getName().equals(side)) {
             return rightBalls;
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);
@@ -95,7 +98,7 @@ public class SurvivalMatch extends MatchType {
      */
     @Override
     public boolean continuesAfter(String winner) {
-        return "LEFT".equals(winner);
+        return Side.LEFT.getName().equals(winner);
     }
 
     /**
@@ -114,6 +117,6 @@ public class SurvivalMatch extends MatchType {
      */
     @Override
     public String getName() {
-        return "SURVIVAL";
+        return MatchKind.SURVIVAL.getName();
     }
 }

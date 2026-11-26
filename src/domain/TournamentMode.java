@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.ModeType;
+import domain.enums.Side;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -171,8 +173,8 @@ public class TournamentMode extends GameMode {
             throw new DOPOSoccerException(DOPOSoccerException.GAME_OVER);
         }
 
-        int leftGoals = match.getGoals("LEFT");
-        int rightGoals = match.getGoals("RIGHT");
+        int leftGoals = match.getGoals(Side.LEFT.getName());
+        int rightGoals = match.getGoals(Side.RIGHT.getName());
         playerMatch().setResult(leftGoals, rightGoals);
 
         // The matches between two machines are simulated (never a tie)
@@ -208,7 +210,7 @@ public class TournamentMode extends GameMode {
      * @return true if the match is over and the winner is the left side
      */
     public boolean playerWonMatch() {
-        return match != null && match.isFinished() && "LEFT".equals(match.getWinner());
+        return match != null && match.isFinished() && Side.LEFT.getName().equals(match.getWinner());
     }
 
     /**
@@ -275,7 +277,7 @@ public class TournamentMode extends GameMode {
      */
     @Override
     public String getName() {
-        return "TOURNAMENT";
+        return ModeType.TOURNAMENT.getName();
     }
 
     /**

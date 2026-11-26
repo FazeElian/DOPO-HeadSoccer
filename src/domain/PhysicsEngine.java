@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.MatchEvent;
+import domain.enums.Side;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,7 +129,7 @@ public class PhysicsEngine implements Serializable {
 
         // To create the feet we create a capsule (a rectangle with rounded edges) of 45 x 20 px,
         // 35px below the center and moved 7px towards the side the player faces
-        double foot = "LEFT".equals(p.getSide()) ? 7 : -7;
+        double foot = Side.LEFT.getName().equals(p.getSide()) ? 7 : -7;
         Convex feet = Geometry.createCapsule(45 / PIXELS_PER_METER, 20 / PIXELS_PER_METER);
         feet.translate(foot / PIXELS_PER_METER, 35 / PIXELS_PER_METER);
         body.addFixture(feet, 1.0, 0.0, 0.0).setFilter(filter);
@@ -176,7 +178,7 @@ public class PhysicsEngine implements Serializable {
         borders.add(addStatic(-WALL, -WALL, WALL, h + 2 * WALL));
         borders.add(addStatic(w, -WALL, WALL, h + 2 * WALL));
         borders.add(addStatic(-WALL, -WALL, w + 2 * WALL, WALL));
-        for (String side : new String[]{"LEFT", "RIGHT"}) {
+        for (String side : new String[]{Side.LEFT.getName(), Side.RIGHT.getName()}) {
             Goal goal = stadium.getGoal(side);
             // Body bar = addStatic(goal.getX(), goal.getY() - 10, goal.getWidth(), 10);
             Body bar = addCrossbar(goal, side);
@@ -203,8 +205,8 @@ public class PhysicsEngine implements Serializable {
     */
     private Body addCrossbar(Goal goal, String side) {
         double bottom = goal.getY();   // arriba de la boca del arco
-        double wallX = "LEFT".equals(side) ? goal.getX() : goal.getX() + goal.getWidth();
-        double postX = "LEFT".equals(side) ? goal.getX() + goal.getWidth() : goal.getX();
+        double wallX = Side.LEFT.getName().equals(side) ? goal.getX() : goal.getX() + goal.getWidth();
+        double postX = Side.LEFT.getName().equals(side) ? goal.getX() + goal.getWidth() : goal.getX();
 
         Vector2[] points = Geometry.cleanse(
             new Vector2(wallX / PIXELS_PER_METER, (bottom - CROSSBAR_HEIGHT) / PIXELS_PER_METER),
@@ -353,7 +355,7 @@ public class PhysicsEngine implements Serializable {
         if (p != null) {
             match.onBallTouch(p);
         } else if (borders.contains(other)) {
-            if (crossbars.contains(other)) match.addEvent("POST");
+            if (crossbars.contains(other)) match.addEvent(MatchEvent.POST.getName());
             match.onBallHitsBorder();
         }
     }
@@ -366,8 +368,8 @@ public class PhysicsEngine implements Serializable {
      */
     private static List<Entity> entitiesOf(Match match) {
         List<Entity> entities = new ArrayList<>();
-        entities.add(match.getPlayer("LEFT"));
-        entities.add(match.getPlayer("RIGHT"));
+        entities.add(match.getPlayer(Side.LEFT.getName()));
+        entities.add(match.getPlayer(Side.RIGHT.getName()));
         entities.add(match.getBall());
         entities.addAll(match.getFakeBalls());
         return entities;

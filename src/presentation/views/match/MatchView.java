@@ -1,5 +1,7 @@
 package presentation.views.match;
 
+import domain.enums.Side;
+import domain.enums.Team;
 import javax.swing.*;
 import domain.DOPOSoccer;
 import domain.DOPOSoccerException;
@@ -103,8 +105,8 @@ public abstract class MatchView extends View {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         try {
-            drawPlayer(g2, "LEFT");
-            drawPlayer(g2, "RIGHT");
+            drawPlayer(g2, Side.LEFT.getName());
+            drawPlayer(g2, Side.RIGHT.getName());
             drawBalls(g2);
         } catch (DOPOSoccerException e) {
             // no match started yet: only the background
@@ -138,7 +140,7 @@ public abstract class MatchView extends View {
         if (game.hasAura(side)) {
             drawGlow(g2, x + w / 2, y + h / 2, Math.max(w, h) * 0.75f);
         }
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             g2.drawImage(img, x, y, w, h, null);
         } else {
             g2.drawImage(img, x + w, y, -w, h, null);   // negative width = flipped
@@ -158,7 +160,7 @@ public abstract class MatchView extends View {
             g2.drawRect(x, y, w, h);
 
             g2.setColor(Color.RED);
-            int foot = sx("LEFT".equals(side) ? 7 : -7);
+            int foot = sx(Side.LEFT.getName().equals(side) ? 7 : -7);
             // Head: radius 32, center 7 px above the box center (bottom at +25 = top of the feet)
             g2.drawOval(cx - sx(32), cy - sy(7) - sy(32), sx(64), sy(64));
 
@@ -174,8 +176,8 @@ public abstract class MatchView extends View {
 
             // Crossbar: same 4 points as addCrossbar (higher on the wall side, so the ball rolls to the field)
             double he = 25, bottom = goal[1];   // usa PhysicsEngine.CROSSBAR_HEIGHT si lo dejas público
-            double wallX = "LEFT".equals(side) ? goal[0] : goal[0] + goal[2];
-            double postX = "LEFT".equals(side) ? goal[0] + goal[2] : goal[0];
+            double wallX = Side.LEFT.getName().equals(side) ? goal[0] : goal[0] + goal[2];
+            double postX = Side.LEFT.getName().equals(side) ? goal[0] + goal[2] : goal[0];
             g2.setColor(Color.RED);
             g2.drawPolygon(
                 new int[]{sx(wallX), sx(wallX), sx(postX)},
@@ -299,14 +301,12 @@ public abstract class MatchView extends View {
 
     // Country of the domain -> name of the image file
     protected String imageOf(String country) {
-        switch (country) {
-            case "Corea del Sur": return "corea-sur";
-            case "Camerún": return "cameroon";
-            case "España": return "spain";
-            case "Japón": return "japan";
-            case "Estados Unidos": return "usa";
-            default: return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
-        }
+        if (Team.COREA_DEL_SUR.getName().equals(country)) return "corea-sur";
+        if (Team.CAMERUN.getName().equals(country)) return "cameroon";
+        if (Team.ESPANA.getName().equals(country)) return "spain";
+        if (Team.JAPON.getName().equals(country)) return "japan";
+        if (Team.ESTADOS_UNIDOS.getName().equals(country)) return "usa";
+        return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
     }
 
     // Player 1 data (from the domain): info box and the code in the scoreboard
@@ -413,7 +413,7 @@ public abstract class MatchView extends View {
         p1PowerBar = new StatBar(YELLOW, 0);
         p1NameLabel = new JLabel(" ");
         p1PowerLabel = new JLabel(" ");
-        return createBlock(BLUE, new JLabel("J1"), p1HpBar, p1PowerBar, p1NameLabel, p1PowerLabel, false);
+        return createBlock(BLUE, new JLabel(PLAYER1_TAG), p1HpBar, p1PowerBar, p1NameLabel, p1PowerLabel, false);
     }
 
     protected JPanel createPlayer2Block() {

@@ -1,5 +1,8 @@
 package domain;
 
+import domain.enums.Action;
+import domain.enums.MatchEvent;
+import domain.enums.Side;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -98,8 +101,8 @@ public class Player extends Entity {
             return;
         }
         Set<String> actions = controller.nextActions(this, match);
-        boolean left = actions.contains("MOVE_LEFT");
-        boolean right = actions.contains("MOVE_RIGHT");
+        boolean left = actions.contains(Action.MOVE_LEFT.getName());
+        boolean right = actions.contains(Action.MOVE_RIGHT.getName());
         if (left && !right) {
             moveLeft();
         } else if (right && !left) {
@@ -107,13 +110,13 @@ public class Player extends Entity {
         } else {
             stop();
         }
-        if (actions.contains("JUMP")) {
+        if (actions.contains(Action.JUMP.getName())) {
             jump();
         }
-        if (actions.contains("POWER")) {
+        if (actions.contains(Action.POWER.getName())) {
             activatePower();
         }
-        if (actions.contains("KICK")) {
+        if (actions.contains(Action.KICK.getName())) {
             kick(match);
         }
     }
@@ -187,7 +190,7 @@ public class Player extends Entity {
         kickTimer = KICK_WINDOW;
         Ball ball = match.getBall();
         if (reachesBall(ball)) {
-            match.addEvent("KICK");
+            match.addEvent(MatchEvent.KICK.getName());
             if (aura) {
                 match.onBallTouch(this);
             } else {
@@ -309,7 +312,7 @@ public class Player extends Entity {
      * @return 1 for the left player (attacks to the right), -1 for the right one
      */
     public double getDirection() {
-        return "LEFT".equals(side) ? 1 : -1;
+        return Side.LEFT.getName().equals(side) ? 1 : -1;
     }
 
     /**

@@ -1,5 +1,6 @@
 package domain;
 
+import domain.enums.AIProfile;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,24 +34,8 @@ public class DefensiveAI extends AIController {
         return actions;
     }
 
-    /**
-     * Goes back to wait {@link #GUARD_DISTANCE} pixels in front of its own goal.
-     * The expert uses it too when the rival has the ball.
-     *
-     * @param self    the player
-     * @param match   the match
-     * @param actions where the movement is added
-     */
-    protected static void guard(Player self, Match match, Set<String> actions) {
-        double[] goal = match.getGoalBounds(self.getSide()); // {x, y, width, height}
-        double spot = "LEFT".equals(self.getSide())
-                ? goal[0] + goal[2] + GUARD_DISTANCE
-                : goal[0] - GUARD_DISTANCE;
-        moveTo(self, spot, actions);
-    }
-
     @Override
     public String getProfile() {
-        return "DEFENSIVE";
+        return AIProfile.DEFENSIVE.getName();
     }
 }

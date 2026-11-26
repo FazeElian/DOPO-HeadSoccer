@@ -1,5 +1,6 @@
 package presentation.views.tournament;
 
+import domain.enums.Team;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -31,14 +32,12 @@ public abstract class TournamentView extends ArcadeView {
 
     // Country of the domain -> name of the image file
     protected String imageOf(String country) {
-        switch (country) {
-            case "Corea del Sur": return "corea-sur";
-            case "Camerún": return "cameroon";
-            case "España": return "spain";
-            case "Japón": return "japan";
-            case "Estados Unidos": return "usa";
-            default: return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
-        }
+        if (Team.COREA_DEL_SUR.getName().equals(country)) return "corea-sur";
+        if (Team.CAMERUN.getName().equals(country)) return "cameroon";
+        if (Team.ESPANA.getName().equals(country)) return "spain";
+        if (Team.JAPON.getName().equals(country)) return "japan";
+        if (Team.ESTADOS_UNIDOS.getName().equals(country)) return "usa";
+        return country.toLowerCase();   // "Colombia" -> "colombia", "Argentina", "Nigeria"
     }
 
     // Face of a character; flipped = looking to the left (the rival)
