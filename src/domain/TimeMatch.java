@@ -1,5 +1,8 @@
 package domain;
 
+import domain.enums.MatchKind;
+import domain.enums.Side;
+
 /**
  * Match by time: it lasts the chosen minutes and the side with more goals wins.
  * If there is a tie when time is over, it goes to sudden death: the first goal wins.
@@ -61,7 +64,7 @@ public class TimeMatch extends MatchType {
         if (score.isTied()) {
             return null;
         }
-        return score.getGoals("LEFT") > score.getGoals("RIGHT") ? "LEFT" : "RIGHT";
+        return score.getGoals(Side.LEFT.getName()) > score.getGoals(Side.RIGHT.getName()) ? Side.LEFT.getName() : Side.RIGHT.getName();
     }
 
     /**
@@ -86,9 +89,9 @@ public class TimeMatch extends MatchType {
     }
 
     /**
-     * Returns the chosen minutes.
+     * Returns the duration of the match.
      *
-     * @return minutes
+     * @return duration, in seconds (the chosen minutes times 60)
      */
     public int getSeconds() {
         return seconds;
@@ -109,6 +112,6 @@ public class TimeMatch extends MatchType {
      */
     @Override
     public String getName() {
-        return "TIME";
+        return MatchKind.TIME.getName();
     }
 }

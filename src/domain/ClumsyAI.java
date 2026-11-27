@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.AIProfile;
+import domain.enums.Action;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -16,7 +18,7 @@ public class ClumsyAI extends AIController {
     /** Chance of going for the ball in each decision. */
     public static final double FOCUS = 0.4;
     /** Things it does when it is not going for the ball. */
-    private static final String[] MISTAKES = {"MOVE_LEFT", "MOVE_RIGHT", "JUMP", "KICK"};
+    private static final String[] MISTAKES = {Action.MOVE_LEFT.getName(), Action.MOVE_RIGHT.getName(), Action.JUMP.getName(), Action.KICK.getName()};
 
     /** Source of its mistakes. */
     private final Random random;
@@ -42,6 +44,6 @@ public class ClumsyAI extends AIController {
 
     @Override
     public String getProfile() {
-        return "CLUMSY";
+        return AIProfile.CLUMSY.getName();
     }
 }

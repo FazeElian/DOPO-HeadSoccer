@@ -8,7 +8,9 @@ import static presentation.DOPOSoccerGUI.*;
 
 public class SelectArcadeModeView extends ArcadeView {
     // AI profiles shown in the "PERFIL" menu
-    public static final String[] AI_PROFILES = {"TORPE", "OFENSIVA", "DEFENSIVA", "EXPERTA"};
+    // Profile of the machine in the tournament
+    public static final String EXPERT_PROFILE = "EXPERTA";
+    public static final String[] AI_PROFILES = {"TORPE", "OFENSIVA", "DEFENSIVA", EXPERT_PROFILE};
 
     private String aiProfile = AI_PROFILES[2];
     private Option vsMachineOption;

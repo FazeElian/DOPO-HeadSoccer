@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.Side;
+
 /**
  * Push, from Blue Aura (South Korea): the rival is thrown towards its own goal
  * and cannot control itself for 1.5 seconds.
@@ -33,7 +35,7 @@ public class PushEffect extends Effect {
      */
     @Override
     public void onApply(Player p) {
-        double towardsOwnGoal = "LEFT".equals(p.getSide()) ? -1 : 1;
+        double towardsOwnGoal = Side.LEFT.getName().equals(p.getSide()) ? -1 : 1;
         p.setVelocity(towardsOwnGoal * PUSH_SPEED, -LIFT_SPEED);
         p.setOnGround(false);
     }

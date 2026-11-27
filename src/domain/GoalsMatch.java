@@ -1,5 +1,8 @@
 package domain;
 
+import domain.enums.MatchKind;
+import domain.enums.Side;
+
 /**
  * Match by goals: the first side to reach the target wins, with no time limit.
  *
@@ -46,10 +49,10 @@ public class GoalsMatch extends MatchType {
     @Override
     public String getWinner(Match match) {
         ScoreBoard score = match.getScoreBoard();
-        if (score.getGoals("LEFT") >= target) {
-            return "LEFT";
+        if (score.getGoals(Side.LEFT.getName()) >= target) {
+            return Side.LEFT.getName();
         }
-        return score.getGoals("RIGHT") >= target ? "RIGHT" : null;
+        return score.getGoals(Side.RIGHT.getName()) >= target ? Side.RIGHT.getName() : null;
     }
 
     /**
@@ -69,6 +72,6 @@ public class GoalsMatch extends MatchType {
      */
     @Override
     public String getName() {
-        return "GOALS";
+        return MatchKind.GOALS.getName();
     }
 }

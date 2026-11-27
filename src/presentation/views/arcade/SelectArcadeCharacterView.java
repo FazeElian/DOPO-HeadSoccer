@@ -1,5 +1,6 @@
 package presentation.views.arcade;
 
+import domain.enums.Team;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -28,21 +29,21 @@ public class SelectArcadeCharacterView extends ArcadeView {
     // Characters: name, country code, image, power, price (0 = unlocked) and flag image (assets/img/flags/<flag>.png).
     // They have no stats: the bars show the stats of the player, that come from the domain
     private static final CharacterInfo[] CHARACTERS = {
-        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN",  "Colombia"),
-        new CharacterInfo("ARGENTINA", "AR", "argentina", "RAYO",  "Argentina"),
-        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "AURA AZUL",  "Corea del Sur"),
-        new CharacterInfo("CAMERÚN", "CM", "cameroon", "RAYO",  "Camerún"),
-        new CharacterInfo("NIGERIA", "NG", "nigeria", "TORNADO",  "Nigeria"),
-        new CharacterInfo("ESTADOS UNIDOS", "US", "usa", "ILUSIÓN",  "Estados Unidos"),
-        new CharacterInfo("ESPAÑA", "ES", "spain", "AURA AZUL", "España"),
-        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", "Japón")
+        new CharacterInfo("COLOMBIA", "CO", "colombia", "ILUSIÓN",  Team.COLOMBIA.getName()),
+        new CharacterInfo("ARGENTINA", "AR", "argentina", "RAYO",  Team.ARGENTINA.getName()),
+        new CharacterInfo("COREA DEL SUR", "KR", "corea-sur", "AURA AZUL",  Team.COREA_DEL_SUR.getName()),
+        new CharacterInfo("CAMERÚN", "CM", "cameroon", "RAYO",  Team.CAMERUN.getName()),
+        new CharacterInfo("NIGERIA", "NG", "nigeria", "TORNADO",  Team.NIGERIA.getName()),
+        new CharacterInfo("ESTADOS UNIDOS", "US", "usa", "ILUSIÓN",  Team.ESTADOS_UNIDOS.getName()),
+        new CharacterInfo("ESPAÑA", "ES", "spain", "AURA AZUL", Team.ESPANA.getName()),
+        new CharacterInfo("JAPÓN", "JP", "japan", "TORNADO", Team.JAPON.getName())
     };
 
     private final boolean rival;
     private final Color pickColor; // blue for player 1, red for the rival
     private int selected;
     private int playerPick = -1; // only for the rival view: character chosen by player 1
-    private String rivalTag = "IA";
+    private String rivalTag = MACHINE_TAG;
 
     // Details panel components
     private JLabel badge;
@@ -156,8 +157,8 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     // Rival view: the rival is the AI (PvsM) or player 2 (PvsP)
     public void setVsMachine(boolean vsMachine) {
-        rivalTag = vsMachine ? "IA" : "J2";
-        badge.setText(vsMachine ? "RIVAL · IA" : "JUGADOR 2");
+        rivalTag = vsMachine ? MACHINE_TAG : PLAYER2_TAG;
+        badge.setText(vsMachine ? "RIVAL · IA" : PLAYER2_NAME);
         repaint();
     }
 
@@ -180,7 +181,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
 
     // Panel with the selected character: face, flag, name, power and stats
     private JPanel createDetailsPanel() {
-        badge = createBadge(rival ? "RIVAL · IA" : "JUGADOR 1", pickColor, WHITE);
+        badge = createBadge(rival ? "RIVAL · IA" : PLAYER1_NAME, pickColor, WHITE);
         JPanel panel = createBadgedPanel(badge, pickColor, new Dimension(330, 500));
 
         detailFace = new JLabel();
@@ -366,7 +367,7 @@ public class SelectArcadeCharacterView extends ArcadeView {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             if (isLocked()) paintLocked(g2, this, 60, 20); // lock over the face
-            if (isPlayerPick()) paintTag(g2, "J1", BLUE, false);
+            if (isPlayerPick()) paintTag(g2, PLAYER1_TAG, BLUE, false);
             if (isRivalPick()) paintTag(g2, rivalTag, RED, true);
 
             g2.dispose();

@@ -1,5 +1,6 @@
 package domain;
 
+import domain.enums.AIProfile;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +29,6 @@ public class OffensiveAI extends AIController {
 
     @Override
     public String getProfile() {
-        return "OFFENSIVE";
+        return AIProfile.OFFENSIVE.getName();
     }
 }

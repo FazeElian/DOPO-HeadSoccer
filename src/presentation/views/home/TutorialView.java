@@ -31,8 +31,8 @@ public class TutorialView extends HomeView {
         // Block for both players controls
         JPanel controls = new JPanel(new GridLayout(1, 2, 50, 0)); // 1 row, 2 columns, 50px between them
         controls.setOpaque(false);
-        controls.add(createPlayerControls("JUGADOR 1", BLUE, "assets/img/controls-player-1.png"));
-        controls.add(createPlayerControls("JUGADOR 2", RED, "assets/img/controls-player-2.png"));
+        controls.add(createPlayerControls(PLAYER1_NAME, BLUE, "assets/img/controls-player-1.png"));
+        controls.add(createPlayerControls(PLAYER2_NAME, RED, "assets/img/controls-player-2.png"));
 
         card.add(titleRow, BorderLayout.NORTH);
         card.add(controls, BorderLayout.CENTER);
