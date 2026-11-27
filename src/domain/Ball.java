@@ -131,9 +131,9 @@ public class Ball extends Entity {
     }
 
     /**
-     * A straight power shot flies without gravity; otherwise the ball falls normally.
+     * A straight power shot flies without gravity; otherwise the ball falls with 70 % of the gravity.
      *
-     * @return 0 during a straight power shot, 1 otherwise
+     * @return 0 during a straight power shot, 0.7 otherwise
      */
     @Override
     public double getGravityScale() {

@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.Action;
+import domain.enums.Side;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -80,12 +82,12 @@ public abstract class AIController implements PlayerController {
      * @param targetX x to reach with its center
      * @param actions where the movement is added
      */
-    protected static void moveTo(Player self, double targetX, Set<String> actions) {
+    protected void moveTo(Player self, double targetX, Set<String> actions) {
         double center = self.getX() + self.getWidth() / 2;
         if (targetX > center + ARRIVAL) {
-            actions.add("MOVE_RIGHT");
+            actions.add(Action.MOVE_RIGHT.getName());
         } else if (targetX < center - ARRIVAL) {
-            actions.add("MOVE_LEFT");
+            actions.add(Action.MOVE_LEFT.getName());
         }
     }
 
@@ -97,19 +99,19 @@ public abstract class AIController implements PlayerController {
      * @param ball    the real ball
      * @param actions where the actions are added
      */
-    protected static void playBall(Player self, Ball ball, Set<String> actions) {
+    protected void playBall(Player self, Ball ball, Set<String> actions) {
         double ballCenter = ball.getX() + ball.getWidth() / 2;
         // Behind the ball: on the side of its own goal, to push it to the rival goal
         moveTo(self, ballCenter - self.getDirection() * self.getWidth() / 2, actions);
         if (isBallNear(self, ball, KICK_DISTANCE)) {
-            actions.add("KICK");
+            actions.add(Action.KICK.getName());
             if (self.isPowerReady()) {
-                actions.add("POWER");
+                actions.add(Action.POWER.getName());
             }
         }
         boolean above = ball.getY() + ball.getHeight() < self.getY();
         if (above && isBallNear(self, ball, 2 * KICK_DISTANCE)) {
-            actions.add("JUMP");
+            actions.add(Action.JUMP.getName());
         }
     }
 
@@ -121,7 +123,7 @@ public abstract class AIController implements PlayerController {
      * @param distance distance in pixels, from the edge of the player
      * @return true if the ball is at that distance or less
      */
-    protected static boolean isBallNear(Player self, Ball ball, double distance) {
+    protected boolean isBallNear(Player self, Ball ball, double distance) {
         double dx = (ball.getX() + ball.getWidth() / 2) - (self.getX() + self.getWidth() / 2);
         double dy = (ball.getY() + ball.getHeight() / 2) - (self.getY() + self.getHeight() / 2);
         return Math.hypot(dx, dy) <= distance + self.getWidth() / 2;
@@ -134,8 +136,25 @@ public abstract class AIController implements PlayerController {
      * @param match the match
      * @return true if the ball is on its side of the field
      */
-    protected static boolean isBallInOwnHalf(Player self, Match match) {
+    protected boolean isBallInOwnHalf(Player self, Match match) {
         boolean ballOnLeft = match.getBallX() < match.getFieldWidth() / 2;
-        return "LEFT".equals(self.getSide()) == ballOnLeft;
+        return Side.LEFT.getName().equals(self.getSide()) == ballOnLeft;
+    }
+
+    /**
+     * Goes back to wait {@link DefensiveAI#GUARD_DISTANCE} pixels in front of its own goal.
+     * The defensive profile uses it when the ball is in the other half and the expert
+     * when the rival has the ball.
+     *
+     * @param self    the player
+     * @param match   the match
+     * @param actions where the movement is added
+     */
+    protected void guard(Player self, Match match, Set<String> actions) {
+        double[] goal = match.getGoalBounds(self.getSide()); // {x, y, width, height}
+        double spot = Side.LEFT.getName().equals(self.getSide())
+                ? goal[0] + goal[2] + DefensiveAI.GUARD_DISTANCE
+                : goal[0] - DefensiveAI.GUARD_DISTANCE;
+        moveTo(self, spot, actions);
     }
 }

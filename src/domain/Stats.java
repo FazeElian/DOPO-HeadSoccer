@@ -1,5 +1,6 @@
 package domain;
 
+import domain.enums.StatType;
 import java.io.Serializable;
 
 /**
@@ -51,18 +52,19 @@ public class Stats implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_STAT if the name is not valid
      */
     public int get(String stat) throws DOPOSoccerException {
-        switch (stat == null ? "" : stat) {
-            case "SPEED":
-                return speed;
-            case "JUMP":
-                return jump;
-            case "KICK":
-                return kick;
-            case "SURVIVAL":
-                return survival;
-            default:
-                throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_STAT);
+        if (StatType.SPEED.getName().equals(stat)) {
+            return speed;
         }
+        if (StatType.JUMP.getName().equals(stat)) {
+            return jump;
+        }
+        if (StatType.KICK.getName().equals(stat)) {
+            return kick;
+        }
+        if (StatType.SURVIVAL.getName().equals(stat)) {
+            return survival;
+        }
+        throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_STAT);
     }
 
     /**
@@ -124,19 +126,14 @@ public class Stats implements Serializable {
         if (get(stat) >= MAX_STAT) {
             throw new DOPOSoccerException(DOPOSoccerException.STAT_AT_MAX);
         }
-        switch (stat) {
-            case "SPEED":
-                speed++;
-                break;
-            case "JUMP":
-                jump++;
-                break;
-            case "KICK":
-                kick++;
-                break;
-            default:
-                survival++;
-                break;
+        if (StatType.SPEED.getName().equals(stat)) {
+            speed++;
+        } else if (StatType.JUMP.getName().equals(stat)) {
+            jump++;
+        } else if (StatType.KICK.getName().equals(stat)) {
+            kick++;
+        } else {
+            survival++;
         }
     }
 

@@ -1,4 +1,5 @@
 domain
+domain.enums
 presentation
 presentation.views
 presentation.views.arcade

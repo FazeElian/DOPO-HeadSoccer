@@ -1,5 +1,13 @@
 package presentation;
 
+import domain.enums.Action;
+import domain.enums.MatchEvent;
+import domain.enums.MatchKind;
+import domain.enums.Modality;
+import domain.enums.ModeType;
+import domain.enums.Resolution;
+import domain.enums.Side;
+import domain.enums.StatType;
 import javax.swing.*;
 
 // Home Module Views classes
@@ -85,6 +93,13 @@ public class DOPOSoccerGUI extends JFrame {
     public static final Color ORANGE = new Color(229, 112, 40);
     public static final Color WHITE = Color.WHITE;
     public static final Color BLACK = new Color(25, 25, 30);
+
+    // Player labels used by several screens
+    public static final String PLAYER1_TAG = "J1";
+    public static final String PLAYER2_TAG = "J2";
+    public static final String MACHINE_TAG = "IA";
+    public static final String PLAYER1_NAME = "JUGADOR 1";
+    public static final String PLAYER2_NAME = "JUGADOR 2";
 
     // Balls of each player at the start of a survival series (domain)
     private int maxBalls = 0;
@@ -247,18 +262,18 @@ public class DOPOSoccerGUI extends JFrame {
     // Shows the game just opened: the view of its mode and match type, with the data of the domain
     // (not of the selection screens, which the player didn't go through)
     private void showOpenedGame() throws DOPOSoccerException {
-        boolean tournamentGame = "TOURNAMENT".equals(game.getMode());
-        boolean survival = "SURVIVAL".equals(game.getMatchType());
-        boolean vsMachine = "PVM".equals(game.getModality());
+        boolean tournamentGame = ModeType.TOURNAMENT.getName().equals(game.getMode());
+        boolean survival = MatchKind.SURVIVAL.getName().equals(game.getMatchType());
+        boolean vsMachine = Modality.PVM.getName().equals(game.getModality());
         matchView = tournamentGame ? tournamentMatchView : survival ? survivalMatchView : arcadeMatchView;
         matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium())); // the stadium of the saved match
 
-        String me = game.getCharacter("LEFT");
-        String rival = game.getCharacter("RIGHT");
-        matchView.setPlayer1("JUGADOR 1", me.toUpperCase(), game.getPowerName("LEFT").toUpperCase(),
+        String me = game.getCharacter(Side.LEFT.getName());
+        String rival = game.getCharacter(Side.RIGHT.getName());
+        matchView.setPlayer1(PLAYER1_NAME, me.toUpperCase(), game.getPowerName(Side.LEFT.getName()).toUpperCase(),
             selectArcadeCharacterView.getCodeOf(me));
-        matchView.setPlayer2(vsMachine ? "IA" : "J2", vsMachine ? "IA" : "JUGADOR 2", rival.toUpperCase(),
-            game.getPowerName("RIGHT").toUpperCase(), selectArcadeCharacterView.getCodeOf(rival));
+        matchView.setPlayer2(vsMachine ? MACHINE_TAG : PLAYER2_TAG, vsMachine ? MACHINE_TAG : PLAYER2_NAME, rival.toUpperCase(),
+            game.getPowerName(Side.RIGHT.getName()).toUpperCase(), selectArcadeCharacterView.getCodeOf(rival));
         matchView.setSuddenDeath(game.isSuddenDeath());
         if (survival) {
             maxBalls = SURVIVAL_BALLS;
@@ -349,7 +364,7 @@ public class DOPOSoccerGUI extends JFrame {
             String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
             int[] stats = new int[STATS.length];
             for (int i = 0; i < STATS.length; i++) {
-                stats[i] = game.getStat("LEFT", STATS[i]);
+                stats[i] = game.getStat(Side.LEFT.getName(), STATS[i]);
             }
             newTournamentView.setTeam(team, game.getPowerNameOf(team), stats);
             newTournamentView.setPrize(game.getTournamentPrize());
@@ -377,8 +392,8 @@ public class DOPOSoccerGUI extends JFrame {
         selectArcadeMatchTypeView.backBtn.addActionListener(e -> showView(selectArcadeResolutionView, "Resolución (Arcade)"));
         selectArcadeMatchTypeView.continueBtn.addActionListener(e -> {
             // The bars show the stats of player 1 (domain)
-            if (loadStats(selectArcadeCharacterView, "LEFT")) {
-                loadCharacterAvailability(selectArcadeCharacterView, "LEFT");
+            if (loadStats(selectArcadeCharacterView, Side.LEFT.getName())) {
+                loadCharacterAvailability(selectArcadeCharacterView, Side.LEFT.getName());
                 showView(selectArcadeCharacterView, "Personaje (Arcade)");
             }
         });
@@ -391,22 +406,22 @@ public class DOPOSoccerGUI extends JFrame {
             selectArcadeRivalView.setPlayerCharacter(selectArcadeCharacterView.getSelectedCharacter());
             selectArcadeRivalView.setVsMachine(selectArcadeModeView.isVsMachine());
             // The bars show the stats of the rival (domain)
-            if (loadStats(selectArcadeRivalView, "RIGHT")) {
+            if (loadStats(selectArcadeRivalView, Side.RIGHT.getName())) {
                 // The machine plays with any character; player 2 only with its own
                 loadCharacterAvailability(selectArcadeRivalView,
-                    selectArcadeModeView.isVsMachine() ? null : "RIGHT");
+                    selectArcadeModeView.isVsMachine() ? null : Side.RIGHT.getName());
                 showView(selectArcadeRivalView, "Rival (Arcade)");
             }
         });
     }
 
     // Stats of a player, in the order of the bars
-    private static final String[] STATS = {"SPEED", "JUMP", "KICK", "SURVIVAL"};
-    private static final String[] SIDES = {"LEFT", "RIGHT"};
+    private static final String[] STATS = {StatType.SPEED.getName(), StatType.JUMP.getName(), StatType.KICK.getName(), StatType.SURVIVAL.getName()};
+    private static final String[] SIDES = {Side.LEFT.getName(), Side.RIGHT.getName()};
 
     // Asks the domain the stats of a side and gives them to a character view; false if the domain failed
     private boolean loadStats(SelectArcadeCharacterView view, String side) {
-        String[] names = {"SPEED", "JUMP", "KICK", "SURVIVAL"}; // same order as the bars
+        String[] names = {StatType.SPEED.getName(), StatType.JUMP.getName(), StatType.KICK.getName(), StatType.SURVIVAL.getName()}; // same order as the bars
         int[] values = new int[names.length];
         try {
             for (int i = 0; i < names.length; i++) {
@@ -423,15 +438,15 @@ public class DOPOSoccerGUI extends JFrame {
     // Locked character or ball: the domain buys it for that player with its points
     private void prepareLockedController() {
         selectArcadeCharacterView.setLockedListener(e -> {
-            buyCharacter("LEFT", e.getActionCommand());
-            loadCharacterAvailability(selectArcadeCharacterView, "LEFT");
+            buyCharacter(Side.LEFT.getName(), e.getActionCommand());
+            loadCharacterAvailability(selectArcadeCharacterView, Side.LEFT.getName());
         });
         selectArcadeRivalView.setLockedListener(e -> {
-            buyCharacter("RIGHT", e.getActionCommand());
-            loadCharacterAvailability(selectArcadeRivalView, "RIGHT");
+            buyCharacter(Side.RIGHT.getName(), e.getActionCommand());
+            loadCharacterAvailability(selectArcadeRivalView, Side.RIGHT.getName());
         });
         selectArcadeBallView.setLockedListener(e -> {
-            buyBall("LEFT", e.getActionCommand());
+            buyBall(Side.LEFT.getName(), e.getActionCommand());
             loadBallAvailability(selectArcadeBallView);
         });
     }
@@ -488,11 +503,11 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareStoreController() {
         storeView.backBtn.addActionListener(e -> showView(mainMenuView, "Inicio"));
         storeView.buyCharacterBtn.addActionListener(e -> {
-            buyCharacter("LEFT", storeView.getSelectedCharacter());
+            buyCharacter(Side.LEFT.getName(), storeView.getSelectedCharacter());
             loadStore();
         });
         storeView.buyBallBtn.addActionListener(e -> {
-            buyBall("LEFT", storeView.getSelectedBall());
+            buyBall(Side.LEFT.getName(), storeView.getSelectedBall());
             loadStore();
         });
         for (int s = 0; s < SIDES.length; s++) {
@@ -508,7 +523,7 @@ public class DOPOSoccerGUI extends JFrame {
 
     // Asks the domain for everything the store shows
     private void loadStore() {
-        storeView.setPoints(getPointsOrNone("LEFT"));
+        storeView.setPoints(getPointsOrNone(Side.LEFT.getName()));
 
         // Characters of player 1
         String[] characters = storeView.getCharacterNames();
@@ -518,7 +533,7 @@ public class DOPOSoccerGUI extends JFrame {
             String country = toDomainCountry(characters[i]);
             try {
                 characterPrices[i] = game.getCharacterPrice(country);
-                characterUnlocked[i] = game.isCharacterUnlocked("LEFT", country);
+                characterUnlocked[i] = game.isCharacterUnlocked(Side.LEFT.getName(), country);
             } catch (DOPOSoccerException ex) {
                 characterUnlocked[i] = false;
             }
@@ -537,7 +552,7 @@ public class DOPOSoccerGUI extends JFrame {
                 continue;
             }
             try {
-                ballUnlocked[i] = game.isBallUnlocked("LEFT", ball);
+                ballUnlocked[i] = game.isBallUnlocked(Side.LEFT.getName(), ball);
             } catch (DOPOSoccerException ex) {
                 ballUnlocked[i] = ballPrices[i] == 0; // if the domain fails: only the free balls
             }
@@ -580,18 +595,18 @@ public class DOPOSoccerGUI extends JFrame {
     private void prepareTournamentBallController() {
         tournamentBallView.backBtn.addActionListener(e -> showView(newTournamentView, "Nuevo Torneo"));
         tournamentBallView.setLockedListener(e -> {
-            buyBall("LEFT", e.getActionCommand());
+            buyBall(Side.LEFT.getName(), e.getActionCommand());
             loadBallAvailability(tournamentBallView);
         });
         tournamentBallView.continueBtn.addActionListener(e -> {
             try {
                 String team = toDomainCountry(selectArcadeCharacterView.getSelectedCharacter());
                 boolean byTime = newTournamentView.isByTime();
-                game.selectBall("LEFT", toDomainBall(tournamentBallView.getSelectedBall()));
+                game.selectBall(Side.LEFT.getName(), toDomainBall(tournamentBallView.getSelectedBall()));
                 game.selectStadium(selectStadiumView.getSelectedStadium());
-                game.newGame("PVM", toDomainProfile("EXPERTA"),
-                    toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), "TOURNAMENT",
-                    team, team, byTime ? "TIME" : "GOALS",
+                game.newGame(Modality.PVM.getName(), toDomainProfile(SelectArcadeModeView.EXPERT_PROFILE),
+                    toDomainResolution(selectArcadeResolutionView.getSelectedResolution()), ModeType.TOURNAMENT.getName(),
+                    team, team, byTime ? MatchKind.TIME.getName() : MatchKind.GOALS.getName(),
                     byTime ? newTournamentView.getMinutes() : newTournamentView.getGoalTarget());
 
                 tournamentTypeText = byTime
@@ -623,7 +638,7 @@ public class DOPOSoccerGUI extends JFrame {
                 game.getTournamentTeams(),
                 game.getTournamentSemifinalists(),
                 game.getTournamentFinalists(),
-                game.getCharacter("LEFT")
+                game.getCharacter(Side.LEFT.getName())
             );
             tournamentBracketView.setMatchType(tournamentTypeText);
             tournamentBracketView.setPrize(game.getTournamentPrize());
@@ -640,11 +655,11 @@ public class DOPOSoccerGUI extends JFrame {
             tournamentRoundView.setRound(
                 game.getTournamentRounds(),
                 game.getRound() - 1,
-                game.getCharacter("LEFT"),
+                game.getCharacter(Side.LEFT.getName()),
                 game.getTournamentRival(),
                 tournamentTypeText
             );
-            tournamentRoundView.setPoints(game.getPoints("LEFT"));
+            tournamentRoundView.setPoints(game.getPoints(Side.LEFT.getName()));
             tournamentRoundView.setPrize(game.getTournamentPrize());
             showView(tournamentRoundView, "Ronda del Torneo");
         } catch (DOPOSoccerException ex) {
@@ -657,11 +672,11 @@ public class DOPOSoccerGUI extends JFrame {
         try {
             matchView = tournamentMatchView;
             matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium()));
-            String me = game.getCharacter("LEFT");
-            String rival = game.getCharacter("RIGHT");
-            matchView.setPlayer1("JUGADOR 1", me.toUpperCase(), game.getPowerName("LEFT").toUpperCase(),
+            String me = game.getCharacter(Side.LEFT.getName());
+            String rival = game.getCharacter(Side.RIGHT.getName());
+            matchView.setPlayer1(PLAYER1_NAME, me.toUpperCase(), game.getPowerName(Side.LEFT.getName()).toUpperCase(),
                 selectArcadeCharacterView.getCodeOf(me));
-            matchView.setPlayer2("IA", "IA", rival.toUpperCase(), game.getPowerName("RIGHT").toUpperCase(),
+            matchView.setPlayer2(MACHINE_TAG, MACHINE_TAG, rival.toUpperCase(), game.getPowerName(Side.RIGHT.getName()).toUpperCase(),
                 selectArcadeCharacterView.getCodeOf(rival));
             matchView.setSuddenDeath(false);
 
@@ -788,41 +803,41 @@ public class DOPOSoccerGUI extends JFrame {
         String j2Country
     ) {
         try {
-            String modality = selectArcadeModeView.isVsMachine() ? "PVM" : "PVP";
+            String modality = selectArcadeModeView.isVsMachine() ? Modality.PVM.getName() : Modality.PVP.getName();
             String matchType = selectArcadeMatchTypeView.isByTime()
-                ? "TIME"
-                : selectArcadeMatchTypeView.isByGoals() ? "GOALS" : "SURVIVAL";
+                ? MatchKind.TIME.getName()
+                : selectArcadeMatchTypeView.isByGoals() ? MatchKind.GOALS.getName() : MatchKind.SURVIVAL.getName();
             int amount = selectArcadeMatchTypeView.isByTime()
                 ? selectArcadeMatchTypeView.getMinutes()
                 : selectArcadeMatchTypeView.getGoalTarget();
 
             // The ball and the stadium chosen (before newGame: the match is created with them)
-            game.selectBall("LEFT", toDomainBall(selectArcadeBallView.getSelectedBall()));
+            game.selectBall(Side.LEFT.getName(), toDomainBall(selectArcadeBallView.getSelectedBall()));
             game.selectStadium(selectStadiumView.getSelectedStadium());
-            game.newGame(modality, AIProfile, resolution, "ARCADE", j1Country, j2Country, matchType, amount);
+            game.newGame(modality, AIProfile, resolution, ModeType.ARCADE.getName(), j1Country, j2Country, matchType, amount);
 
             // Only if the domain accepted it: the view of the match type, with the players data of the domain
-            boolean survival = "SURVIVAL".equals(game.getMatchType());
+            boolean survival = MatchKind.SURVIVAL.getName().equals(game.getMatchType());
             matchView = survival ? survivalMatchView : arcadeMatchView;
             // The stadium of the match (domain) is the background
             matchView.setBackgroundImage(SelectStadiumView.imageOf(game.getStadium()));
-            boolean vsMachine = "PVM".equals(game.getModality());
+            boolean vsMachine = Modality.PVM.getName().equals(game.getModality());
             matchView.setPlayer1(
-                "JUGADOR 1",
-                game.getCharacter("LEFT").toUpperCase(),
-                game.getPowerName("LEFT").toUpperCase(),
+                PLAYER1_NAME,
+                game.getCharacter(Side.LEFT.getName()).toUpperCase(),
+                game.getPowerName(Side.LEFT.getName()).toUpperCase(),
                 selectArcadeCharacterView.getSelectedCode()
             );
             matchView.setPlayer2(
-                vsMachine ? "IA" : "J2",
-                vsMachine ? "IA" : "JUGADOR 2",
-                game.getCharacter("RIGHT").toUpperCase(),
-                game.getPowerName("RIGHT").toUpperCase(),
+                vsMachine ? MACHINE_TAG : PLAYER2_TAG,
+                vsMachine ? MACHINE_TAG : PLAYER2_NAME,
+                game.getCharacter(Side.RIGHT.getName()).toUpperCase(),
+                game.getPowerName(Side.RIGHT.getName()).toUpperCase(),
                 selectArcadeRivalView.getSelectedCode()
             );
             matchView.setSuddenDeath(false);
             if (survival) {
-                maxBalls = game.getBalls("LEFT"); // the balls at the start of the series
+                maxBalls = game.getBalls(Side.LEFT.getName()); // the balls at the start of the series
             }
 
             showView(matchView, survival ? "Supervivencia" : "Partido (Arcade)");
@@ -866,7 +881,7 @@ public class DOPOSoccerGUI extends JFrame {
                 continue;
             }
             try {
-                unlocked[i] = game.isBallUnlocked("LEFT", ball);
+                unlocked[i] = game.isBallUnlocked(Side.LEFT.getName(), ball);
             } catch (DOPOSoccerException ex) {
                 unlocked[i] = prices[i] == 0; // if the domain fails: only the free balls
             }
@@ -897,9 +912,9 @@ public class DOPOSoccerGUI extends JFrame {
 
     // 960x540 -> "SMALL", 1280x720 -> "MEDIUM", 1600x900 -> "LARGE"
     private String toDomainResolution(Dimension resolution) {
-        if (resolution.equals(SelectArcadeResolutionView.SMALL)) return "SMALL";
-        if (resolution.equals(SelectArcadeResolutionView.MEDIUM)) return "MEDIUM";
-        return "LARGE";
+        if (resolution.equals(SelectArcadeResolutionView.SMALL)) return Resolution.SMALL.getName();
+        if (resolution.equals(SelectArcadeResolutionView.MEDIUM)) return Resolution.MEDIUM.getName();
+        return Resolution.LARGE.getName();
     }
 
     // Game loop: every 16 ms (~60 times per second) the domain advances and the match view is refreshed
@@ -909,11 +924,9 @@ public class DOPOSoccerGUI extends JFrame {
         game.update((now - lastTime) / 1_000_000_000.0);
         try {
             for (String event : game.pollEvents()) {
-                switch (event) {
-                    case "KICK": sounds.play("kick"); break;
-                    case "POST": sounds.play("post"); break;
-                    case "GOAL": sounds.play("goal"); break;
-                }
+                if (MatchEvent.KICK.getName().equals(event)) sounds.play("kick");
+                else if (MatchEvent.POST.getName().equals(event)) sounds.play("post");
+                else if (MatchEvent.GOAL.getName().equals(event)) sounds.play("goal");
             }
         } catch (DOPOSoccerException ex) {
             // no match: no sounds
@@ -925,11 +938,11 @@ public class DOPOSoccerGUI extends JFrame {
     private void refreshMatchView() {
         try {
             // Players HUD (both match types)
-            matchView.setPlayer1Hp(game.getLife("LEFT") / (double) game.getMaxLife("LEFT"));
-            matchView.setPlayer2Hp(game.getLife("RIGHT") / (double) game.getMaxLife("RIGHT"));
-            matchView.setPlayer1Power(game.getPowerCharge("LEFT"));
-            matchView.setPlayer2Power(game.getPowerCharge("RIGHT"));
-            matchView.setAura(game.hasAura("LEFT"), game.hasAura("RIGHT"));
+            matchView.setPlayer1Hp(game.getLife(Side.LEFT.getName()) / (double) game.getMaxLife(Side.LEFT.getName()));
+            matchView.setPlayer2Hp(game.getLife(Side.RIGHT.getName()) / (double) game.getMaxLife(Side.RIGHT.getName()));
+            matchView.setPlayer1Power(game.getPowerCharge(Side.LEFT.getName()));
+            matchView.setPlayer2Power(game.getPowerCharge(Side.RIGHT.getName()));
+            matchView.setAura(game.hasAura(Side.LEFT.getName()), game.hasAura(Side.RIGHT.getName()));
 
             if (matchView == survivalMatchView) {
                 refreshSurvival();
@@ -947,7 +960,7 @@ public class DOPOSoccerGUI extends JFrame {
 
     // Arcade: score, time (or sudden death) and, at the end, the result card
     private void refreshArcade() throws DOPOSoccerException {
-        arcadeMatchView.setScore(game.getGoals("LEFT"), game.getGoals("RIGHT"));
+        arcadeMatchView.setScore(game.getGoals(Side.LEFT.getName()), game.getGoals(Side.RIGHT.getName()));
 
         boolean suddenDeath = game.isSuddenDeath();
         arcadeMatchView.setSuddenDeath(suddenDeath);
@@ -964,13 +977,13 @@ public class DOPOSoccerGUI extends JFrame {
             gameLoop.stop();
             saveProgress(); // the points of the match
             String winner = game.getWinner(); // "LEFT", "RIGHT" or null
-            boolean vsMachine = "PVM".equals(game.getModality());
+            boolean vsMachine = Modality.PVM.getName().equals(game.getModality());
             String title;
             Color color;
             if (winner == null) {
                 title = "PARTIDO TERMINADO";
                 color = WHITE;
-            } else if ("LEFT".equals(winner)) {
+            } else if (Side.LEFT.getName().equals(winner)) {
                 title = vsMachine ? "¡VICTORIA!" : "¡GANA J1!";
                 color = YELLOW;
             } else {
@@ -978,10 +991,10 @@ public class DOPOSoccerGUI extends JFrame {
                 color = vsMachine ? RED : YELLOW;
             }
             // Against the AI the points of player 1; between 2 players the points of the winner
-            String pointsSide = vsMachine || winner == null ? "LEFT" : winner;
+            String pointsSide = vsMachine || winner == null ? Side.LEFT.getName() : winner;
             arcadeMatchView.showResult(
                 title, color,
-                game.getGoals("LEFT"), game.getGoals("RIGHT"),
+                game.getGoals(Side.LEFT.getName()), game.getGoals(Side.RIGHT.getName()),
                 winner == null ? null : game.getCharacter(winner),
                 toMatchTypeText(game.getMatchType()),
                 game.getPointsEarned(pointsSide)
@@ -993,7 +1006,7 @@ public class DOPOSoccerGUI extends JFrame {
     // Tournament: score and time like Arcade. When the match ends: the result card if the tournament
     // is over (champion or eliminated), or the next round in the bracket if the player won
     private void refreshTournament() throws DOPOSoccerException {
-        tournamentMatchView.setScore(game.getGoals("LEFT"), game.getGoals("RIGHT"));
+        tournamentMatchView.setScore(game.getGoals(Side.LEFT.getName()), game.getGoals(Side.RIGHT.getName()));
 
         boolean suddenDeath = game.isSuddenDeath();
         tournamentMatchView.setSuddenDeath(suddenDeath);
@@ -1011,14 +1024,14 @@ public class DOPOSoccerGUI extends JFrame {
         }
         gameLoop.stop();
         saveProgress(); // the points of the match (and the prize, if it was the final)
-        String me = game.getCharacter("LEFT");
-        String rival = game.getCharacter("RIGHT");
-        int goals = game.getGoals("LEFT");
-        int rivalGoals = game.getGoals("RIGHT");
+        String me = game.getCharacter(Side.LEFT.getName());
+        String rival = game.getCharacter(Side.RIGHT.getName());
+        int goals = game.getGoals(Side.LEFT.getName());
+        int rivalGoals = game.getGoals(Side.RIGHT.getName());
 
         if (game.isModeOver()) {
             if (game.isTournamentChampion()) {
-                tournamentMatchView.showChampion(me, rival, goals, rivalGoals, game.getPointsEarned("LEFT"));
+                tournamentMatchView.showChampion(me, rival, goals, rivalGoals, game.getPointsEarned(Side.LEFT.getName()));
             } else {
                 tournamentMatchView.showEliminated(me, rival, goals, rivalGoals,
                     game.getTournamentRound(), game.getTournamentWins());
@@ -1035,15 +1048,15 @@ public class DOPOSoccerGUI extends JFrame {
     // Survival: balls left and match number; a finished match goes to the next one, until the series ends
     private void refreshSurvival() throws DOPOSoccerException {
         survivalMatchView.setRound(game.getRound());
-        survivalMatchView.setBalls(game.getBalls("LEFT"), game.getBalls("RIGHT"), maxBalls,
+        survivalMatchView.setBalls(game.getBalls(Side.LEFT.getName()), game.getBalls(Side.RIGHT.getName()), maxBalls,
             survivalMatchView.getBallImage(game.getBallName()));
 
         if (game.isModeOver()) {
             gameLoop.stop();
             saveProgress(); // the points of the last match of the series
             int round = game.getRound();
-            int wins = "LEFT".equals(game.getWinner()) ? round : round - 1; // the last match was lost (or won)
-            survivalMatchView.showSeriesResult(round, wins, game.getCharacter("LEFT"), game.getPointsEarned("LEFT"));
+            int wins = Side.LEFT.getName().equals(game.getWinner()) ? round : round - 1; // the last match was lost (or won)
+            survivalMatchView.showSeriesResult(round, wins, game.getCharacter(Side.LEFT.getName()), game.getPointsEarned(Side.LEFT.getName()));
             showResultCard();
         } else if (game.isMatchOver()) {
             saveProgress(); // the points of this match, before the next one starts
@@ -1059,11 +1072,9 @@ public class DOPOSoccerGUI extends JFrame {
 
     // "TIME" (domain) -> "POR TIEMPO", "GOALS" -> "POR GOLES"
     private String toMatchTypeText(String matchType) {
-        switch (matchType) {
-            case "TIME": return "POR TIEMPO";
-            case "GOALS": return "POR GOLES";
-            default: return "SUPERVIVENCIA";
-        }
+        if (MatchKind.TIME.getName().equals(matchType)) return "POR TIEMPO";
+        if (MatchKind.GOALS.getName().equals(matchType)) return "POR GOLES";
+        return "SUPERVIVENCIA";
     }
 
     // Keys of the match: they only tell the domain which action is pressed or released
@@ -1106,17 +1117,17 @@ public class DOPOSoccerGUI extends JFrame {
     // J1: A left, D right, W jump, S kick, Q power / J2: arrows (left, right, up jump, down kick), right Ctrl power
     private String[] toAction(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_A:     return new String[]{"LEFT", "MOVE_LEFT"};
-            case KeyEvent.VK_D:     return new String[]{"LEFT", "MOVE_RIGHT"};
-            case KeyEvent.VK_W:     return new String[]{"LEFT", "JUMP"};
-            case KeyEvent.VK_S:     return new String[]{"LEFT", "KICK"};
-            case KeyEvent.VK_Q:     return new String[]{"LEFT", "POWER"};
-            case KeyEvent.VK_LEFT:  return new String[]{"RIGHT", "MOVE_LEFT"};
-            case KeyEvent.VK_RIGHT: return new String[]{"RIGHT", "MOVE_RIGHT"};
-            case KeyEvent.VK_UP:    return new String[]{"RIGHT", "JUMP"};
-            case KeyEvent.VK_DOWN:  return new String[]{"RIGHT", "KICK"};
+            case KeyEvent.VK_A:     return new String[]{Side.LEFT.getName(), Action.MOVE_LEFT.getName()};
+            case KeyEvent.VK_D:     return new String[]{Side.LEFT.getName(), Action.MOVE_RIGHT.getName()};
+            case KeyEvent.VK_W:     return new String[]{Side.LEFT.getName(), Action.JUMP.getName()};
+            case KeyEvent.VK_S:     return new String[]{Side.LEFT.getName(), Action.KICK.getName()};
+            case KeyEvent.VK_Q:     return new String[]{Side.LEFT.getName(), Action.POWER.getName()};
+            case KeyEvent.VK_LEFT:  return new String[]{Side.RIGHT.getName(), Action.MOVE_LEFT.getName()};
+            case KeyEvent.VK_RIGHT: return new String[]{Side.RIGHT.getName(), Action.MOVE_RIGHT.getName()};
+            case KeyEvent.VK_UP:    return new String[]{Side.RIGHT.getName(), Action.JUMP.getName()};
+            case KeyEvent.VK_DOWN:  return new String[]{Side.RIGHT.getName(), Action.KICK.getName()};
             case KeyEvent.VK_CONTROL:
-                if (e.getKeyLocation() == KeyEvent.KEY_LOCATION_RIGHT) return new String[]{"RIGHT", "POWER"};
+                if (e.getKeyLocation() == KeyEvent.KEY_LOCATION_RIGHT) return new String[]{Side.RIGHT.getName(), Action.POWER.getName()};
         }
         return null;
     }

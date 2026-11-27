@@ -1,5 +1,7 @@
 package domain;
 
+import domain.enums.MatchEvent;
+import domain.enums.Side;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +65,8 @@ public class Match implements Serializable {
         this.stadium = new Stadium(resolution, stadiumName);
         this.ball = new Ball(0, 0, BALL_RADIUS, skin);
         this.fakeBalls = new ArrayList<>();
-        this.leftPlayer = new Player("LEFT", leftCharacter, leftStats, leftController, 0, 0);
-        this.rightPlayer = new Player("RIGHT", rightCharacter, rightStats, rightController, 0, 0);
+        this.leftPlayer = new Player(Side.LEFT.getName(), leftCharacter, leftStats, leftController, 0, 0);
+        this.rightPlayer = new Player(Side.RIGHT.getName(), rightCharacter, rightStats, rightController, 0, 0);
         this.scoreBoard = new ScoreBoard();
         this.physics = new PhysicsEngine(stadium);
         this.type = type;
@@ -200,10 +202,10 @@ public class Match implements Serializable {
      * @return its player, or null for an unknown side
      */
     public Player getPlayer(String side) {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return leftPlayer;
         }
-        return "RIGHT".equals(side) ? rightPlayer : null;
+        return Side.RIGHT.getName().equals(side) ? rightPlayer : null;
     }
 
     /**
@@ -266,11 +268,11 @@ public class Match implements Serializable {
      * received it, tells the rule and kicks off again.
      */
     private void checkGoals() {
-        for (String defender : new String[]{"LEFT", "RIGHT"}) {
+        for (String defender : new String[]{Side.LEFT.getName(), Side.RIGHT.getName()}) {
             if (stadium.isInGoal(defender, ball)) {
-                String scorer = "LEFT".equals(defender) ? "RIGHT" : "LEFT";
+                String scorer = Side.LEFT.getName().equals(defender) ? Side.RIGHT.getName() : Side.LEFT.getName();
                 scoreBoard.addGoal(scorer);
-                addEvent("GOAL");
+                addEvent(MatchEvent.GOAL.getName());
                 getPlayer(defender).onGoalAgainst();
                 type.onGoal(scorer, this);
                 fakeBalls.clear();

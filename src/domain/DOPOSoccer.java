@@ -1,5 +1,12 @@
 package domain;
 
+import domain.enums.AIProfile;
+import domain.enums.MatchKind;
+import domain.enums.Modality;
+import domain.enums.ModeType;
+import domain.enums.Resolution;
+import domain.enums.Side;
+import domain.enums.Team;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -91,14 +98,14 @@ public class DOPOSoccer implements Serializable {
     public DOPOSoccer(File progressFile) {
         this.progressFile = progressFile;
         characters = new LinkedHashMap<>();
-        characters.put("Corea del Sur", new GameCharacter("Corea del Sur", new BlueAuraShot()));
-        characters.put("Camerún", new GameCharacter("Camerún", new LightningShot()));
-        characters.put("Nigeria", new GameCharacter("Nigeria", new TornadoShot()));
-        characters.put("Estados Unidos", new GameCharacter("Estados Unidos", new IllusionShot()));
-        characters.put("Colombia", new GameCharacter("Colombia", new IllusionShot()));
-        characters.put("Argentina", new GameCharacter("Argentina", new LightningShot()));
-        characters.put("España", new GameCharacter("España", new BlueAuraShot(), 800));
-        characters.put("Japón", new GameCharacter("Japón", new TornadoShot(), 1200));
+        characters.put(Team.COREA_DEL_SUR.getName(), new GameCharacter(Team.COREA_DEL_SUR.getName(), new BlueAuraShot()));
+        characters.put(Team.CAMERUN.getName(), new GameCharacter(Team.CAMERUN.getName(), new LightningShot()));
+        characters.put(Team.NIGERIA.getName(), new GameCharacter(Team.NIGERIA.getName(), new TornadoShot()));
+        characters.put(Team.ESTADOS_UNIDOS.getName(), new GameCharacter(Team.ESTADOS_UNIDOS.getName(), new IllusionShot()));
+        characters.put(Team.COLOMBIA.getName(), new GameCharacter(Team.COLOMBIA.getName(), new IllusionShot()));
+        characters.put(Team.ARGENTINA.getName(), new GameCharacter(Team.ARGENTINA.getName(), new LightningShot()));
+        characters.put(Team.ESPANA.getName(), new GameCharacter(Team.ESPANA.getName(), new BlueAuraShot(), 800));
+        characters.put(Team.JAPON.getName(), new GameCharacter(Team.JAPON.getName(), new TornadoShot(), 1200));
         balls = new LinkedHashMap<>();
         balls.put("Clásico", new BallSkin("Clásico", 0));
         balls.put("Tricolor", new BallSkin("Tricolor", 0));
@@ -134,15 +141,15 @@ public class DOPOSoccer implements Serializable {
     public void newGame(String modality, String aiProfile, String resolution, String modeName,
                         String leftCharacter, String rightCharacter, String matchType, int amount)
             throws DOPOSoccerException {
-        boolean vsMachine = "PVM".equals(modality);
-        if (!vsMachine && !"PVP".equals(modality)) {
+        boolean vsMachine = Modality.PVM.getName().equals(modality);
+        if (!vsMachine && !Modality.PVP.getName().equals(modality)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODALITY);
         }
-        boolean isTournament = "TOURNAMENT".equals(modeName);
-        if (!isTournament && !"ARCADE".equals(modeName)) {
+        boolean isTournament = ModeType.TOURNAMENT.getName().equals(modeName);
+        if (!isTournament && !ModeType.ARCADE.getName().equals(modeName)) {
             throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MODE);
         }
-        if (isTournament && "SURVIVAL".equals(matchType)) {
+        if (isTournament && MatchKind.SURVIVAL.getName().equals(matchType)) {
             throw new DOPOSoccerException(DOPOSoccerException.INVALID_TOURNAMENT_TYPE);
         }
 
@@ -155,7 +162,7 @@ public class DOPOSoccer implements Serializable {
             throw new DOPOSoccerException(DOPOSoccerException.CHARACTER_LOCKED);
         }
 
-        if ("SURVIVAL".equals(matchType) && !vsMachine) {
+        if (MatchKind.SURVIVAL.getName().equals(matchType) && !vsMachine) {
             throw new DOPOSoccerException(DOPOSoccerException.SURVIVAL_ONLY_PVM);
         }
         MatchType type = createType(matchType, amount);
@@ -169,7 +176,7 @@ public class DOPOSoccer implements Serializable {
             newTournament = new TournamentMode(left, profiles[0].getStats(), new HumanController(),
                     new Stats(), createAI(aiProfile), type, resolution, ball, others, new Random());
             newMode = newTournament;
-            this.modality = "PVM";
+            this.modality = Modality.PVM.getName();
         } else {
             PlayerController rival = vsMachine ? createAI(aiProfile) : new HumanController();
             Stats rivalStats = vsMachine ? new Stats() : profiles[1].getStats();
@@ -702,7 +709,7 @@ public class DOPOSoccer implements Serializable {
      * @return "SMALL", "MEDIUM" and "LARGE"
      */
     public List<String> getResolutions() {
-        return List.of("SMALL", "MEDIUM", "LARGE");
+        return List.of(Resolution.SMALL.getName(), Resolution.MEDIUM.getName(), Resolution.LARGE.getName());
     }
 
     /**
@@ -711,7 +718,7 @@ public class DOPOSoccer implements Serializable {
      * @return "CLUMSY", "OFFENSIVE", "DEFENSIVE" and "EXPERT"
      */
     public List<String> getAIProfiles() {
-        return List.of("CLUMSY", "OFFENSIVE", "DEFENSIVE", "EXPERT");
+        return List.of(AIProfile.CLUMSY.getName(), AIProfile.OFFENSIVE.getName(), AIProfile.DEFENSIVE.getName(), AIProfile.EXPERT.getName());
     }
 
     // survival and tournament
@@ -1131,7 +1138,7 @@ public class DOPOSoccer implements Serializable {
     /**
      * Gives 100 points to the winner and 25 to the loser and keeps them in their profiles, to spend
      * them in the store. Against the machine only player 1 gets points. The champion of a tournament also
-     * wins the prize. They last while the game is open.
+     * wins the prize. They are kept in the progress file when the interface calls {@link #saveProgress()}.
      */
     private void givePoints() {
         pointsGiven = true;
@@ -1139,11 +1146,11 @@ public class DOPOSoccer implements Serializable {
         if (winner == null) {
             return;
         }
-        int w = "LEFT".equals(winner) ? 0 : 1;
+        int w = Side.LEFT.getName().equals(winner) ? 0 : 1;
         lastPoints[w] = WIN_POINTS;
         lastPoints[1 - w] = LOSE_POINTS;
         profiles[0].addPoints(lastPoints[0]);
-        if ("PVP".equals(modality)) {
+        if (Modality.PVP.getName().equals(modality)) {
             profiles[1].addPoints(lastPoints[1]); // the machine has no wallet
         }
         if (tournament != null) {
@@ -1161,16 +1168,16 @@ public class DOPOSoccer implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_AI_PROFILE
      */
     private static PlayerController createAI(String profile) throws DOPOSoccerException {
-        if ("CLUMSY".equals(profile)) {
+        if (AIProfile.CLUMSY.getName().equals(profile)) {
             return new ClumsyAI();
         }
-        if ("OFFENSIVE".equals(profile)) {
+        if (AIProfile.OFFENSIVE.getName().equals(profile)) {
             return new OffensiveAI();
         }
-        if ("DEFENSIVE".equals(profile)) {
+        if (AIProfile.DEFENSIVE.getName().equals(profile)) {
             return new DefensiveAI();
         }
-        if ("EXPERT".equals(profile)) {
+        if (AIProfile.EXPERT.getName().equals(profile)) {
             return new ExpertAI();
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_AI_PROFILE);
@@ -1185,13 +1192,13 @@ public class DOPOSoccer implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_MATCH_TYPE, INVALID_MINUTES or INVALID_GOAL_TARGET
      */
     private static MatchType createType(String matchType, int amount) throws DOPOSoccerException {
-        if ("TIME".equals(matchType)) {
+        if (MatchKind.TIME.getName().equals(matchType)) {
             return new TimeMatch(amount);
         }
-        if ("GOALS".equals(matchType)) {
+        if (MatchKind.GOALS.getName().equals(matchType)) {
             return new GoalsMatch(amount);
         }
-        if ("SURVIVAL".equals(matchType)) {
+        if (MatchKind.SURVIVAL.getName().equals(matchType)) {
             return new SurvivalMatch(); // 3 balls for each player
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_MATCH_TYPE);
@@ -1260,10 +1267,10 @@ public class DOPOSoccer implements Serializable {
      * @throws DOPOSoccerException UNKNOWN_SIDE
      */
     private static int index(String side) throws DOPOSoccerException {
-        if ("LEFT".equals(side)) {
+        if (Side.LEFT.getName().equals(side)) {
             return 0;
         }
-        if ("RIGHT".equals(side)) {
+        if (Side.RIGHT.getName().equals(side)) {
             return 1;
         }
         throw new DOPOSoccerException(DOPOSoccerException.UNKNOWN_SIDE);

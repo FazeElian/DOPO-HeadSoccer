@@ -219,7 +219,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getGravityScale()" class="member-name-link">getGravityScale</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">A straight power shot flies without gravity; otherwise the ball falls normally.</div>
+<div class="block">A straight power shot flies without gravity; otherwise the ball falls with 70 % of the gravity.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRadius()" class="member-name-link">getRadius</a>()</code></div>
@@ -480,12 +480,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getGravityScale()">
 <h3>getGravityScale</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getGravityScale</span>()</div>
-<div class="block">A straight power shot flies without gravity; otherwise the ball falls normally.</div>
+<div class="block">A straight power shot flies without gravity; otherwise the ball falls with 70 % of the gravity.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
 <dd><code><a href="Entity.html#getGravityScale()">getGravityScale</a></code>&nbsp;in class&nbsp;<code><a href="Entity.html" title="class in domain">Entity</a></code></dd>
 <dt>Returns:</dt>
-<dd>0 during a straight power shot, 1 otherwise</dd>
+<dd>0 during a straight power shot, 0.7 otherwise</dd>
 </dl>
 </section>
 </li>

@@ -1,5 +1,8 @@
 package domain;
 
+import domain.enums.AIProfile;
+import domain.enums.Action;
+import domain.enums.Side;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,10 +36,10 @@ public class ExpertAI extends AIController {
         if (isBallInOwnHalf(self, match) || isCloserToBall(self, rival, ball)) {
             playBall(self, ball, actions);             // clears it or attacks
             if (isNearRivalGoal(self, match)) {
-                actions.add("KICK");                   // shoots as soon as it is in front of the goal
+                actions.add(Action.KICK.getName());                   // shoots as soon as it is in front of the goal
             }
         } else {
-            DefensiveAI.guard(self, match, actions);   // the rival has the ball: goes back to its goal
+            guard(self, match, actions);   // the rival has the ball: goes back to its goal
         }
         return actions;
     }
@@ -49,7 +52,7 @@ public class ExpertAI extends AIController {
      * @param ball  the ball
      * @return true if it is closer or at the same distance
      */
-    private static boolean isCloserToBall(Player self, Player rival, Ball ball) {
+    private boolean isCloserToBall(Player self, Player rival, Ball ball) {
         double ballX = ball.getX() + ball.getWidth() / 2;
         double mine = Math.abs(ballX - (self.getX() + self.getWidth() / 2));
         double theirs = Math.abs(ballX - (rival.getX() + rival.getWidth() / 2));
@@ -63,10 +66,10 @@ public class ExpertAI extends AIController {
      * @param match the match
      * @return true if it is in front of the rival goal
      */
-    private static boolean isNearRivalGoal(Player self, Match match) {
+    private boolean isNearRivalGoal(Player self, Match match) {
         double center = self.getX() + self.getWidth() / 2;
         double width = match.getFieldWidth();
-        return "LEFT".equals(self.getSide()) ? center > width * 0.75 : center < width * 0.25;
+        return Side.LEFT.getName().equals(self.getSide()) ? center > width * 0.75 : center < width * 0.25;
     }
 
     @Override
@@ -76,6 +79,6 @@ public class ExpertAI extends AIController {
 
     @Override
     public String getProfile() {
-        return "EXPERT";
+        return AIProfile.EXPERT.getName();
     }
 }
