@@ -1138,7 +1138,7 @@ public class DOPOSoccer implements Serializable {
     /**
      * Gives 100 points to the winner and 25 to the loser and keeps them in their profiles, to spend
      * them in the store. Against the machine only player 1 gets points. The champion of a tournament also
-     * wins the prize. They last while the game is open.
+     * wins the prize. They are kept in the progress file when the interface calls {@link #saveProgress()}.
      */
     private void givePoints() {
         pointsGiven = true;

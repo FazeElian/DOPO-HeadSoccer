@@ -154,7 +154,7 @@ loadScripts(document, 'script');</script>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
@@ -171,19 +171,12 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the name of the profile.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#guard(domain.Player,domain.Match,java.util.Set)" class="member-name-link">guard</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
- <a href="Match.html" title="class in domain">Match</a>&nbsp;match,
- <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Goes back to wait <a href="#GUARD_DISTANCE"><code>GUARD_DISTANCE</code></a> pixels in front of its own goal.</div>
-</div>
 </div>
 </div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-domain.AIController">Methods inherited from class&nbsp;domain.<a href="AIController.html" title="class in domain">AIController</a></h3>
-<code><a href="AIController.html#getReactionTime()">getReactionTime</a>, <a href="AIController.html#isBallInOwnHalf(domain.Player,domain.Match)">isBallInOwnHalf</a>, <a href="AIController.html#isBallNear(domain.Player,domain.Ball,double)">isBallNear</a>, <a href="AIController.html#moveTo(domain.Player,double,java.util.Set)">moveTo</a>, <a href="AIController.html#nextActions(domain.Player,domain.Match)">nextActions</a>, <a href="AIController.html#playBall(domain.Player,domain.Ball,java.util.Set)">playBall</a></code></div>
+<code><a href="AIController.html#getReactionTime()">getReactionTime</a>, <a href="AIController.html#guard(domain.Player,domain.Match,java.util.Set)">guard</a>, <a href="AIController.html#isBallInOwnHalf(domain.Player,domain.Match)">isBallInOwnHalf</a>, <a href="AIController.html#isBallNear(domain.Player,domain.Ball,double)">isBallNear</a>, <a href="AIController.html#moveTo(domain.Player,double,java.util.Set)">moveTo</a>, <a href="AIController.html#nextActions(domain.Player,domain.Match)">nextActions</a>, <a href="AIController.html#playBall(domain.Player,domain.Ball,java.util.Set)">playBall</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -254,22 +247,6 @@ loadScripts(document, 'script');</script>
 <dd><code>match</code> - the match</dd>
 <dt>Returns:</dt>
 <dd>actions to do</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="guard(domain.Player,domain.Match,java.util.Set)">
-<h3>guard</h3>
-<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">guard</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
- <a href="Match.html" title="class in domain">Match</a>&nbsp;match,
- <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</span></div>
-<div class="block">Goes back to wait <a href="#GUARD_DISTANCE"><code>GUARD_DISTANCE</code></a> pixels in front of its own goal.
- The expert uses it too when the rival has the ball.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>self</code> - the player</dd>
-<dd><code>match</code> - the match</dd>
-<dd><code>actions</code> - where the movement is added</dd>
 </dl>
 </section>
 </li>

@@ -51,15 +51,23 @@ loadScripts(document, 'script');</script>
 <h1 title="All Classes and Interfaces" class="title">All Classes and Interfaces</h1>
 </div>
 <div id="all-classes-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="all-classes-table-tab0" role="tab" aria-selected="true" aria-controls="all-classes-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="all-classes-table-tab1" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab1', 2)" class="table-tab">Interfaces</button><button id="all-classes-table-tab2" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab2', 2)" class="table-tab">Classes</button><button id="all-classes-table-tab5" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab5', 2)" class="table-tab">Exception Classes</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="all-classes-table-tab0" role="tab" aria-selected="true" aria-controls="all-classes-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="all-classes-table-tab1" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab1', 2)" class="table-tab">Interfaces</button><button id="all-classes-table-tab2" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab2', 2)" class="table-tab">Classes</button><button id="all-classes-table-tab3" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab3', 2)" class="table-tab">Enum Classes</button><button id="all-classes-table-tab5" role="tab" aria-selected="false" aria-controls="all-classes-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('all-classes-table', 'all-classes-table-tab5', 2)" class="table-tab">Exception Classes</button></div>
 <div id="all-classes-table.tabpanel" role="tabpanel">
 <div class="summary-table two-column-summary" aria-labelledby="all-classes-table-tab0">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/AIController.html" title="class in domain">AIController</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/Action.html" title="enum class in domain.enums">Action</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Action that a controller asks a player to do.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="domain/AIController.html" title="class in domain">AIController</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Controller of a player moved by the machine (Template Method): <a href="domain/AIController.html#nextActions(domain.Player,domain.Match)"><code>AIController.nextActions(domain.Player, domain.Match)</code></a> is the fixed
  part (it decides again only after its reaction time) and <a href="domain/AIController.html#decide(domain.Player,domain.Match)"><code>AIController.decide(domain.Player, domain.Match)</code></a> is what each profile does.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/AIProfile.html" title="enum class in domain.enums">AIProfile</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Profile of a player moved by the machine.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/match/ArcadeMatchView.html" title="class in presentation.views.match">ArcadeMatchView</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -104,7 +112,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab5"><a href="domain/DOPOSoccerException.html" title="class in domain">DOPOSoccerException</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab5">
 <div class="block">Error of the game: an invalid choice, an action that cannot be done at that moment,
- or an option that is still under construction.</div>
+ or a file that cannot be saved or opened.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/DOPOSoccerGUI.html" title="class in presentation">DOPOSoccerGUI</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
@@ -178,6 +186,14 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">A match between two players.</div>
 </div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/MatchEvent.html" title="enum class in domain.enums">MatchEvent</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Event of a match that the interface plays as a sound.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/MatchKind.html" title="enum class in domain.enums">MatchKind</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Kind of match: by time, by goals or survival.</div>
+</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/MatchType.html" title="class in domain">MatchType</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Rule that says when a match ends and who wins (Strategy pattern).</div>
@@ -189,6 +205,14 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/match/MatchView.StatBar.html" title="class in presentation.views.match">MatchView.StatBar</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Rounded bar: white track and a colored part for the value (0 = empty, 1 = full).</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/Modality.html" title="enum class in domain.enums">Modality</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Modality of a game: player vs player or player vs machine.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/ModeType.html" title="enum class in domain.enums">ModeType</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Game mode: one arcade match or a tournament.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/tournament/NewTournamentView.html" title="class in presentation.views.tournament">NewTournamentView</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -224,41 +248,49 @@ loadScripts(document, 'script');</script>
 <div class="block">Push, from Blue Aura (South Korea): the rival is thrown towards its own goal
  and cannot control itself for 1.5 seconds.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="domain/ScoreBoard.html" title="class in domain">ScoreBoard</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/Resolution.html" title="enum class in domain.enums">Resolution</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Resolution of the field.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/ScoreBoard.html" title="class in domain">ScoreBoard</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Goals of each side during a match.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeBallView.html" title="class in presentation.views.arcade">SelectArcadeBallView</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeBallView.html" title="class in presentation.views.arcade">SelectArcadeBallView</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Ball selection: the ball in use on the left, the balls grid on the right.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeBallView.BallInfo.html" title="class in presentation.views.arcade">SelectArcadeBallView.BallInfo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeCharacterView.html" title="class in presentation.views.arcade">SelectArcadeCharacterView</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeBallView.BallInfo.html" title="class in presentation.views.arcade">SelectArcadeBallView.BallInfo</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeCharacterView.html" title="class in presentation.views.arcade">SelectArcadeCharacterView</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Character selection.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeCharacterView.CharacterInfo.html" title="class in presentation.views.arcade">SelectArcadeCharacterView.CharacterInfo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeMatchTypeView.html" title="class in presentation.views.arcade">SelectArcadeMatchTypeView</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeCharacterView.CharacterInfo.html" title="class in presentation.views.arcade">SelectArcadeCharacterView.CharacterInfo</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeModeView.html" title="class in presentation.views.arcade">SelectArcadeModeView</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeMatchTypeView.html" title="class in presentation.views.arcade">SelectArcadeMatchTypeView</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeResolutionView.html" title="class in presentation.views.arcade">SelectArcadeResolutionView</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeModeView.html" title="class in presentation.views.arcade">SelectArcadeModeView</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/SelectModeView.html" title="class in presentation.views.home">SelectModeView</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectArcadeResolutionView.html" title="class in presentation.views.arcade">SelectArcadeResolutionView</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectStadiumView.html" title="class in presentation.views.arcade">SelectStadiumView</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/SelectModeView.html" title="class in presentation.views.home">SelectModeView</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/arcade/SelectStadiumView.html" title="class in presentation.views.arcade">SelectStadiumView</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">"ELIGE EL ESTADIO": the 9 stadiums in a grid of 3 columns, each one a selectable card with its picture.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="domain/Settings.html" title="class in domain">Settings</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/Settings.html" title="class in domain">Settings</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Settings of the game: volume of the music and of the sound effects, from 0 to 100.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/SettingsView.html" title="class in presentation.views.home">SettingsView</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/SettingsView.html" title="class in presentation.views.home">SettingsView</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">"AJUSTES": volume of the music and of the sound effects.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/Side.html" title="enum class in domain.enums">Side</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Side of the field of a player, a goal or a winner.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/SoundPlayer.html" title="class in presentation">SoundPlayer</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -272,22 +304,30 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Stats of a player, from 1 to 10.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/StoreView.html" title="class in presentation.views.home">StoreView</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/StatType.html" title="enum class in domain.enums">StatType</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Stat of a player that can be upgraded.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/home/StoreView.html" title="class in presentation.views.home">StoreView</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Store of the game, with three tabs: characters and balls (to buy) and upgrades (stats of each player).</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="domain/StunEffect.html" title="class in domain">StunEffect</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/StunEffect.html" title="class in domain">StunEffect</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Stunned: the life of the player reached 0 because of the rival's kicks or power shots.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/SurvivalMatch.html" title="class in domain">SurvivalMatch</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="domain/SurvivalMatch.html" title="class in domain">SurvivalMatch</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Survival: each player starts with 3 balls and loses one for each goal received;
  the match ends when a player has no balls left.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/match/SurvivalMatchView.html" title="class in presentation.views.match">SurvivalMatchView</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="presentation/views/match/SurvivalMatchView.html" title="class in presentation.views.match">SurvivalMatchView</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Survival match (player vs the AI): series of matches without a time limit.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="domain/enums/Team.html" title="enum class in domain.enums">Team</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">
+<div class="block">Team (country) of a character.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="domain/TimeMatch.html" title="class in domain">TimeMatch</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">

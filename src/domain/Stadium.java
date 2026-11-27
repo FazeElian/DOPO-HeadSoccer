@@ -90,7 +90,7 @@ public class Stadium implements Serializable {
      * Returns the goal that a side defends.
      *
      * @param side "LEFT" or "RIGHT"
-     * @return its goal, or null for an unknown side
+     * @return the left goal for "LEFT"; the right goal for any other side
      */
     public Goal getGoal(String side) {
         if (Side.LEFT.getName().equals(side)) {

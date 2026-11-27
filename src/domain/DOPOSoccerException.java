@@ -2,7 +2,7 @@ package domain;
 
 /**
  * Error of the game: an invalid choice, an action that cannot be done at that moment,
- * or an option that is still under construction.
+ * or a file that cannot be saved or opened.
  * Every message is a constant written in Spanish, so the interface can show it to the user as it is.
  *
  * @author Elian Ibarra

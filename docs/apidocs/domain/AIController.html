@@ -180,7 +180,7 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
@@ -202,37 +202,44 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the seconds between two decisions.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isBallInOwnHalf(domain.Player,domain.Match)" class="member-name-link">isBallInOwnHalf</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
- <a href="Match.html" title="class in domain">Match</a>&nbsp;match)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tells whether the ball is in the half of the player.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isBallNear(domain.Player,domain.Ball,double)" class="member-name-link">isBallNear</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
- <a href="Ball.html" title="class in domain">Ball</a>&nbsp;ball,
- double&nbsp;distance)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tells whether the ball is near the player.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#moveTo(domain.Player,double,java.util.Set)" class="member-name-link">moveTo</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
- double&nbsp;targetX,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#guard(domain.Player,domain.Match,java.util.Set)" class="member-name-link">guard</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+ <a href="Match.html" title="class in domain">Match</a>&nbsp;match,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Moves the player towards a point.</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Goes back to wait <a href="DefensiveAI.html#GUARD_DISTANCE"><code>DefensiveAI.GUARD_DISTANCE</code></a> pixels in front of its own goal.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextActions(domain.Player,domain.Match)" class="member-name-link">nextActions</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isBallInOwnHalf(domain.Player,domain.Match)" class="member-name-link">isBallInOwnHalf</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  <a href="Match.html" title="class in domain">Match</a>&nbsp;match)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Tells whether the ball is in the half of the player.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isBallNear(domain.Player,domain.Ball,double)" class="member-name-link">isBallNear</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+ <a href="Ball.html" title="class in domain">Ball</a>&nbsp;ball,
+ double&nbsp;distance)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Tells whether the ball is near the player.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#moveTo(domain.Player,double,java.util.Set)" class="member-name-link">moveTo</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+ double&nbsp;targetX,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Moves the player towards a point.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextActions(domain.Player,domain.Match)" class="member-name-link">nextActions</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+ <a href="Match.html" title="class in domain">Match</a>&nbsp;match)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the actions of this tick.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#playBall(domain.Player,domain.Ball,java.util.Set)" class="member-name-link">playBall</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#playBall(domain.Player,domain.Ball,java.util.Set)" class="member-name-link">playBall</a><wbr>(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  <a href="Ball.html" title="class in domain">Ball</a>&nbsp;ball,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Goes for the ball: gets behind it, kicks when near, jumps when it is above
  and turns on its power when the bar is full.</div>
 </div>
@@ -403,7 +410,7 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <li>
 <section class="detail" id="moveTo(domain.Player,double,java.util.Set)">
 <h3>moveTo</h3>
-<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">moveTo</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">moveTo</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  double&nbsp;targetX,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</span></div>
 <div class="block">Moves the player towards a point.</div>
@@ -418,7 +425,7 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <li>
 <section class="detail" id="playBall(domain.Player,domain.Ball,java.util.Set)">
 <h3>playBall</h3>
-<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">playBall</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">playBall</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  <a href="Ball.html" title="class in domain">Ball</a>&nbsp;ball,
  <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</span></div>
 <div class="block">Goes for the ball: gets behind it, kicks when near, jumps when it is above
@@ -434,7 +441,7 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <li>
 <section class="detail" id="isBallNear(domain.Player,domain.Ball,double)">
 <h3>isBallNear</h3>
-<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isBallNear</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isBallNear</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  <a href="Ball.html" title="class in domain">Ball</a>&nbsp;ball,
  double&nbsp;distance)</span></div>
 <div class="block">Tells whether the ball is near the player.</div>
@@ -451,7 +458,7 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <li>
 <section class="detail" id="isBallInOwnHalf(domain.Player,domain.Match)">
 <h3>isBallInOwnHalf</h3>
-<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isBallInOwnHalf</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isBallInOwnHalf</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
  <a href="Match.html" title="class in domain">Match</a>&nbsp;match)</span></div>
 <div class="block">Tells whether the ball is in the half of the player.</div>
 <dl class="notes">
@@ -460,6 +467,23 @@ implements <a href="PlayerController.html" title="interface in domain">PlayerCon
 <dd><code>match</code> - the match</dd>
 <dt>Returns:</dt>
 <dd>true if the ball is on its side of the field</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="guard(domain.Player,domain.Match,java.util.Set)">
+<h3>guard</h3>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">guard</span><wbr><span class="parameters">(<a href="Player.html" title="class in domain">Player</a>&nbsp;self,
+ <a href="Match.html" title="class in domain">Match</a>&nbsp;match,
+ <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;actions)</span></div>
+<div class="block">Goes back to wait <a href="DefensiveAI.html#GUARD_DISTANCE"><code>DefensiveAI.GUARD_DISTANCE</code></a> pixels in front of its own goal.
+ The defensive profile uses it when the ball is in the other half and the expert
+ when the rival has the ball.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>self</code> - the player</dd>
+<dd><code>match</code> - the match</dd>
+<dd><code>actions</code> - where the movement is added</dd>
 </dl>
 </section>
 </li>

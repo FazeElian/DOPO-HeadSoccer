@@ -89,9 +89,9 @@ public class TimeMatch extends MatchType {
     }
 
     /**
-     * Returns the chosen minutes.
+     * Returns the duration of the match.
      *
-     * @return minutes
+     * @return duration, in seconds (the chosen minutes times 60)
      */
     public int getSeconds() {
         return seconds;
