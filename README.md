@@ -1,221 +1,202 @@
-# DOPO Soccer
+# ⚽ DOPO Soccer
 
-A 2D "big head" soccer game built with Java Swing. Two players face each other on a side-view field, each defending a goal, and try to score by running, jumping, kicking and using their team's unique **power shot**.
+![Java](https://img.shields.io/badge/Java-21-orange) ![Swing](https://img.shields.io/badge/GUI-Swing-blue) ![dyn4j](https://img.shields.io/badge/physics-dyn4j%205.0.2-green) ![JUnit](https://img.shields.io/badge/tests-JUnit%205-red)
 
-Project for the **DOPO** course (Object-Oriented Development), Escuela Colombiana de Ingeniería Julio Garavito.
+A 2D **big-head soccer** game made with Java Swing. Two players face each other on a side-view field, each one defending a goal. They run, jump, kick and fire their team's **power shot** to score.
+
+Built for the **DOPO** course (Object-Oriented Development) at Escuela Colombiana de Ingeniería Julio Garavito.
 
 **Authors:** Elian Ibarra · Oscar Poveda
 
 ---
 
-## How to play
+## 📑 Contents
+- [Preview](#-preview)
+- [Screenshots](#-screenshots)
+- [Features](#-features)
+- [Controls](#-controls)
+- [Game modes](#-game-modes)
+- [Characters and power shots](#-characters-and-power-shots)
+- [Progression and saving](#-progression-and-saving)
+- [Getting started](#-getting-started)
+- [Tests, reports and docs](#-tests-reports-and-docs)
+- [Project structure](#-project-structure)
+- [Design](#-design)
 
-### Modalities
-- **Player vs Player (PVP):** two people on the same keyboard.
-- **Player vs Machine (PVM):** the right-side player is controlled by the AI.
+---
 
-### Game modes
-| Mode | Description | Modalities | Match types |
-|------|-------------|------------|-------------|
-| **Arcade** | A match between the two chosen characters (or a series of matches, in survival). | PVP and PVM | By goals, by time, survival (PVM only) |
-| **Tournament** | 8 teams: quarterfinals, semifinal and final against the Expert machine. 500-point prize for the champion. | PVM only | By goals or by time |
+## 🎥 Preview
 
-### Match types
-| Type | Rule |
-|------|------|
-| **By goals** | The first player to reach the goal target wins. |
-| **By time** | The player with more goals when time runs out wins. On a tie, **sudden death**: the next goal wins. |
-| **Survival** | Each player starts with 3 balls and loses one for every goal conceded. The match ends when a player has no balls left. Only against the machine. |
+https://github.com/user-attachments/assets/2ae1aff4-c814-44fc-aa84-138a429ec3b9
 
-### Survival
-Survival is a **series** of matches against the machine:
-- The machine starts **every** match with 3 balls; you keep the balls you have left from one match to the next.
-- While you win, a new match starts against the same rival (match 1, 2, 3...).
-- The series ends when you run out of balls. The result card shows how many matches you played and won.
-- Each match won or lost gives the usual points (see *Progression*).
+---
 
-### Tournament
-- You choose your team, the ball, the resolution and the match type (by goals or by time). The 7 rivals are the other teams, drawn into a random bracket.
-- You play your match on screen against the machine, always with the **Expert** profile. The other matches of each round are simulated.
-- Each of your matches is played in a stadium drawn at random.
-- After each round the bracket screen shows who goes on. If you lose a match, or end it by hand, you are out.
-- Winning the final makes you the **champion** and gives you the **500-point** prize on top of the match points.
+## 📸 Screenshots
 
-### Stadiums
-There are 9 stadiums: *default*, *day*, *sunset*, *rain*, *snow*, *fog*, *storm*, *albiceleste* and *empty*. Only the picture changes (weather, time of day and crowd); the field and its physics are the same in all of them.
-- **Arcade:** you choose the stadium after choosing the rival, before the ball.
-- **Tournament:** every match is played in a random stadium.
+<!--
+  To add a screenshot: edit this file on GitHub, delete the "Paste a screenshot here" text of a cell
+  and drag the image there (or paste it with Ctrl+V). GitHub uploads it and writes the link for you.
+  Keep each image on ONE line, or the table breaks.
+-->
 
-### Controls
+| Main menu | Character selection |
+|:---:|:---:|
+| <i><img width="1278" height="926" alt="image" src="https://github.com/user-attachments/assets/1eefd960-21ba-42f8-a767-7adf49da05ef" /></i> | <i><img width="1278" height="927" alt="image" src="https://github.com/user-attachments/assets/3144ceb9-2271-44d9-ac97-ef375816549d" />
+</i> |
+| **Arcade match** | **Power shots and effects** |
+| <i><img width="1278" height="927" alt="image" src="https://github.com/user-attachments/assets/bf1433a7-9f62-4b9d-8612-acf6fb63f709" /></i> | <i><img width="1278" height="929" alt="image" src="https://github.com/user-attachments/assets/971b9043-92e3-4890-8c7c-f2c95d7e6398" /></i> |
+| **Tournament bracket** | **Store** |
+| <i><img width="1277" height="929" alt="image" src="https://github.com/user-attachments/assets/45fc22bd-a0f0-4479-bbec-504b28467bae" /></i> | <i><img width="1281" height="928" alt="image" src="https://github.com/user-attachments/assets/6a2c3b76-a1fc-4c43-98e4-1ade672e420b" /></i> |
+| **Survival** | **Pause, save and open a game** |
+| <i><img width="1276" height="928" alt="image" src="https://github.com/user-attachments/assets/cd141478-d4f7-4f93-b289-e737cb2a58b9" /></i> | <i><img width="1278" height="929" alt="image" src="https://github.com/user-attachments/assets/ba1d2c5e-13d0-4974-8a72-0305d2a635f7" /></i> |
+
+---
+
+## ✨ Features
+- **2 modalities:** player vs player on one keyboard, or player vs machine.
+- **2 game modes:** Arcade and an 8-team Tournament.
+- **3 match types:** by goals, by time (with sudden death) and survival.
+- **8 national teams** sharing **4 power shots**, each one with its own effect on the rival.
+- **4 AI profiles:** Clumsy, Offensive, Defensive and Expert.
+- **Real 2D physics** (collisions, bounces, gravity) with dyn4j.
+- **Store:** unlock characters, buy balls and upgrade 4 stats.
+- **9 stadiums**, **3 resolutions**, music and sound effects with adjustable volume.
+- **Automatic progress saving** and **manual save/open** of a game in progress (`.ds` files).
+- **170 unit tests**, plus coverage (JaCoCo), static analysis (PMD) and Javadoc reports.
+
+---
+
+## 🎮 Controls
+
 | Action | Player 1 (left) | Player 2 (right) |
-|--------|-----------------|------------------|
+|--------|:---:|:---:|
 | Move | `A` / `D` | `←` / `→` |
 | Jump | `W` | `↑` |
 | Kick | `S` | `↓` |
 | Power shot | `Q` | Right `Ctrl` |
 | Pause / resume | `Esc` | `Esc` |
 
-### Characters and power shots
-There are 8 national teams sharing 4 power shots. Spain and Japan must be unlocked in the store. The in-game (Spanish) names are shown in parentheses.
+---
+
+## 🏟️ Game modes
+
+| Mode | What it is | Modalities | Match types |
+|------|------------|------------|-------------|
+| **Arcade** | One match between the chosen characters, in the chosen stadium. In survival, a series of matches | PVP · PVM | Goals · Time · Survival (PVM only) |
+| **Tournament** | 8 teams in a random bracket: quarterfinals, semifinal and final against the Expert AI. The other matches are simulated, and each of yours is played in a random stadium. The champion wins **+500 points** | PVM only | Goals · Time |
+
+| Match type | Rule |
+|------------|------|
+| **By goals** | The first to reach the goal target wins |
+| **By time** | Most goals when time runs out. A tie goes to **sudden death**: the next goal wins |
+| **Survival** | Each player has 3 balls and loses one per goal conceded. You keep your balls from one match to the next, while the machine starts with 3 every match. The series ends when you run out |
+
+**AI profiles:** *Clumsy* (chases the ball only 40 % of the time) · *Offensive* (always attacks) · *Defensive* (guards its goal) · *Expert* (reacts twice as fast and switches between attack and defense).
+
+---
+
+## 🌎 Characters and power shots
 
 | Power shot | Teams | Effect on the rival it hits |
 |------------|-------|-----------------------------|
-| **Blue Aura** (*Aura Azul*): straight and very fast | South Korea, Spain (800 pts) | Pushes them back toward their own goal |
-| **Lightning** (*Rayo*): straight and electrified, the highest damage | Cameroon, Argentina | Electrocuted for 3 s |
-| **Tornado** (*Tornado*): a low whirlwind that bounces along the ground | Nigeria, Japan (1200 pts) | Thrown into the air and knocked out for 3 s |
-| **Illusion** (*Ilusión*): the ball splits into 8, 7 of them fake | United States, Colombia | Confused for 2.5 s |
+| **Blue Aura**: straight and very fast | South Korea · Spain *(800 pts)* | **Pushed** back toward their own goal |
+| **Lightning**: straight, the highest damage | Cameroon · Argentina | **Electrocuted** for 3 s: can't jump, half speed |
+| **Tornado**: bounces along the ground | Nigeria · Japan *(1200 pts)* | **Knocked out** for 3 s: thrown into the air |
+| **Illusion**: the ball splits into 8, and 7 of them are fake | United States · Colombia | **Confused** for 2.5 s |
 
-The power bar fills over time (10 s to charge fully) and gets a bonus when you concede a goal. Kicks and power shots deal damage: when a player's life reaches 0, they are stunned for 3 s.
-
-### Artificial intelligence
-In Arcade PVM you choose the machine's profile (the tournament always uses *Expert*):
-
-| Profile | Behavior |
-|---------|----------|
-| **Clumsy** (*Torpe*) | Goes for the ball only 40 % of the time; otherwise it makes random moves. |
-| **Defensive** (*Defensiva*) | Guards its goal and only comes out when the ball is in its half. |
-| **Offensive** (*Ofensiva*) | Always chases the ball to attack. |
-| **Expert** (*Experta*) | Reacts twice as fast. Clears the ball when it is in its half, attacks when it is closer to the ball than the rival, and goes back to guard its goal when the rival has the ball. Shoots as soon as it is in front of the rival goal. |
-
-### Progression
-- Each match gives **100 points** to the winner and **25** to the loser. Against the machine only player 1 gets points. A match ended by hand gives no points.
-- The tournament champion also wins **500 points**.
-- Points are spent in the **store**: unlock characters, buy balls and upgrade stats (Speed, Jump, Kick, Survival, from 1 to 10; each level adds 10 %).
-- **Settings** let you change the music and sound-effects volume.
-- The field can be played in three resolutions: 960×540, 1280×720 and 1600×900.
-- Points, purchases and upgrades are **saved automatically** (see *Saving*).
-
-### Saving
-**Progress (automatic).** The profiles of both players (points, purchases, upgrades and selected ball) are saved in `DOPOSoccer.progress`, in the folder the game is run from (the project root). You never choose this file.
-- It is loaded when the game opens. If it does not exist, a new one is created with both players from zero. If it is damaged, the game warns you and starts from zero.
-- It is written again every time a profile changes: when you buy a character or a ball, upgrade a stat, or earn points at the end of a match.
-- The volumes of *Settings* are not saved: they start at their default values every time.
-
-**Saved games (manual).** A match in progress can be saved and played later:
-- **Save:** pause the match and press *GUARDAR PARTIDA*. Choose where to save it; the file gets the **`.ds`** extension (DOPO Soccer) if you don't write it. Arcade, survival and tournament matches can be saved, but not a match that already ended.
-- **Open:** on the home screen press *ABRIR PARTIDA* and choose a `.ds` file. The match opens **paused**, as it was (score, time, players, ball, stadium, tournament bracket or survival series); press *REANUDAR* to go on.
-- An opened game uses your **current** progress (the one in `DOPOSoccer.progress`), not the one you had when you saved it, so opening an old game never takes back points or purchases.
-- If the file is not a saved game or is damaged, the game shows an error and the current game is not touched.
+- The **power bar** fills in 10 s and gets **+25 %** when you concede a goal. Press the power key with a full bar to light up the **aura**, then touch the ball to fire.
+- Kicks and power shots deal **damage**. At 0 life a player is **stunned** for 3 s, then gets full life back.
+- The damage scales with the **Kick** stat of the player who shoots.
 
 ---
 
-## Requirements
-- **JDK 21** or newer (`java -version` and `javac -version` must work in the terminal).
-- The libraries are already included in [`lib/`](lib/):
-  - `dyn4j-5.0.2.jar`: 2D physics engine.
-  - `junit-platform-console-standalone-1.11.4.jar`: to compile and run the tests.
-- **Maven 3.9+** only to generate the reports and the Javadoc (see below). It is not needed to play.
+## 💰 Progression and saving
+- **Points:** 100 for a win, 25 for a loss. Against the machine only player 1 gets points, and a match ended by hand gives none. The tournament champion gets +500.
+- **Store:** unlock characters and balls, and upgrade **Speed, Jump, Kick and Survival** from 1 to 10 (+10 % per level). Each player has their own profile.
+- **Progress** (both profiles) is saved **automatically** in `DOPOSoccer.progress` and loaded at start-up.
+- **Saved games:** pause a match and press *GUARDAR PARTIDA* to save it as a `.ds` file. Open it later from the home screen with *ABRIR PARTIDA*: it comes back paused, exactly as it was (score, time, bracket or survival series).
+- Errors are shown in a message and written to `DOPOSoccer.log`.
 
-## Build and run
+---
 
-Run every command from the **project root** (the folder that contains `src`, `lib` and `assets`). If you run it from another folder, the game can't find its images and sounds.
+## 🚀 Getting started
 
-### Windows (PowerShell)
+**Requirements:** JDK 21+. The libraries are already in [`lib/`](lib/) (`dyn4j-5.0.2.jar` and the JUnit console launcher).
+
+Run every command from the **project root**, or the game won't find its images and sounds.
+
 ```powershell
-# Compile
+# Windows (PowerShell): compile and run
 javac -encoding UTF-8 -cp "lib/*" -d bin (Get-ChildItem src -Recurse -Filter *.java).FullName
-
-# Run
 java -cp "bin;lib/*" presentation.DOPOSoccerGUI
 ```
 
-### Linux / macOS / Git Bash
 ```bash
-# Compile
+# Linux / macOS: compile and run  (in Git Bash, use ";" instead of ":")
 javac -encoding UTF-8 -cp "lib/*" -d bin $(find src -name "*.java")
-
-# Run  (in Git Bash on Windows, use ";" instead of ":")
 java -cp "bin:lib/*" presentation.DOPOSoccerGUI
 ```
 
-Recompile after every code change before running again.
-
-### Run the tests
-After compiling:
-```powershell
-java -jar lib/junit-platform-console-standalone-1.11.4.jar execute -cp "bin;lib/dyn4j-5.0.2.jar" --scan-classpath
-```
-(On Linux/macOS, use `:` instead of `;`.)
-
-### Reports and documentation (JaCoCo, PMD and Javadoc)
-The [`pom.xml`](pom.xml) runs the tests and writes two reports into [`docs/informes/`](docs/informes/), and the code documentation into [`docs/apidocs/`](docs/apidocs/):
-
-| Output | Tool | What it has | Open |
-|--------|------|-------------|------|
-| **Tests** | JaCoCo | Test coverage (instructions and branches) of the `domain` package only | `docs/informes/jacoco/index.html` |
-| **Good practices** | PMD | Static analysis of `domain` and `presentation` (tests are not analyzed) | `docs/informes/pmd/pmd.html` |
-| **Documentation** | Javadoc | Every class of `domain` and `presentation`, with their attributes and methods (also the private ones), authors and version | `docs/apidocs/index.html` |
-
-**Requirement:** [Maven 3.9+](https://maven.apache.org/download.cgi) (`mvn -v` must work). The first run downloads dyn4j, JUnit and the plugins from Maven Central, so it needs internet.
-
-From the project root:
-```bash
-mvn clean verify
-```
-
-This compiles the code, runs all the tests (JUnit 5), and generates the two reports and the Javadoc. When it finishes, open the HTML files in a browser:
-```powershell
-# Windows (PowerShell)
-start docs/informes/jacoco/index.html
-start docs/informes/pmd/pmd.html
-start docs/apidocs/index.html
-```
-```bash
-# Linux / macOS
-xdg-open docs/informes/jacoco/index.html   # macOS: open
-xdg-open docs/informes/pmd/pmd.html
-xdg-open docs/apidocs/index.html
-```
-
-To generate only the Javadoc, without Maven, use the `javadoc` tool of the JDK (from the project root):
-```bash
-javadoc -encoding UTF-8 -docencoding UTF-8 -charset UTF-8 -cp "lib/dyn4j-5.0.2.jar" -sourcepath src -subpackages domain:presentation -private -author -version -d docs/apidocs
-```
-(If `javadoc` is not found, call it with its full path, for example `"C:\Program Files\Java\jdk-21\bin\javadoc.exe"`.)
-
-How to read them:
-- **JaCoCo:** the main page shows the total coverage of `domain`. Click the package, then a class, to see its code colored line by line: green means covered by the tests, yellow means a partly covered branch, and red means not covered.
-- **PMD:** lists each rule violation with its file, line and rule name. Click the rule name to read why it is a bad practice. `pmd.xml` has the same data for other tools.
-
-Notes:
-- The reports in `docs/informes/` and the Javadoc in `docs/apidocs/` are files in the repository: they show the code as it was the last time `mvn clean verify` was run. **Run it again after changing the code or the tests** to update them.
-- A failing test is shown in the console (`Tests run: ..., Failures: ...`) but does not stop the build, so the reports are always generated. The detail of each test is in `target/surefire-reports/`.
-- To run only the tests, without the reports: `mvn test`.
-- Maven compiles into `target/`, which can be deleted at any time (`mvn clean`).
-
-### From an IDE
-- **VS Code / IntelliJ:** add both `.jar` files from `lib/` as project libraries, mark `src` as the source folder and run `presentation.DOPOSoccerGUI` with the project root as the working directory. Because of the `pom.xml`, the IDE may offer to import the project as Maven: both ways work (Maven compiles into `target/` instead of `bin/`).
-- **BlueJ:** *Tools → Preferences → Libraries → Add File…*, add `lib/dyn4j-5.0.2.jar` and restart BlueJ.
+**From an IDE:** add both `.jar` files in `lib/` as libraries, mark `src` as the source folder, and run `presentation.DOPOSoccerGUI` with the project root as the working directory. The project can also be imported as Maven (`pom.xml`).
 
 ---
 
-## Project structure
+## 🧪 Tests, reports and docs
+
+```powershell
+# Unit tests (after compiling; on Linux/macOS use ":" instead of ";")
+java -jar lib/junit-platform-console-standalone-1.11.4.jar execute -cp "bin;lib/dyn4j-5.0.2.jar" --scan-classpath
+```
+
+```bash
+# Tests + reports + Javadoc (needs Maven 3.9+ and internet on the first run)
+mvn clean verify
+```
+
+| Output | Tool | Open |
+|--------|------|------|
+| Test coverage of `domain` | JaCoCo | `docs/informes/jacoco/index.html` |
+| Good practices | PMD | `docs/informes/pmd/pmd.html` |
+| Code documentation | Javadoc | `docs/apidocs/index.html` |
+
+---
+
+## 📁 Project structure
 ```
 DOPO-HeadSoccer/
 ├── src/
-│   ├── domain/         Game logic (DOPOSoccer facade, modes, match types, players, physics, AI, shots, effects)
-│   ├── presentation/   Swing GUI (DOPOSoccerGUI and views: menu, store, arcade, survival, tournament, match)
-│   └── tests/          JUnit 5 unit tests of the domain
-├── assets/             Images, fonts and sounds
-├── lib/                External libraries (dyn4j, JUnit)
+│   ├── domain/         Game logic: DOPOSoccer facade, modes, match types, players, physics, AI, shots, effects
+│   │   └── enums/      Shared names (Side, Action, MatchEvent, StatType, Team...)
+│   ├── presentation/   Swing GUI: DOPOSoccerGUI and the views (home, arcade, match, tournament)
+│   └── tests/          JUnit 5 tests of the domain
+├── assets/             Images (players, balls, flags, stadiums), font and sounds
+├── lib/                dyn4j and JUnit
 ├── design/             UML model in Astah (DOPOSoccer.asta)
-├── docs/               Documentation and retrospectives
-│   ├── informes/       JaCoCo and PMD reports (generated by mvn verify)
-│   └── apidocs/        Javadoc of the code (generated by mvn verify)
-├── pom.xml             Maven build: tests, JaCoCo, PMD and Javadoc
-├── DOPOSoccer.progress Saved progress of both players (created when the game runs)
-└── DOPOSoccer.log      Error log (created when an error happens)
+├── docs/               Guides, retrospectives, reports (informes/) and Javadoc (apidocs/)
+└── pom.xml             Maven build: tests, JaCoCo, PMD and Javadoc
 ```
 
-### Design
-- **Facade:** the GUI only talks to `domain.DOPOSoccer`.
-- **Strategy:** `MatchType` (match rules: `GoalsMatch`, `TimeMatch`, `SurvivalMatch`) and `PowerShot` (each character's shot).
-- **Template Method:** `AIController` fixes the decision loop and each AI profile implements `decide`.
-- **Modes:** `GameMode` has `ArcadeMode` (one match, or a survival series) and `TournamentMode` (the bracket, with a `BracketMatch` per match).
-- Effects (`Effect`) and modes (`GameMode`) are extended with new subclasses without touching the rest of the code.
-- Physics (collisions, bounces, gravity) is delegated to **dyn4j**, and only `PhysicsEngine` uses it.
-- **Persistence** uses Java serialization:
-  - `saveProgress` / `loadProgress` write and read the `PlayerProfile[]` of both players in the fixed progress file.
-  - `saveGame` writes the whole `DOPOSoccer`, and the static `openGame` reads it back as a **new** `DOPOSoccer` that the GUI uses from then on.
-  - `profiles` and `settings` are `transient` (they are not part of a saved game), and so are the dyn4j objects of `PhysicsEngine`: the physics world is rebuilt from the saved players and ball on the first step after opening.
-  - Errors reading or writing a file become a `DOPOSoccerException` (`SAVE_FAILED`, `LOAD_FAILED`, `GAME_SAVE_FAILED`, `GAME_OPEN_FAILED`), which the GUI logs in `DOPOSoccer.log` and shows.
+---
+
+## 🧩 Design
+
+### 🎨 UI design (Figma)
+<!-- Replace FIGMA_URL with the link to the Figma file (Share → Copy link) -->
+[![Figma](https://img.shields.io/badge/Figma-UI%20design-F24E1E?logo=figma&logoColor=white)](FIGMA_URL)
+
+<i>🔗 [Figma Design](https://www.figma.com/design/aYCP8sc0w1dV1e8FlRpfEZ/DOPO-HeadSoccer--Final-?node-id=0-1&p=f)</i>
+
+### 🏗️ Code design
+
+| Pattern | Where |
+|---------|-------|
+| **Facade** | The GUI only talks to `domain.DOPOSoccer` |
+| **Strategy** | `PlayerController` (human or AI), `PowerShot` (each team's shot), `MatchType` (match rules) |
+| **Template Method** | `Effect` (what a player can do while affected), `GameMode` (`ArcadeMode`, `TournamentMode`), `AIController` (`decide`) |
+| **Factory method** | `PowerShot.createEffect()`: each shot creates its own effect |
+| **Composition** | `TournamentMode` ◆── `BracketMatch`, `GameCharacter` ──► `PowerShot` |
+| **MVC** | Domain = model, views = view, `DOPOSoccerGUI` = controller |
+
+- **Physics** is delegated to **dyn4j**, and only `PhysicsEngine` uses it. The domain works in pixels and dyn4j in meters.
+- **Persistence** uses Java serialization: the `PlayerProfile[]` goes in the progress file, and the whole `DOPOSoccer` goes in a `.ds` file.
+- **Errors** are `DOPOSoccerException`s with a message for the user, which the GUI shows in a dialog.
