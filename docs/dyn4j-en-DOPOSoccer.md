@@ -1,7 +1,5 @@
 # dyn4j en DOPOSoccer
 
-Nov 26, 2026 · @Oscar
-
 ## Qué es dyn4j y dónde se usa
 
 dyn4j 5.0.2 es un motor de física 2D en Java: calcula gravedad, choques, rebotes y fricción entre cuerpos. En DOPOSoccer **solo una clase lo importa: `PhysicsEngine`**, que hace de adaptador (patrón Adapter) entre el dominio y la librería.
@@ -191,7 +189,7 @@ Los goles no salen de aquí: el `Match` los revisa comparando la posición del b
 
 Casi cualquier extensión física se hace con una de estas seis palancas, sin tocar dyn4j directamente fuera de `PhysicsEngine`. La regla de oro: **el dominio cambia sus entidades (`Entity`) y `PhysicsEngine` lo traduce en el siguiente `step`**.
 
-| Quieres que… | Palanca | Dónde se toca | Ejemplo que practicamos |
+| Quieres que… | Palanca | Dónde se toca | Ejemplo |
 | --- | --- | --- | --- |
 | Algo salga disparado de golpe | Cambiar la velocidad **una vez** con `setVelocity` | En `launch` de un poder o en `onApply` de un efecto | Tiros de poder, Empuje, Inconsciente |
 | Algo se empuje **poco a poco** | Sumar a la velocidad en **cada tick**: `vx += fuerza × dt` | `Match.update`, antes de `physics.step` | Viento, temblor del terremoto |
